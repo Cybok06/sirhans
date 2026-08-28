@@ -170,7 +170,9 @@ def _normalize_status_text(value):
     return text
 
 def _normalize_source(value):
-    src = (value or "").strip().lower()
+    # Legacy orders may contain a non-string source value.  Treat unknown
+    # values as the default main source instead of breaking an export.
+    src = _normalize_text(value).lower()
     if src in {"campus"}:
         return "campus"
     return "main"

@@ -32,6 +32,8 @@ class UndeliveredExportTests(unittest.TestCase):
                 "order_id": "ORDER-1",
                 "created_at": datetime(2026, 8, 28, 9, 0),
                 "status": "processing",
+                # A malformed legacy source must not stop every export.
+                "source": {"origin": "unknown"},
                 "items": [
                     {"serviceName": "MTN", "phone": "0200000001", "value": "1GB", "line_status": "delivered"},
                     {"serviceName": "MTN", "phone": "0200000002", "value": "2GB", "line_status": "processing"},
@@ -58,6 +60,9 @@ class UndeliveredExportTests(unittest.TestCase):
         parsed = self.orders._parse_date("2026-08-28T09:30")
 
         self.assertEqual(datetime(2026, 8, 28, 9, 30), parsed)
+
+    def test_normalize_source_accepts_legacy_non_text_value(self):
+        self.assertEqual("main", self.orders._normalize_source({"origin": "unknown"}))
 
 
 if __name__ == "__main__":

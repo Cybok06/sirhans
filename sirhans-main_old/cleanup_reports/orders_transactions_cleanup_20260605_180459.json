@@ -1,0 +1,15 @@
+{
+  "mode": "dry_run",
+  "months": 3,
+  "cutoff_utc": "2026-03-05 18:04:59.294771",
+  "matched": {
+    "orders": 11030,
+    "transactions": 12184,
+    "total": 23214
+  },
+  "deleted": {
+    "orders": 0,
+    "transactions": 0,
+    "total": 0
+  }
+}

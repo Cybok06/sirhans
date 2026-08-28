@@ -1,0 +1,15 @@
+{
+  "mode": "execute",
+  "months": 3,
+  "cutoff_utc": "2026-03-05 18:08:49.237905",
+  "matched": {
+    "orders": 11032,
+    "transactions": 12186,
+    "total": 23218
+  },
+  "deleted": {
+    "orders": 11032,
+    "transactions": 12186,
+    "total": 23218
+  }
+}

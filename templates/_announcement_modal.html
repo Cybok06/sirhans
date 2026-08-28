@@ -1,0 +1,306 @@
+{% if announcements %}
+  <style>
+    .announcement-modal .modal-dialog{
+      max-width:680px;
+    }
+    .announcement-modal .modal-content{
+      border:0;
+      border-radius:28px;
+      overflow:hidden;
+      box-shadow:0 32px 90px rgba(2,8,23,.26);
+      background:
+        radial-gradient(circle at top right, rgba(255,255,255,.20), transparent 28%),
+        linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+    }
+    .announcement-shell{
+      position:relative;
+      padding:1.4rem;
+      background:
+        radial-gradient(circle at top left, rgba(14,165,233,.16), transparent 28%),
+        radial-gradient(circle at bottom right, rgba(56,189,248,.14), transparent 30%);
+    }
+    .announcement-shell.tone-success{
+      background:
+        radial-gradient(circle at top left, rgba(34,197,94,.16), transparent 28%),
+        radial-gradient(circle at bottom right, rgba(74,222,128,.14), transparent 30%);
+    }
+    .announcement-shell.tone-warning{
+      background:
+        radial-gradient(circle at top left, rgba(245,158,11,.18), transparent 28%),
+        radial-gradient(circle at bottom right, rgba(250,204,21,.16), transparent 32%);
+    }
+    .announcement-shell.tone-critical{
+      background:
+        radial-gradient(circle at top left, rgba(239,68,68,.18), transparent 28%),
+        radial-gradient(circle at bottom right, rgba(251,113,133,.16), transparent 32%);
+    }
+    .announcement-panel{
+      border-radius:22px;
+      background:rgba(255,255,255,.88);
+      border:1px solid rgba(148,163,184,.18);
+      backdrop-filter:blur(10px);
+      padding:1.2rem 1.2rem 1rem;
+    }
+    .announcement-kicker{
+      display:inline-flex;
+      align-items:center;
+      gap:.45rem;
+      border-radius:999px;
+      padding:.45rem .8rem;
+      font-size:.77rem;
+      font-weight:800;
+      text-transform:uppercase;
+      letter-spacing:.14em;
+      background:rgba(14,165,233,.10);
+      color:#075985;
+      border:1px solid rgba(14,165,233,.16);
+    }
+    .announcement-shell.tone-success .announcement-kicker{
+      background:rgba(34,197,94,.12);
+      color:#166534;
+      border-color:rgba(34,197,94,.18);
+    }
+    .announcement-shell.tone-warning .announcement-kicker{
+      background:rgba(245,158,11,.14);
+      color:#92400e;
+      border-color:rgba(245,158,11,.18);
+    }
+    .announcement-shell.tone-critical .announcement-kicker{
+      background:rgba(239,68,68,.12);
+      color:#991b1b;
+      border-color:rgba(239,68,68,.18);
+    }
+    .announcement-headline{
+      font-weight:800;
+      color:#0f172a;
+      letter-spacing:-.02em;
+      margin:.95rem 0 .65rem;
+      font-size:clamp(1.4rem, 2.1vw, 2rem);
+    }
+    .announcement-message{
+      color:#334155;
+      line-height:1.72;
+      font-size:1rem;
+    }
+    .announcement-meta{
+      display:flex;
+      flex-wrap:wrap;
+      gap:.55rem;
+      margin-top:1rem;
+    }
+    .announcement-chip{
+      display:inline-flex;
+      align-items:center;
+      gap:.35rem;
+      font-size:.8rem;
+      color:#475569;
+      background:#f8fafc;
+      border:1px solid rgba(148,163,184,.16);
+      border-radius:999px;
+      padding:.42rem .72rem;
+    }
+    .announcement-progress{
+      display:flex;
+      gap:.45rem;
+      margin-top:1rem;
+    }
+    .announcement-progress-dot{
+      width:10px;
+      height:10px;
+      border-radius:999px;
+      background:rgba(148,163,184,.38);
+    }
+    .announcement-progress-dot.active{
+      background:#0ea5e9;
+      box-shadow:0 0 0 5px rgba(14,165,233,.12);
+    }
+    .announcement-shell.tone-success .announcement-progress-dot.active{ background:#16a34a; box-shadow:0 0 0 5px rgba(34,197,94,.12); }
+    .announcement-shell.tone-warning .announcement-progress-dot.active{ background:#d97706; box-shadow:0 0 0 5px rgba(245,158,11,.12); }
+    .announcement-shell.tone-critical .announcement-progress-dot.active{ background:#dc2626; box-shadow:0 0 0 5px rgba(239,68,68,.12); }
+    .announcement-actions{
+      display:flex;
+      flex-wrap:wrap;
+      align-items:center;
+      justify-content:flex-end;
+      gap:.75rem;
+      margin-top:1.2rem;
+    }
+    .announcement-btn{
+      border:0;
+      border-radius:999px;
+      padding:.88rem 1.35rem;
+      font-weight:800;
+      min-width:180px;
+      color:#fff;
+      background:linear-gradient(135deg, #0284c7, #0ea5e9);
+      box-shadow:0 18px 40px rgba(14,165,233,.24);
+    }
+    .announcement-shell.tone-success .announcement-btn{
+      background:linear-gradient(135deg, #15803d, #22c55e);
+      box-shadow:0 18px 40px rgba(34,197,94,.22);
+    }
+    .announcement-shell.tone-warning .announcement-btn{
+      background:linear-gradient(135deg, #d97706, #f59e0b);
+      box-shadow:0 18px 40px rgba(245,158,11,.22);
+    }
+    .announcement-shell.tone-critical .announcement-btn{
+      background:linear-gradient(135deg, #dc2626, #ef4444);
+      box-shadow:0 18px 40px rgba(239,68,68,.22);
+    }
+  </style>
+
+  <script id="announcement-data" type="application/json">{{ announcements | tojson }}</script>
+
+  <div class="modal fade announcement-modal" id="announcementModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="announcement-shell tone-info" id="announcementShell">
+          <div class="announcement-panel">
+            <button type="button" class="btn-close position-absolute top-0 end-0 m-4" data-bs-dismiss="modal" aria-label="Close"></button>
+            <div class="announcement-kicker" id="announcementKicker">
+              <i class="bi bi-megaphone"></i>
+              <span id="announcementToneLabel">Announcement</span>
+            </div>
+            <h3 class="announcement-headline" id="announcementTitle"></h3>
+            <div class="announcement-message" id="announcementMessage"></div>
+            <div class="announcement-meta">
+              <span class="announcement-chip" id="announcementCreatedChip">
+                <i class="bi bi-clock-history"></i>
+                <span id="announcementCreatedText"></span>
+              </span>
+            </div>
+            <div class="announcement-progress" id="announcementProgress"></div>
+            <div class="announcement-actions">
+              <button type="button" class="announcement-btn" id="announcementAcknowledgeBtn">I understand</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      const dataEl = document.getElementById("announcement-data");
+      const modalEl = document.getElementById("announcementModal");
+      if (!dataEl || !modalEl) return;
+
+      const STORAGE_KEY = "sirhans-announcement-dismissed-v1";
+      let announcements = [];
+
+      try {
+        announcements = JSON.parse(dataEl.textContent || "[]");
+      } catch (err) {
+        announcements = [];
+      }
+
+      if (!Array.isArray(announcements) || !announcements.length) return;
+
+      function escapeHtml(value) {
+        return String(value || "")
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#39;");
+      }
+
+      function readDismissed() {
+        try {
+          const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+          return Array.isArray(parsed) ? parsed : [];
+        } catch (err) {
+          return [];
+        }
+      }
+
+      function writeDismissed(ids) {
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(ids));
+        } catch (err) {}
+      }
+
+      function queueAnnouncements() {
+        const dismissed = new Set(readDismissed());
+        return announcements.filter(function (item) {
+          return item && item._id && !dismissed.has(item._id);
+        });
+      }
+
+      const titleEl = document.getElementById("announcementTitle");
+      const messageEl = document.getElementById("announcementMessage");
+      const createdTextEl = document.getElementById("announcementCreatedText");
+      const toneLabelEl = document.getElementById("announcementToneLabel");
+      const progressEl = document.getElementById("announcementProgress");
+      const shellEl = document.getElementById("announcementShell");
+      const acknowledgeBtn = document.getElementById("announcementAcknowledgeBtn");
+
+      let queue = queueAnnouncements();
+      let currentIndex = 0;
+      let modal = null;
+
+      function renderProgress() {
+        progressEl.innerHTML = "";
+        queue.forEach(function (_, index) {
+          const dot = document.createElement("span");
+          dot.className = "announcement-progress-dot" + (index === currentIndex ? " active" : "");
+          progressEl.appendChild(dot);
+        });
+      }
+
+      function renderCurrent() {
+        const item = queue[currentIndex];
+        if (!item) return;
+
+        shellEl.className = "announcement-shell tone-" + (item.tone || "info");
+        toneLabelEl.textContent = item.tone_label || "Announcement";
+        titleEl.textContent = item.title || "Announcement";
+        messageEl.innerHTML = escapeHtml(item.message || "").replace(/\n/g, "<br>");
+        createdTextEl.textContent = item.created_at_label ? "Posted " + item.created_at_label : "Published recently";
+        acknowledgeBtn.textContent = queue.length > 1 ? "I understand and continue" : "I understand";
+        renderProgress();
+      }
+
+      function openQueue() {
+        queue = queueAnnouncements();
+        currentIndex = 0;
+        if (!queue.length) return;
+        renderCurrent();
+        modal.show();
+      }
+
+      acknowledgeBtn.addEventListener("click", function () {
+        const item = queue[currentIndex];
+        if (!item || !item._id) {
+          if (modal) modal.hide();
+          return;
+        }
+
+        const dismissed = readDismissed();
+        if (!dismissed.includes(item._id)) {
+          dismissed.push(item._id);
+          writeDismissed(dismissed);
+        }
+
+        queue = queueAnnouncements();
+        if (!queue.length) {
+          if (modal) modal.hide();
+          return;
+        }
+
+        if (currentIndex >= queue.length) {
+          currentIndex = 0;
+        }
+        renderCurrent();
+      });
+
+      document.addEventListener("DOMContentLoaded", function () {
+        if (!window.bootstrap) return;
+        modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+        if (queue.length) {
+          openQueue();
+        }
+      });
+    })();
+  </script>
+{% endif %}

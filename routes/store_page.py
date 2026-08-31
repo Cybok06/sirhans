@@ -219,7 +219,7 @@ if not _is_pk(PAYSTACK_PUBLIC_KEY) and _is_pk(PAYSTACK_SECRET_KEY):
 if not _is_sk(PAYSTACK_SECRET_KEY) and _is_sk(PAYSTACK_PUBLIC_KEY):
     PAYSTACK_SECRET_KEY = PAYSTACK_PUBLIC_KEY
 
-TARGET_STORE_HOST: str = os.getenv("STORE_PUBLIC_HOST", "www.hansmart.store")
+TARGET_STORE_HOST: str = os.getenv("STORE_PUBLIC_HOST", "hansmart.store")
 STORE_PATH_PREFIXES: Tuple[str, ...] = ("/s/",)
 DEFAULT_STORE_SHARE_IMAGE = "https://imagedelivery.net/h9fmMoa1o2c2P55TcWJGOg/29d9af76-b72e-4070-954e-184224478100/public"
 RESULTS_CHECKER_SERVICE_ID = "results_checker_service"

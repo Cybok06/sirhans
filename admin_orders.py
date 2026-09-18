@@ -172,14 +172,39 @@ def _order_refund_base(order):
 
     charged = amount(order.get("charged_amount", 0))
     items = [item for item in (order.get("items") or []) if isinstance(item, dict)]
-    bases = [item.get("base_amount") for item in items]
+    bases = [item.get("agent_base_amount", item.get("base_amount")) for item in items]
+    if order.get("store_slug"):
+        bases = [
+            item["agent_base_amount"] if item.get("agent_base_amount") is not None else
+            amount(item["amount"]) - amount(item["store_profit_amount"])
+            if item.get("amount") is not None and item.get("store_profit_amount") is not None else
+            item.get("base_amount")
+            for item in items
+        ]
     if any(base is not None for base in bases):
         if any(base is None for base in bases):
             raise ValueError("Order has incomplete base prices; review before refunding.")
         base_total = sum((amount(base) for base in bases), Decimal("0"))
     else:
+        if order.get("store_slug"):
+            raise ValueError("Store order has no recorded agent base price; review before refunding.")
         base_total = charged
     return float(min(base_total, charged).quantize(Decimal("0.01")))
+
+
+def _order_wallet_owner(order):
+    if order.get("store_slug"):
+        owner = order.get("store_owner_id")
+        if not owner:
+            store = db["stores"].find_one({"slug": order["store_slug"]}, {"owner_id": 1}) or {}
+            owner = store.get("owner_id")
+    else:
+        owner = order.get("user_id")
+    if isinstance(owner, str) and ObjectId.is_valid(owner):
+        owner = ObjectId(owner)
+    if not owner or not users_col.find_one({"_id": owner}, {"_id": 1}):
+        raise ValueError("Cannot find the order's agent wallet owner; review store ownership.")
+    return owner
 
 
 def _normalize_text(value):
@@ -816,9 +841,9 @@ def _apply_status_change(order_ids: List[ObjectId], new_status: str, reason: str
 
             # Refunded → single wallet credit based on charged_amount
             if new_status == "refunded":
-                charged_amount = _order_refund_base(order)
-                user_id = order.get("user_id")
                 already_refunded = bool(order.get("refunded_at")) or (old_status == "refunded")
+                charged_amount = 0 if already_refunded else _order_refund_base(order)
+                user_id = None if already_refunded else _order_wallet_owner(order)
 
                 if not already_refunded and (charged_amount <= 0 or not user_id):
                     errors.append(f"{oid}: no refundable base price or wallet owner.")
@@ -854,6 +879,7 @@ def _apply_status_change(order_ids: List[ObjectId], new_status: str, reason: str
                 if not already_refunded:
                     update_doc["refunded_amount"] = charged_amount
                     update_doc["refund_basis"] = "base_price"
+                    update_doc["refunded_user_id"] = user_id
 
             res = orders_col.update_one({"_id": oid}, {"$set": update_doc})
             if res.modified_count:
@@ -1024,7 +1050,10 @@ def admin_view_orders():
                 o["refund_base_amount"] = None
             o["export_info"] = exported_by_order.get(str(o.get("_id")))
             o["order_scope"], o["item_count"] = _classify_order(o.get("items") or [])
-            uid = o.get("user_id")
+            try:
+                uid = _order_wallet_owner(o) if o.get("store_slug") else o.get("user_id")
+            except ValueError:
+                uid = None
             if isinstance(uid, str):
                 try:
                     uid = ObjectId(uid)

@@ -2481,6 +2481,7 @@ def place_store_order(payload: Dict[str, Any], channel: str = "store_web") -> Tu
 
     order_doc = {
         "user_id": user_id,
+        "store_owner_id": store_doc.get("owner_id"),
         "store_slug": slug,
         "order_id": order_id,
         "items": results,
@@ -3498,6 +3499,7 @@ def store_checkout_paystack(slug: str):
 
         order_doc = {
             "user_id": (ObjectId(session["user_id"]) if session.get("user_id") else None),
+            "store_owner_id": store_doc.get("owner_id"),
             "store_slug": slug,
             "order_id": order_id,
             "items": results,

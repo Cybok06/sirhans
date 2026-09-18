@@ -92,6 +92,31 @@ class UndeliveredExportTests(unittest.TestCase):
     def test_normalize_source_accepts_legacy_non_text_value(self):
         self.assertEqual("main", self.orders._normalize_source({"origin": "unknown"}))
 
+    def test_guest_store_refund_credits_verified_agent_base(self):
+        module = self.orders
+        module.orders_col = MagicMock()
+        module.users_col = MagicMock()
+        module.balances_col = MagicMock()
+        module.transactions_col = MagicMock()
+        owner = module.ObjectId()
+        module.users_col.find_one.return_value = {"_id": owner}
+        module.orders_col.find_one.return_value = {
+            "order_id": "HAN9036178", "user_id": None, "store_slug": "test-store",
+            "store_owner_id": owner, "status": "failed", "charged_amount": 14.50,
+            "items": [{"base_amount": 12.15, "amount": 14.50, "store_profit_amount": 2.35}],
+        }
+        module.orders_col.update_one.return_value.modified_count = 1
+        count, errors = module._apply_status_change([module.ObjectId()], "refunded")
+        self.assertEqual((1, []), (count, errors))
+        call = module.balances_col.update_one.call_args
+        self.assertEqual({"user_id": owner}, call.args[0])
+        self.assertEqual(12.15, call.args[1]["$inc"]["amount"])
+        self.assertEqual(owner, module.orders_col.update_one.call_args.args[1]["$set"]["refunded_user_id"])
+
+    def test_store_refund_does_not_use_retail_amount_without_base(self):
+        with self.assertRaises(ValueError):
+            self.orders._order_refund_base({"store_slug": "test-store", "charged_amount": 14.50})
+
     def test_refunded_order_can_be_cancelled_without_another_wallet_credit(self):
         module = self.orders
         module.orders_col = MagicMock()

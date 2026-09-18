@@ -255,16 +255,73 @@
       filter:brightness(.97);
       color:#fff;
     }
+    /* Store receipts have their own theme; public invoices retain their styling. */
+    body.store-receipt{
+      background:#edf2ec;
+      color:#203c34;
+      padding:40px 20px;
+    }
+    .store-receipt .invoice-modal{
+      max-width:680px;
+      padding:32px;
+      border-radius:12px;
+      border:1px solid #d7e2d7;
+      border-top:5px solid #285c48;
+      background:#fffef9;
+      box-shadow:0 20px 65px rgba(32,60,52,.08);
+      display:grid;
+      grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+      column-gap:24px;
+    }
+    .store-receipt .invoice-modal > *{ grid-column:1 / -1; min-width:0; }
+    .store-receipt .modal-header-row{ margin-bottom:28px; }
+    .store-receipt .modal-title-small{ font-size:.72rem; letter-spacing:.14em; color:#285c48; font-weight:800; }
+    .store-receipt .btn-close-x{ display:grid; place-items:center; width:36px; height:36px; border:1px solid #d7e2d7; border-radius:50%; color:#285c48; }
+    .store-receipt .status-icon-wrap{ grid-column:2; grid-row:2; align-items:center; margin:0 0 28px; }
+    .store-receipt .status-icon-img{ width:100%; max-width:220px; max-height:220px; object-fit:contain; }
+    .store-receipt .store-receipt-heading{ grid-column:1; grid-row:2; align-self:center; margin-bottom:28px; }
+    .store-receipt-eyebrow{ font-size:.73rem; color:#5a7567; margin-bottom:10px; }
+    .store-receipt-heading h1{ font-family:Georgia,serif; font-size:2.25rem; line-height:1.12; letter-spacing:-.045em; margin:0 0 12px; }
+    .store-receipt-heading p{ font-size:.84rem; line-height:1.6; color:#617269; margin-bottom:16px; }
+    .store-order-status{ display:inline-flex; align-items:center; gap:7px; background:#e8efe3; color:#28533f; padding:6px 12px; border-radius:6px; font-size:.72rem; font-weight:700; }
+    .store-order-status i{ font-size:.4rem; }
+    .store-receipt .info-card{ background:#f0f3eb; border:1px solid #e0e7da; border-radius:8px; padding:16px; margin-bottom:26px; }
+    .store-receipt .info-row{ gap:18px 16px; }
+    .store-receipt .info-item{ width:calc(50% - 8px); padding:0; }
+    .store-receipt .info-label{ color:#627568; font-size:.68rem; text-transform:uppercase; letter-spacing:.07em; }
+    .store-receipt .info-value{ white-space:normal; overflow-wrap:anywhere; font-size:.83rem; margin-top:5px; font-variant-numeric:tabular-nums; }
+    .store-receipt .section-label{ text-transform:uppercase; letter-spacing:.1em; font-size:.7rem; color:#627568; margin-bottom:8px; }
+    .store-receipt .item-list li{ gap:16px; padding:16px 0; border-bottom:1px dashed #d3dfd0; }
+    .store-receipt .item-left{ min-width:0; overflow-wrap:anywhere; gap:5px; }
+    .store-receipt .item-service{ font-weight:700; }
+    .store-receipt .item-meta{ color:#627568; }
+    .store-receipt .total-row{ background:#203c34; color:#fffef9; padding:19px 20px; border-radius:8px; margin-top:18px; align-items:center; gap:12px; }
+    .store-receipt .total-row span:last-child{ font-size:1.5rem; letter-spacing:-.04em; font-variant-numeric:tabular-nums; }
+    .store-receipt .actions-row{ display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:24px; }
+    .store-receipt .actions-row .btn-soft{ display:none; }
+    .store-receipt .btn-whatsapp,.store-receipt .btn-primary{ border-radius:8px; padding:13px 10px; font-size:.8rem; font-weight:600; box-shadow:none; }
+    .store-receipt .btn-whatsapp{ background:transparent; color:#285c48; border:1px solid #b8ccbb; }
+    .store-receipt .btn-primary{ background:#285c48; }
+    .store-receipt a:focus-visible,.store-receipt button:focus-visible{ outline:3px solid #be8c37; outline-offset:4px; }
+    @media(max-width:480px){
+      body.store-receipt{ padding:16px 10px; align-items:flex-start; }
+      .store-receipt .invoice-modal{ padding:22px 18px; column-gap:12px; }
+      .store-receipt-heading h1{ font-size:1.8rem; }
+      .store-receipt .status-icon-wrap{ grid-column:1 / -1; grid-row:2; margin-bottom:18px; }
+      .store-receipt .status-icon-img{ max-width:180px; }
+      .store-receipt .store-receipt-heading{ grid-column:1 / -1; grid-row:3; text-align:center; }
+      .store-receipt .actions-row{ grid-template-columns:1fr; }
+    }
   </style>
 </head>
-<body>
+<body{% if order.store_slug %} class="store-receipt"{% endif %}>
 <div class="invoice-modal">
 
   <!-- Header row -->
   <div class="modal-header-row">
     {% set item_count = order["items"]|length if order["items"] is defined else 0 %}
     <div class="modal-title-small">
-      Your Cart ({{ item_count }})
+      {% if order.store_slug %}<i class="bi bi-shop me-2" aria-hidden="true"></i>STORE RECEIPT{% else %}Your Cart ({{ item_count }}){% endif %}
     </div>
 
     <!-- Close goes back to homepage -->
@@ -276,12 +333,19 @@
   <!-- Success illustration -->
   <div class="status-icon-wrap">
     <img
-      src="https://res.cloudinary.com/dcmewvlyx/image/upload/v1764665465/Successful_purchase-pana_mxuirj.png"
+      src="{{ 'https://imagedelivery.net/h9fmMoa1o2c2P55TcWJGOg/f60235a9-087c-4a9f-4397-f04c42518100/public' if order.store_slug else 'https://res.cloudinary.com/dcmewvlyx/image/upload/v1764665465/Successful_purchase-pana_mxuirj.png' }}"
       alt="Payment Successful"
       class="status-icon-img">
   </div>
 
- 
+  {% if order.store_slug %}
+  <div class="store-receipt-heading">
+    <div class="store-receipt-eyebrow">Thanks for shopping with us</div>
+    <h1>Your order, all in one place.</h1>
+    <p>Keep this receipt handy for your records.</p>
+    <span class="store-order-status"><i class="bi bi-circle-fill" aria-hidden="true"></i> {{ '-Refunded' if order.status == 'refunded' else (order.status or 'received')|replace('_', ' ')|capitalize }}</span>
+  </div>
+  {% endif %}
 
   <!-- Info card (Order code, Date, Payment method, Total) -->
   <div class="info-card">

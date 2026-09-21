@@ -1,0 +1,2328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title>{{ store.name or 'Store' }}</title>
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+
+  <meta name="theme-color" content="#0F766E"/>
+
+  {% if canonical_url %}
+    <link rel="canonical" href="{{ canonical_url }}">
+  {% endif %}
+
+  <meta name="description" content="{{ share_description or ('Shop bundles & services from ' ~ store.name) }}"/>
+
+  <!-- Social link previews -->
+  <meta property="og:title" content="{{ share_title or store.name or 'Store' }}"/>
+  <meta property="og:description" content="{{ share_description or ('Shop bundles & services from ' ~ store.name) }}"/>
+  <meta property="og:type" content="website"/>
+  {% if canonical_url %}
+    <meta property="og:url" content="{{ canonical_url }}"/>
+  {% endif %}
+  <meta property="og:site_name" content="{{ store.name or 'Store' }}"/>
+  <meta property="og:image" content="{{ share_image_url }}"/>
+  <meta property="og:image:secure_url" content="{{ share_image_url }}"/>
+  <meta property="og:image:alt" content="{{ (store.name or 'Store') ~ ' logo' }}"/>
+  <meta property="og:locale" content="en_GH"/>
+
+  <meta name="twitter:card" content="summary_large_image"/>
+  <meta name="twitter:title" content="{{ share_title or store.name or 'Store' }}"/>
+  <meta name="twitter:description" content="{{ share_description or ('Shop bundles & services from ' ~ store.name) }}"/>
+  <meta name="twitter:image" content="{{ share_image_url }}"/>
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Store",
+    "name": {{ (store.name or 'Store') | tojson }},
+    "url": {{ (canonical_url or '') | tojson }},
+    "image": {{ (share_image_url or '') | tojson }},
+    "logo": {{ (share_image_url or '') | tojson }}
+  }
+  </script>
+
+  <link rel="icon" type="image/png"
+        href="https://imagedelivery.net/h9fmMoa1o2c2P55TcWJGOg/305ddb8b-8208-411f-4c44-8aa45d343300/public">
+
+  <!-- Fonts & Bootstrap -->
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet"/>
+
+  <style>
+    :root{
+      --primary:#0F766E;
+      --primary-2:#14B8A6;
+      --accent:#1D4ED8;
+      --accent-2:#F59E0B;
+      --bg:#F6F8FB;
+      --text:#111827;
+      --ink:#0B1220;
+      --muted:#64748B;
+      --card:#ffffff;
+      --line:rgba(15,23,42,.10);
+      --line-strong:rgba(15,23,42,.16);
+      --shadow:0 16px 36px rgba(15,23,42,.08);
+      --shadow2:0 26px 68px rgba(15,23,42,.14);
+      --glass:rgba(255,255,255,.86);
+      --glass2:rgba(255,255,255,.94);
+    }
+
+    html,body{ height:100%; }
+    body{
+      color:var(--text);
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      -webkit-font-smoothing:antialiased;
+      background:
+        linear-gradient(180deg, #ffffff 0, var(--bg) 260px, #EEF2F7 100%),
+        radial-gradient(circle at 10% 0, rgba(20,184,166,.16), transparent 36%),
+        radial-gradient(circle at 88% 8%, rgba(29,78,216,.12), transparent 38%),
+        var(--bg);
+      overflow-x:hidden;
+    }
+    .container-wide{ max-width:1180px; }
+
+    :focus-visible{
+      outline: 3px solid rgba(20,184,166,.32);
+      outline-offset: 2px;
+      border-radius: 12px;
+    }
+
+    .reveal{
+      opacity:0;
+      transform: translateY(10px);
+      transition: opacity .55s ease, transform .55s ease;
+    }
+    .reveal.in{ opacity:1; transform: translateY(0); }
+
+    .navbar{
+      background:rgba(255,255,255,.92);
+      backdrop-filter:saturate(170%) blur(14px);
+      border-bottom:1px solid var(--line);
+      box-shadow:0 10px 28px rgba(15,23,42,.06);
+    }
+    .brand-wrap{
+      display:flex; align-items:center; gap:.75rem;
+      color:var(--ink); text-decoration:none;
+      min-width: 0;
+    }
+    .brand-logo{
+      width:44px; height:44px;
+      border-radius:16px;
+      border:1px solid rgba(15,23,42,.08);
+      object-fit:cover; display:block;
+      background:#fff;
+      box-shadow:0 10px 24px rgba(15,23,42,.08);
+      flex: 0 0 auto;
+    }
+    .brand-text{
+      color:var(--ink);
+      font-weight:900;
+      letter-spacing:.10em;
+      font-size:.88rem;
+      text-transform:uppercase;
+      line-height: 1.1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 56vw;
+    }
+    .brand-sub{ font-size:.78rem; color:var(--muted); line-height: 1.1; }
+    .nav-link{ color:#334155 !important; font-weight:800; font-size:.9rem; }
+    .nav-link:hover{ color:var(--primary) !important; }
+
+    .btn-pill{ border-radius:999px; font-weight:900; padding:.72rem 1.5rem; font-size:.92rem; }
+    .btn-darkish{
+      background:linear-gradient(135deg,#0f172a,#111827);
+      border:1px solid rgba(15,23,42,.18);
+      color:#f8fafc;
+      box-shadow:0 18px 40px rgba(15,23,42,.18);
+      transition: transform .15s ease, filter .15s ease;
+    }
+    .btn-darkish:hover{ filter:brightness(.98); transform:translateY(-1px); color:#fff; }
+    .services-section{ padding:1.6rem 0 4.5rem; }
+    .section-title{ font-weight:950; letter-spacing:.16em; text-transform:uppercase; font-size:.86rem; color:#475569; }
+    .section-sub{ font-size:.92rem; color:var(--muted); }
+
+    .tabs-wrap{ position:sticky; top:72px; z-index:900; padding-top:12px; }
+    .tabs-card{
+      background:rgba(255,255,255,.90);
+      backdrop-filter:saturate(170%) blur(14px);
+      border:1px solid var(--line);
+      border-radius:20px;
+      box-shadow:var(--shadow);
+      padding:.8rem;
+    }
+    .nav-pills .nav-link{
+      border-radius:999px !important;
+      font-weight:950;
+      font-size:.92rem;
+      padding:.65rem 1rem;
+      color:#0f172a !important;
+      background:transparent;
+      border:1px solid var(--line);
+      transition: transform .12s ease, box-shadow .12s ease;
+    }
+    .nav-pills .nav-link:hover{ transform: translateY(-1px); box-shadow:0 14px 30px rgba(15,23,42,.08); }
+    .nav-pills .nav-link.active{
+      background:linear-gradient(135deg, var(--primary), var(--primary-2)) !important;
+      color:#fff !important;
+      border-color: rgba(15,118,110,.28);
+      box-shadow:0 16px 34px rgba(15,118,110,.20);
+    }
+
+    .service-card{
+      background:linear-gradient(180deg, #ffffff, #F8FAFC);
+      backdrop-filter:saturate(160%) blur(10px);
+      border:1px solid var(--line);
+      border-radius:24px;
+      overflow:hidden;
+      height:100%;
+      box-shadow:var(--shadow);
+      transition:transform .15s ease, box-shadow .15s ease, border-color .15s ease;
+      position:relative;
+    }
+    .service-card:hover{ transform:translateY(-3px); box-shadow:var(--shadow2); border-color:var(--line-strong); }
+
+    .thumb{
+      position:relative;
+      width:100%;
+      margin:12px 12px 0;
+      width:calc(100% - 24px);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.96), rgba(248,250,252,.96)),
+        radial-gradient(circle at 18% 0, rgba(20,184,166,.10), transparent 48%),
+        radial-gradient(circle at 86% 0, rgba(29,78,216,.08), transparent 42%);
+      border:1px solid var(--line);
+      border-radius:20px;
+      overflow:hidden;
+      display:flex; align-items:center; justify-content:center;
+      box-shadow:inset 0 0 0 1px rgba(255,255,255,.6);
+    }
+    .thumb.thumb-service{ height:155px; }
+    .thumb.thumb-product{ aspect-ratio: 4 / 3; }
+    .thumb img{
+      width:100%;
+      height:100%;
+      object-fit:contain;
+      object-position:center;
+      display:block;
+      padding:14px;
+      background: transparent;
+    }
+    .thumb::after{
+      content:"";
+      position:absolute; inset:0;
+      background:linear-gradient(180deg, rgba(255,255,255,0) 55%, rgba(248,250,252,.72) 100%);
+      pointer-events:none;
+      opacity:.9;
+    }
+
+    .service-body{
+      padding:14px 16px 16px;
+      display:flex;
+      flex-direction:column;
+      position:relative;
+      z-index:1;
+      min-height: 112px;
+    }
+    .service-title{ font-weight:950; color:var(--ink); font-size:1.05rem; margin-bottom:.12rem; letter-spacing:-.01em; }
+    .service-meta{ color:var(--muted); font-size:.82rem; }
+
+    .badge-soft{
+      background:rgba(34,197,94,.12);
+      color:#15803d;
+      border-radius:999px;
+      padding:.16rem .65rem;
+      font-size:.74rem;
+      border:1px solid rgba(34,197,94,.22);
+      white-space:nowrap;
+      font-weight:900;
+    }
+    .badge-dangerish{
+      border-radius:999px;
+      font-size:.76rem;
+      font-weight:900;
+      padding:.18rem .65rem;
+      background:rgba(239,68,68,.12);
+      border:1px solid rgba(239,68,68,.24);
+      color:#b91c1c;
+      display:inline-flex;
+      align-items:center;
+      gap:.35rem;
+      max-width: 100%;
+    }
+
+    .btn-primary{
+      background:linear-gradient(135deg, var(--primary), var(--primary-2));
+      border:1px solid rgba(15,118,110,.28);
+      font-weight:950;
+      border-radius:999px;
+      font-size:.92rem;
+      box-shadow:0 16px 34px rgba(15,118,110,.22);
+      transition: transform .12s ease, filter .12s ease;
+    }
+    .btn-primary:hover{ filter:brightness(.98); transform:translateY(-1px); }
+    .btn-success{ border-radius:999px; font-weight:950; }
+    .btn-outline-danger,.btn-outline-secondary{ border-radius:999px; font-weight:900; }
+
+    .buy-modal-hero{
+      display:flex;
+      gap:.85rem;
+      align-items:center;
+      padding:.9rem;
+      border:1px solid var(--line);
+      border-radius:18px;
+      background:linear-gradient(180deg, #F8FAFC, #EEF2F7);
+      margin-bottom:1rem;
+    }
+    .buy-modal-hero img{
+      width:64px;
+      height:64px;
+      border-radius:16px;
+      object-fit:contain;
+      background:#fff;
+      border:1px solid var(--line);
+      padding:6px;
+    }
+    .cart-fly{
+      position:fixed;
+      z-index:3000;
+      width:38px;
+      height:38px;
+      border-radius:999px;
+      background:linear-gradient(135deg, var(--primary), var(--primary-2));
+      color:#fff;
+      display:grid;
+      place-items:center;
+      pointer-events:none;
+      box-shadow:0 18px 34px rgba(15,118,110,.35);
+      transition:transform .58s cubic-bezier(.2,.8,.2,1), opacity .58s ease;
+    }
+
+    .price-tag{ font-weight:950; font-size:1.05rem; color:#0f172a; letter-spacing:-.01em; }
+    .muted-line{ color:var(--muted); font-size:.9rem; }
+
+    /* Layouts (store.layout) */
+    .services-grid,
+    .products-grid,
+    .reco-grid{
+      display:grid;
+      gap: 16px;
+    }
+    .products-grid .pcol{ grid-column: auto; }
+    .reco-item{ grid-column: auto; }
+
+    body[data-layout="grid-1"] .services-grid,
+    body[data-layout="grid-1"] .products-grid,
+    body[data-layout="grid-1"] .reco-grid{
+      grid-template-columns: 1fr;
+    }
+    body[data-layout="grid-2"] .services-grid,
+    body[data-layout="grid-2"] .products-grid,
+    body[data-layout="grid-2"] .reco-grid{
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    body[data-layout="cards"] .services-grid,
+    body[data-layout="cards"] .products-grid,
+    body[data-layout="cards"] .reco-grid{
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    }
+
+    /* keep services rail layout */
+    .services-layout{ display:grid; grid-template-columns: 1fr; gap: 16px; }
+    @media (min-width: 992px){
+      .services-layout{ grid-template-columns: 1fr 340px; align-items:start; }
+    }
+
+    /* small screens: reduce gap a bit so 2-up fits nicer */
+    @media (max-width: 420px){
+      .services-grid{ gap: 12px; }
+      .products-grid{ gap: 12px; }
+      .reco-grid{ gap: 10px; }
+      .service-body{ padding: 12px 12px 14px; }
+      .service-title{ font-size: 1rem; }
+      .thumb.thumb-service{ height: 150px; }
+    }
+
+    .rail{
+      background:rgba(255,255,255,.90);
+      backdrop-filter:saturate(170%) blur(14px);
+      border:1px solid var(--line);
+      border-radius:22px;
+      box-shadow:var(--shadow);
+      overflow:hidden;
+      position:sticky;
+      top: 96px;
+    }
+    .rail-head{
+      padding:14px 14px 10px;
+      border-bottom:1px solid var(--line);
+      background:linear-gradient(180deg, #ffffff, #F8FAFC);
+    }
+    .rail-title{ font-weight:950; letter-spacing:.08em; text-transform:uppercase; font-size:.78rem; color:#475569; margin:0; }
+    .rail-sub{ margin:4px 0 0; color:var(--muted); font-size:.86rem; }
+    .rail-body{ padding:12px; display:grid; gap:10px; }
+
+    .mini-card{
+      display:flex; gap:10px;
+      padding:10px;
+      border:1px solid var(--line);
+      border-radius:16px;
+      background:#fff;
+      box-shadow: 0 12px 26px rgba(15,23,42,.06);
+      transition: transform .12s ease, box-shadow .12s ease;
+      cursor: pointer;
+      text-decoration:none;
+      color: inherit;
+    }
+    .mini-card:hover{ transform: translateY(-1px); box-shadow: 0 18px 38px rgba(15,23,42,.10); }
+    .mini-img{
+      width:64px; height:52px;
+      border-radius:12px;
+      border:1px solid var(--line);
+      background:#fff;
+      overflow:hidden;
+      flex: 0 0 auto;
+      display:flex; align-items:center; justify-content:center;
+    }
+    .mini-img img{ width:100%; height:100%; object-fit:contain; padding:6px; }
+    .mini-info{ min-width:0; }
+    .mini-name{
+      font-weight:900;
+      font-size:.92rem;
+      margin:0;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      color: var(--ink);
+    }
+    .mini-price{ font-weight:950; font-size:.9rem; color:#0f172a; margin-top:2px; }
+    .mini-note{ font-size:.78rem; color:var(--muted); margin-top:2px; }
+
+    .fab-cart{
+      position:fixed;
+      right:18px; bottom:18px;
+      width:60px; height:60px;
+      border-radius:50%;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      background:linear-gradient(135deg, var(--primary), var(--primary-2));
+      border:none;
+      box-shadow:0 20px 48px rgba(15,118,110,.24);
+      cursor:pointer;
+      transition:transform .12s ease, box-shadow .12s ease, filter .12s ease;
+      z-index:1100;
+      color:#ffffff;
+    }
+    .fab-cart:hover{ transform:translateY(-2px); box-shadow:0 26px 56px rgba(15,23,42,.26); filter:brightness(.98); }
+    .fab-cart i{ font-size:1.45rem; }
+    .fab-cart .badge{
+      position:absolute;
+      top:-6px; right:-6px;
+      background:#ef4444;
+      color:#fff;
+      font-weight:950;
+      border-radius:999px;
+      padding:.32rem .58rem;
+      font-size:.74rem;
+      box-shadow:0 6px 16px rgba(239,68,68,.45);
+      border:2px solid rgba(255,255,255,.85);
+    }
+    .fab-cart.hide{ display:none !important; }
+    .status-note{ font-size:.9rem; color:var(--muted); }
+
+    .modal-content{
+      background:rgba(255,255,255,.98);
+      backdrop-filter:saturate(170%) blur(14px);
+      color:var(--ink);
+      border-radius:22px;
+      border:1px solid var(--line);
+      box-shadow:0 28px 80px rgba(15,23,42,.22);
+    }
+    .modal-header{ border-bottom:1px solid var(--line); }
+    .modal-footer{ border-top:1px solid var(--line); color:var(--muted); font-size:.82rem; }
+    .table thead th{
+      white-space:nowrap;
+      font-weight:950;
+      color:#64748b;
+      border-bottom:1px solid var(--line)!important;
+    }
+    .table tbody tr{ border-color:rgba(15,23,42,.08)!important; }
+    .table tbody tr:hover{ background:rgba(248,250,252,.9); }
+    .table{ font-size:.88rem; }
+
+    .reco-tile{
+      border:1px solid var(--line);
+      border-radius:18px;
+      overflow:hidden;
+      background:#fff;
+      box-shadow: 0 18px 40px rgba(15,23,42,.08);
+      transition: transform .12s ease, box-shadow .12s ease;
+      height: 100%;
+      display:flex;
+      flex-direction:column;
+    }
+    .reco-tile:hover{ transform: translateY(-2px); box-shadow: 0 28px 60px rgba(15,23,42,.12); }
+    .reco-thumb{
+      aspect-ratio: 4 / 3;
+      border-bottom:1px solid var(--line);
+      background:#fff;
+      display:flex; align-items:center; justify-content:center;
+      overflow:hidden;
+    }
+    .reco-thumb img{ width:100%; height:100%; object-fit:contain; padding:10px; }
+    .reco-body{ padding:12px; display:flex; flex-direction:column; gap:6px; flex:1; }
+    .reco-name{ font-weight:950; margin:0; font-size:1rem; color:var(--ink); }
+    .reco-meta{ color:var(--muted); font-size:.85rem; margin:0; }
+    .reco-actions{ margin-top:auto; display:flex; gap:8px; flex-wrap:wrap; }
+
+    .btn-soft{
+      border-radius:999px;
+      font-weight:900;
+      border:1px solid var(--line);
+      background:#fff;
+      color: var(--ink);
+      padding: .55rem .9rem;
+      transition: transform .12s ease;
+    }
+    .btn-soft:hover{ transform: translateY(-1px); }
+
+    .footer{
+      background:rgba(255,255,255,.92);
+      backdrop-filter:saturate(170%) blur(14px);
+      border-top:1px solid var(--line);
+      color:#64748b;
+      font-size:.84rem;
+    }
+    .footer a{ color:inherit; font-weight:900; text-decoration:none; }
+    .footer a:hover{ color:var(--primary); text-decoration:underline; }
+    .footer-badges{ display:flex; gap:.5rem; flex-wrap:wrap; align-items:center; justify-content:flex-end; }
+    .mini-pill{
+      display:inline-flex; align-items:center; gap:.4rem;
+      border:1px solid var(--line);
+      padding:.35rem .65rem;
+      border-radius:999px;
+      background:#fff;
+      box-shadow:0 10px 20px rgba(15,23,42,.06);
+      font-weight:950;
+      font-size:.82rem;
+      color:#0f172a;
+      white-space:nowrap;
+    }
+
+    .toast-dark{
+      background:#0f172a;
+      color:#f8fafc;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.10);
+      box-shadow:0 20px 55px rgba(15,23,42,.30);
+    }
+    .toast-dark .btn-close{ filter:invert(1); }
+
+    @keyframes fadeIn{ from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);} }
+    @keyframes fadeInUpHero{ from{opacity:0; transform:translateY(14px);} to{opacity:1; transform:translateY(0);} }
+
+    @media (prefers-reduced-motion: reduce){
+      *{ animation:none!important; transition:none!important; scroll-behavior:auto!important; }
+    }
+    @media (max-width: 576px){
+      .brand-text{ max-width: 62vw; }
+      .thumb.thumb-service{ height: 155px; }
+      .fab-cart{ right:14px; bottom:14px; width:58px; height:58px; }
+      .tabs-wrap{ top:64px; }
+    }
+      /* Ported number modal */
+      .ported-modal .modal-header{background:#fff7ed;border-bottom:1px solid #fed7aa}
+      .ported-modal .warn-icon{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:999px;background:#ffedd5;color:#b45309}
+      .ported-modal .prefix-badges{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:.75rem}
+      .ported-modal .prefix-badges .badge{font-size:.78rem}
+    </style>
+
+  <!-- Paystack Inline -->
+  <script src="https://js.paystack.co/v1/inline.js"></script>
+  <script>
+    window.PAYSTACK_PUBLIC_KEY = "{{ (paystack_pk or '')|e }}";
+    if(!window.PAYSTACK_PUBLIC_KEY){
+      window.PAYSTACK_PUBLIC_KEY = "";
+    }
+  </script>
+</head>
+
+<body
+  data-auth="{{ '1' if session and session.get('user_id') else '0' }}"
+  data-slug="{{ store.slug }}"
+  data-wa-digits="{{ whatsapp_number_digits or '' }}"
+  data-layout="{{ store.layout or 'grid-2' }}"
+>
+
+  <!-- NAV -->
+  <nav class="navbar navbar-expand-lg navbar-light">
+    <div class="container container-wide">
+      <a class="brand-wrap" href="#">
+        <img class="brand-logo"
+             src="{{ store.logo_url or 'https://imagedelivery.net/h9fmMoa1o2c2P55TcWJGOg/29d9af76-b72e-4070-954e-184224478100/public' }}"
+             alt="{{ store.name }} logo" loading="eager" fetchpriority="high">
+        <div class="min-w-0">
+          <div class="brand-text">{{ store.name }}</div>
+        </div>
+      </a>
+
+      <div id="nav" class="collapse navbar-collapse">
+        <ul class="navbar-nav ms-auto align-items-lg-center">
+          <li class="nav-item"><a class="nav-link" href="#main"><i class="bi bi-grid-3x3-gap me-1"></i> Browse</a></li>
+
+          {% if request.args.get('preview') and session and session.get('user_id') and (store.owner_id|string == session.get('user_id')) %}
+          <li class="nav-item">
+            <span class="nav-link"><i class="bi bi-eye"></i> Preview</span>
+          </li>
+          {% endif %}
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- MAIN -->
+  <section id="main" class="services-section">
+    <div class="container container-wide">
+
+      <!-- Tabs -->
+      <div class="tabs-wrap mb-4 reveal">
+        <div class="tabs-card">
+          <div class="d-flex flex-column flex-md-row gap-2 justify-content-between align-items-md-center">
+            <div>
+              <div class="section-title mb-1">Browse</div>
+              <div class="section-sub">Switch between services and products.</div>
+            </div>
+
+            <ul class="nav nav-pills" id="storeTabs" role="tablist">
+              <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="tab-services" data-bs-toggle="pill"
+                        data-bs-target="#pane-services" type="button" role="tab" aria-controls="pane-services" aria-selected="true">
+                  <i class="bi bi-lightning-charge me-1"></i> Services
+                </button>
+              </li>
+              <li class="nav-item" role="presentation">
+                <button class="nav-link" id="tab-products" data-bs-toggle="pill"
+                        data-bs-target="#pane-products" type="button" role="tab" aria-controls="pane-products" aria-selected="false">
+                  <i class="bi bi-bag-check me-1"></i> Products
+                </button>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-content" id="storeTabContent">
+
+        <!-- ===================== SERVICES PANE ===================== -->
+        <div class="tab-pane fade show active" id="pane-services" role="tabpanel" aria-labelledby="tab-services" tabindex="0">
+
+          {% macro service_card(svc) -%}
+            {% set can_order = svc.can_order %}
+            {% set reason = svc.disabled_reason %}
+            <div class="card service-card h-100 reveal">
+              <div class="thumb thumb-service">
+                {% if svc.image_url %}
+                  <img src="{{ svc.image_url }}" alt="{{ svc.name }}" loading="lazy">
+                {% else %}
+                  <img src="https://via.placeholder.com/800x450?text={{ svc.name | urlencode }}" alt="{{ svc.name }}" loading="lazy">
+                {% endif %}
+              </div>
+
+              <div class="service-body">
+                <div class="mb-3">
+                  <div class="d-flex justify-content-between align-items-start gap-2">
+                    <h3 class="service-title m-0">{{ svc.name }}</h3>
+                    {% if svc.name == 'MTN MASH UP DATA' %}
+                      <button type="button"
+                              class="btn btn-sm btn-link p-0 text-primary special-service-info-btn"
+                              data-service='{{ {"_id_str":svc._id_str,"name":svc.name} | tojson }}'
+                              aria-label="Service information">
+                        <i class="bi bi-info-circle-fill"></i>
+                      </button>
+                    {% endif %}
+                  </div>
+                  {% if svc.name == 'MTN MASH UP DATA' %}
+                    <div class="d-flex gap-2 flex-wrap mt-2">
+                      <span class="badge text-bg-danger">Hot</span>
+                      <span class="badge text-bg-success">New</span>
+                    </div>
+                  {% endif %}
+                  {% if (svc.service_category or '') == 'results_checker' %}
+                    <div class="small text-muted mt-2">Choose WASSCE or BECE and the checker SMS will be sent to the recipient number.</div>
+                  {% endif %}
+                  {% if not can_order %}
+                    <div class="mt-2">
+                      <span class="badge-dangerish">
+                        <i class="bi bi-exclamation-triangle-fill"></i>
+                        <span class="text-truncate" style="max-width: 220px;">{{ reason or 'Unavailable' }}</span>
+                      </span>
+                    </div>
+                  {% endif %}
+                </div>
+
+                <div class="mt-auto">
+                  <button class="btn btn-primary w-100 select-btn mt-1"
+                    data-service='{{ {"_id_str":svc._id_str,"name":svc.name,"image_url":svc.image_url or "","service_network":svc.service_network or "","network":svc.network or "","service_category":svc.service_category or "","offers":svc.offers or []} | tojson }}'
+                    data-can="{{ 1 if can_order else 0 }}"
+                    data-reason="{{ reason or '' }}">
+                    <i class="bi bi-lightning-charge me-1"></i> Buy
+                  </button>
+                </div>
+              </div>
+            </div>
+          {%- endmacro %}
+
+          <div class="services-layout">
+            <div>
+              <div class="services-grid">
+                {% if not services %}
+                  <div class="text-center text-muted">No services available.</div>
+                {% else %}
+                  {% for svc in services %}
+                    <div class="service-col">
+                      {{ service_card(svc) }}
+                    </div>
+                  {% endfor %}
+                {% endif %}
+              </div>
+            </div>
+
+            <!-- right rail -->
+            <aside class="rail d-none d-lg-block reveal" aria-label="Products you may like">
+              <div class="rail-head">
+                <p class="rail-title mb-0">Products you may like</p>
+                <p class="rail-sub">Random picks while you buy data.</p>
+              </div>
+              <div class="rail-body" id="railReco">
+                <div class="text-muted small">Loading…</div>
+              </div>
+              <div class="p-3 pt-0">
+                <button class="btn btn-soft w-100" id="btnGoProducts" type="button">
+                  <i class="bi bi-bag me-1"></i> View all products
+                </button>
+              </div>
+            </aside>
+          </div>
+
+        </div>
+
+        <!-- ===================== PRODUCTS PANE ===================== -->
+        <div class="tab-pane fade" id="pane-products" role="tabpanel" aria-labelledby="tab-products" tabindex="0">
+
+          {% macro product_card(p) -%}
+            {% set p_name = (p.name or p.title or 'Product') %}
+            {% set p_price = (p.price or p.amount or 0) %}
+            {% set p_desc = (p.description or p.desc or '') %}
+            {% set p_img = (p.image_url or p.image or p.photo_url or p.photo or '') %}
+            {% set wa_ok = (whatsapp_number_digits or '')|length > 0 %}
+            {% set msg = ("Hello " ~ store.name ~ ", I want to order: " ~ p_name ~ " | Price: GHS " ~ ('%.2f'|format(p_price|float))) %}
+
+            <div class="card service-card h-100 reveal">
+              <div class="thumb thumb-product">
+                {% if p_img %}
+                  <img src="{{ p_img }}" alt="{{ p_name }}" loading="lazy">
+                {% else %}
+                  <img src="https://via.placeholder.com/800x450?text={{ p_name | urlencode }}" alt="{{ p_name }}" loading="lazy">
+                {% endif %}
+              </div>
+
+              <div class="service-body">
+                <div class="d-flex justify-content-between align-items-start gap-2 mb-1">
+                  <div class="me-2 min-w-0">
+                    <h3 class="service-title m-0 text-truncate">{{ p_name }}</h3>
+                    <div class="muted-line">Order fast on WhatsApp</div>
+                  </div>
+                  <div class="price-tag">GHS {{ '%.2f'|format(p_price|float) }}</div>
+                </div>
+
+                {% if p_desc %}
+                  <div class="small text-muted mb-2" style="line-height:1.45">
+                    {{ p_desc }}
+                  </div>
+                {% else %}
+                  <div class="small text-muted mb-2" style="line-height:1.45">
+                    Quality product · Ready for delivery/pickup.
+                  </div>
+                {% endif %}
+
+                <div class="mt-auto d-flex gap-2 flex-wrap">
+                  {% if wa_ok %}
+                    <a class="btn btn-success w-100"
+                       href="https://wa.me/{{ whatsapp_number_digits }}?text={{ msg|urlencode }}"
+                       target="_blank" rel="noopener">
+                      <i class="bi bi-whatsapp me-1"></i> Order on WhatsApp
+                    </a>
+                  {% else %}
+                    <button class="btn btn-outline-secondary w-100" disabled>
+                      <i class="bi bi-whatsapp me-1"></i> WhatsApp not set
+                    </button>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+          {%- endmacro %}
+
+          {% if not products %}
+            <div class="text-center text-muted reveal">No products added yet.</div>
+          {% else %}
+            <!-- ✅ 2 per row on ALL screen sizes -->
+            <div class="products-grid">
+              {% for p in products %}
+                <div class="pcol">
+                  {{ product_card(p) }}
+                </div>
+              {% endfor %}
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAB CART -->
+  <button type="button" class="fab-cart" id="fabCart" data-bs-toggle="modal" data-bs-target="#cartModal" aria-label="Cart">
+    <i class="bi bi-cart3"></i>
+    <span class="badge" id="cartCount">0</span>
+  </button>
+
+  <!-- BUY MODAL -->
+  <div class="modal fade" id="buyServiceModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Buy Service</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="buy-modal-hero">
+            <img id="buyServiceImg" src="" alt="">
+            <div class="min-w-0">
+              <div class="fw-bold text-truncate" id="buyServiceName">Service</div>
+              <div class="small text-muted">Select a type or offer and enter the recipient number.</div>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label" for="buyPhone">Phone</label>
+            <div class="input-group">
+              <input class="form-control form-control-lg" id="buyPhone" placeholder="0xxxxxxxxx" inputmode="numeric" maxlength="14">
+              <button type="button" class="btn btn-outline-secondary d-none" id="buyPhoneClearBtn" aria-label="Clear phone field">&times;</button>
+              <span class="input-group-text" id="buyPhoneVerifyBadge" title="Number verification status"></span>
+            </div>
+            <div class="small mt-1 text-muted" id="buyPhoneVerifyText"></div>
+          </div>
+          <div class="mb-2">
+            <label class="form-label" for="buyOffer">Type / Offer</label>
+            <select class="form-select form-select-lg" id="buyOffer"></select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-primary" id="buyAddToCart">
+            <span class="btn-text">Add to Cart</span>
+            <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CART MODAL -->
+  <div class="modal fade" id="cartModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">{{ store.name }} — Cart</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+        <div class="modal-body">
+          <div id="cartEmpty" class="text-muted">Your cart is empty.</div>
+
+          <div id="orderStatusBox" class="alert alert-success d-none">
+            <div class="fw-semibold">Order received.</div>
+            <div class="small">Order ID: <span id="orderStatusText"></span></div>
+            <a id="orderStatusLink" class="small d-none" href="#">Track order status</a>
+          </div>
+
+          <div id="cartWrap" class="d-none">
+            <div class="table-responsive mb-2">
+              <table class="table align-middle mb-0">
+                <thead>
+                  <tr>
+                    <th>Service</th>
+                    <th>Phone</th>
+                    <th>Offer</th>
+                    <th class="text-end">Pay (GHS)</th>
+                    <th style="width:80px"></th>
+                  </tr>
+                </thead>
+                <tbody id="cartBody"></tbody>
+              </table>
+            </div>
+
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-2 gap-2">
+              <div class="status-note" id="paymentNote" aria-live="polite">
+                Payment required before processing. Click “Pay Now” (includes 2% fee).
+              </div>
+
+              <div class="text-end">
+                <div class="fw-bold">Cart Total: GHS <span id="cartTotal">0.00</span></div>
+                <div class="fw-bold">Paystack Total (incl. 2% fee): GHS <span id="paystackTotal">0.00</span></div>
+                <div class="small text-muted mt-1" id="feeNote">
+                  A 2% Paystack fee is added at checkout. We’ll still process your exact order total automatically.
+                </div>
+              </div>
+            </div>
+
+            <div class="text-end d-flex flex-wrap gap-2 justify-content-end">
+              <button class="btn btn-outline-danger" id="btnClear">Clear</button>
+
+              <button class="btn btn-primary" id="btnPay">
+                <span class="btn-text">Pay Now</span>
+                <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+              </button>
+
+              <button class="btn btn-success" id="btnProcess" disabled>
+                <span class="btn-text">Process Order</span>
+                <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer small text-muted">
+          If a service shows “Unavailable”, you can’t add it to the cart.
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <div class="modal fade" id="dupCartModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Duplicate Item</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div id="dupCartModalMsg">This number is already in your cart for the same bundle. Add anyway?</div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-primary" id="dupCartModalConfirm">Add Anyway</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="serviceNoticeModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Important Notice</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="fw-semibold mb-2" id="serviceNoticeTitle">MTN MASH UP DATA</div>
+          <div id="serviceNoticeBody">
+            <div class="mb-3">
+              <div class="fw-semibold mb-1">Before purchase</div>
+              <div>Suitable for regular MTN customer SIMs only.</div>
+              <div>Not recommended for MTN merchant or MTN agent SIMs.</div>
+              <div>Ported SIM compatibility has not been confirmed yet.</div>
+            </div>
+            <div>
+              <div class="fw-semibold mb-1">After delivery</div>
+              <div>Ask the customer to dial *124# to confirm the data balance.</div>
+              <div>The customer may also receive an SMS from Feeli once the bundle lands.</div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" id="serviceNoticeCancelBtn">Cancel</button>
+          <button type="button" class="btn btn-primary" id="serviceNoticeConfirmBtn">Okay</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ✅ RECOMMENDATIONS MODAL (opens ONLY when user clicks Buy) -->
+  <div class="modal fade" id="recoModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <div>
+            <h5 class="modal-title mb-0">Products you may like</h5>
+            <div class="small text-muted">Random picks from this store — you can close anytime.</div>
+          </div>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+        <div class="modal-body">
+          <div id="recoEmpty" class="text-muted d-none">No products yet.</div>
+          <div class="reco-grid" id="recoGrid"></div>
+        </div>
+
+        <div class="modal-footer d-flex justify-content-between align-items-center">
+          <div class="small text-muted">Tip: images are set to “contain” so they show fully (no cropping).</div>
+          <div class="d-flex gap-2">
+            <button type="button" class="btn btn-soft" data-bs-dismiss="modal">
+              <i class="bi bi-x-lg me-1"></i> Close
+            </button>
+            <button type="button" class="btn btn-primary" id="recoViewAll">
+              <i class="bi bi-bag me-1"></i> View all products
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+<!-- ===================== CHECK ORDER STATUS (ADD THIS BLOCK) ===================== -->
+<!-- ✅ Place this inside your Store Page HTML (e.g. inside #main container, under the tabs card OR above the services grid) -->
+
+<style>
+  /* ---- Check Status Card (scoped) ---- */
+  .check-status-card{
+    background: rgba(255,255,255,.86);
+    backdrop-filter: saturate(160%) blur(10px);
+    border: 1px solid rgba(15,23,42,.10);
+    border-radius: 18px;
+    box-shadow: 0 18px 45px rgba(15,23,42,.08);
+    overflow: hidden;
+  }
+  .check-status-head{
+    padding: 14px 16px;
+    border-bottom: 1px solid rgba(15,23,42,.08);
+    background: rgba(255,255,255,.65);
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap: 12px;
+  }
+  .check-status-title{
+    font-weight: 950;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    font-size: .78rem;
+    color: #475569;
+    margin:0;
+    display:flex;
+    align-items:center;
+    gap:.5rem;
+    white-space:nowrap;
+  }
+  .check-status-sub{
+    margin: 4px 0 0;
+    color: #64748b;
+    font-size: .88rem;
+    line-height: 1.35;
+  }
+  .check-status-body{
+    padding: 14px 16px 16px;
+  }
+  .check-status-actions{
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+    align-items:center;
+    justify-content:space-between;
+  }
+  .check-status-btn{
+    border-radius: 999px;
+    font-weight: 950;
+    padding: .72rem 1.15rem;
+    border: 1px solid rgba(15,118,110,.28);
+    background: linear-gradient(135deg, var(--primary), var(--primary-2));
+    color:#fff;
+    box-shadow: 0 16px 34px rgba(15,118,110,.20);
+    text-decoration:none;
+    display:inline-flex;
+    align-items:center;
+    gap:.55rem;
+    transition: transform .12s ease, filter .12s ease;
+  }
+  .check-status-btn:hover{ transform: translateY(-1px); filter: brightness(.98); color:#fff; }
+
+  .check-status-note{
+    font-size: .86rem;
+    color: #64748b;
+    margin:0;
+    display:flex;
+    align-items:center;
+    gap:.45rem;
+  }
+
+  /* Nice spacing between this card and content around it */
+  .check-status-wrap{ margin: 14px 0 18px; }
+
+  @media (max-width:576px){
+    .check-status-actions{ justify-content: flex-start; }
+    .check-status-btn{ width:100%; justify-content:center; }
+    .check-status-note{ width:100%; }
+  }
+</style>
+
+<div class="check-status-wrap reveal">
+  <div class="check-status-card">
+    <div class="check-status-head">
+      <div>
+        <p class="check-status-title">
+          <i class="bi bi-receipt-cutoff"></i>
+          Check Order Status
+        </p>
+      </div>
+
+      <span class="badge-soft d-none d-md-inline-flex">
+        <i class="bi bi-shield-check"></i> Secure
+      </span>
+    </div>
+
+    <div class="check-status-body">
+      <div class="check-status-actions">
+        <!-- ✅ This is your link -->
+        <a class="check-status-btn" href="/check-status?store={{ store.slug|urlencode }}">
+          <i class="bi bi-search"></i>
+          Check Status
+        </a>
+
+      </div>
+    </div>
+  </div>
+</div>
+  <!-- ===================== /CHECK ORDER STATUS BLOCK ===================== -->
+
+  <!-- Ported Number Modal -->
+  <div class="modal fade ported-modal" id="portedModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <div class="d-flex align-items-center gap-2">
+            <span class="warn-icon"><i class="bi bi-exclamation-triangle-fill"></i></span>
+            <h5 class="modal-title mb-0">Ported Number Detected</h5>
+          </div>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div id="portedModalMsg" class="fw-semibold"></div>
+          <div id="portedModalPrefixes" class="prefix-badges"></div>
+          <div class="text-muted small mt-2">
+            If you are sure this number was ported, confirm to continue.
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" id="portedCancelBtn">No, I’ll Correct It</button>
+          <button type="button" class="btn btn-warning text-dark" id="portedConfirmBtn">Yes, It’s Ported</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="knownNumberModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="knownNumberModalTitle">Verifying Number</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" id="knownNumberModalClose"></button>
+        </div>
+        <div class="modal-body">
+          <div class="d-flex align-items-center gap-3">
+            <div id="knownNumberModalSpinner" class="spinner-border text-primary" role="status" aria-hidden="true"></div>
+            <div id="knownNumberModalIcon" class="fs-4"></div>
+            <div id="knownNumberModalMsg" class="fw-semibold">Verifying number...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="footer mt-4 py-3">
+    <div class="container container-wide">
+      <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2">
+        <div>
+          &copy; <span id="y"></span> {{ store.name }}.
+          <span class="ms-2 text-muted">All rights reserved.</span>
+        </div>
+
+        <div class="footer-badges">
+          {% if whatsapp_number_digits %}
+            <a class="mini-pill" href="{{ whatsapp_number_link }}" target="_blank" rel="noopener">
+              <i class="bi bi-whatsapp"></i> WhatsApp
+            </a>
+          {% endif %}
+
+          {% if whatsapp_group_link %}
+            <a class="mini-pill" href="{{ whatsapp_group_link }}" target="_blank" rel="noopener">
+              <i class="bi bi-people-fill"></i> WhatsApp Group
+            </a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Toast -->
+  <div class="toast-container position-fixed top-0 end-0 p-3">
+    <div id="appToast" class="toast toast-dark border-0">
+      <div class="d-flex">
+        <div class="toast-body" id="toastBody">Done</div>
+        <button class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ✅ JSON data (no defaults) -->
+  <script type="application/json" id="productsJson">{{ (products or []) | tojson }}</script>
+  <script type="application/json" id="storeNameJson">{{ (store.name or "Store") | tojson }}</script>
+  <script type="application/json" id="storeWaJson">{{ (whatsapp_number_digits or "") | tojson }}</script>
+
+  <!-- ✅ Paystack payer identity: MUST come from DB (no fallback values) -->
+  <script type="application/json" id="psEmailJson">{{ (paystack_payer_email or "") | tojson }}</script>
+  <script type="application/json" id="psFirstJson">{{ (paystack_payer_first or "") | tojson }}</script>
+  <script type="application/json" id="psLastJson">{{ (paystack_payer_last or "") | tojson }}</script>
+
+  {% include '_announcement_modal.html' %}
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+  {{- "" -}}
+  <script>
+  (function () {
+    // ================== helpers ==================
+    function readJsonScript(id, fallback) {
+      try {
+        const el = document.getElementById(id);
+        if (!el) return fallback;
+        const txt = (el.textContent || "").trim();
+        if (!txt) return fallback;
+        return JSON.parse(txt);
+      } catch (_) {
+        return fallback;
+      }
+    }
+
+    function money(n) { return Number(n || 0).toFixed(2); }
+    function money2(n) { return Number(n || 0).toFixed(2); }
+    function pesewas(n) { return Math.round(Number(n || 0) * 100); }
+
+      function normalizePhone(s) {
+        let d = String(s || "").replace(/\D+/g, "");
+        if (d.startsWith("233")) d = "0" + d.slice(3);
+        if (d.length > 10) d = d.slice(-10);
+        return d;
+      }
+
+      // ---------- Ported number helpers ----------
+      function getPrefix(phoneDigits){ return phoneDigits && phoneDigits.length >= 3 ? phoneDigits.slice(0,3) : ""; }
+      function networkFromService(svc){
+        const joined = [svc?.service_network, svc?.network, svc?.serviceName, svc?.name].filter(Boolean).join(" ").toLowerCase();
+        if (joined.includes("mtn")) return "MTN";
+        if (joined.includes("telecel") || joined.includes("vodafone")) return "TELECEL";
+        if (joined.includes("airteltigo") || joined.includes("tigo") || joined.includes("ishare") || joined.startsWith("at")) return "TIGO";
+        return "";
+      }
+      const PREFIX_MAP = {
+        MTN: ["025","024","059","055","054","053"],
+        TELECEL: ["020","050"],
+        TIGO: ["057","056","027","026"]
+      };
+      function networkFromPrefix(prefix){
+        for (const k in PREFIX_MAP){
+          if (PREFIX_MAP[k].includes(prefix)) return k;
+        }
+        return "";
+      }
+      function needsPortedConfirm(expected, actual){ return expected && actual && expected !== actual; }
+      function portedKey(serviceKey, phoneDigits){ return "ported_ok:" + (serviceKey || "") + ":" + phoneDigits; }
+      function isPortedConfirmed(serviceKey, phoneDigits){
+        try { return sessionStorage.getItem(portedKey(serviceKey, phoneDigits)) === "1"; } catch(e){ return false; }
+      }
+      function setPortedConfirmed(serviceKey, phoneDigits){
+        try { sessionStorage.setItem(portedKey(serviceKey, phoneDigits), "1"); } catch(e){}
+      }
+      function applyPortedFields(line, expected, actual, prefix){
+        line.ported_confirmed = true;
+        line.ported_expected_network = expected;
+        line.ported_detected_network = actual;
+        line.ported_prefix = prefix;
+      }
+    function showDuplicateModal(message){
+      return new Promise(function(resolve){
+        var modalEl = document.getElementById("dupCartModal");
+        if (!modalEl || !window.bootstrap){ resolve(!!confirm(message || "This number is already in your cart for the same bundle. Add anyway?")); return; }
+        var msgEl = document.getElementById("dupCartModalMsg");
+        var yesBtn = document.getElementById("dupCartModalConfirm");
+        if (msgEl) msgEl.textContent = message || "This number is already in your cart for the same bundle. Add anyway?";
+        var inst = bootstrap.Modal.getOrCreateInstance(modalEl);
+        var done = false;
+        function cleanup(res){
+          if (done) return;
+          done = true;
+          modalEl.removeEventListener("hidden.bs.modal", onHidden);
+          if (yesBtn) yesBtn.removeEventListener("click", onYes);
+          resolve(res);
+        }
+        function onHidden(){ cleanup(false); }
+        function onYes(){ inst.hide(); cleanup(true); }
+        if (yesBtn) yesBtn.addEventListener("click", onYes);
+        modalEl.addEventListener("hidden.bs.modal", onHidden);
+        inst.show();
+      });
+    }
+
+    const SPECIAL_SERVICE_ID = "6a299f7472e6d9d109a67ad8";
+    const SPECIAL_SERVICE_NAME = "mtn mash up data";
+
+    function isSpecialWarningService(svc){
+      const id = String((svc && (svc._id_str || svc.serviceId || svc.service_id)) || "").trim();
+      const name = String((svc && (svc.name || svc.serviceName)) || "").trim().toLowerCase();
+      return id === SPECIAL_SERVICE_ID || name === SPECIAL_SERVICE_NAME;
+    }
+
+    function showSpecialServiceNotice(svc){
+      return new Promise((resolve) => {
+        if (!isSpecialWarningService(svc)) {
+          resolve(true);
+          return;
+        }
+        const modalEl = document.getElementById("serviceNoticeModal");
+        if (!modalEl || !window.bootstrap) {
+          resolve(window.confirm("Suitable for regular MTN customer SIMs only.\nNot recommended for MTN merchant or MTN agent SIMs.\nPorted SIM compatibility has not been confirmed yet."));
+          return;
+        }
+        const titleEl = document.getElementById("serviceNoticeTitle");
+        const bodyEl = document.getElementById("serviceNoticeBody");
+        const cancelBtn = document.getElementById("serviceNoticeCancelBtn");
+        const confirmBtn = document.getElementById("serviceNoticeConfirmBtn");
+        if (titleEl) titleEl.textContent = (svc && (svc.name || svc.serviceName)) || "MTN MASH UP DATA";
+        if (bodyEl) {
+          bodyEl.innerHTML =
+            '<div class="mb-3">' +
+            '  <div class="fw-semibold mb-1">Before purchase</div>' +
+            '  <div>Suitable for regular MTN customer SIMs only.</div>' +
+            '  <div>Not recommended for MTN merchant or MTN agent SIMs.</div>' +
+            '  <div>Ported SIM compatibility has not been confirmed yet.</div>' +
+            '</div>' +
+            '<div>' +
+            '  <div class="fw-semibold mb-1">After delivery</div>' +
+            '  <div>Ask the customer to dial *124# to confirm the data balance.</div>' +
+            '  <div>The customer may also receive an SMS from Feeli once the bundle lands.</div>' +
+            '</div>';
+        }
+        const inst = bootstrap.Modal.getOrCreateInstance(modalEl);
+        let done = false;
+        function cleanup(ok){
+          if (done) return;
+          done = true;
+          modalEl.removeEventListener("hidden.bs.modal", onHidden);
+          cancelBtn && cancelBtn.removeEventListener("click", onCancel);
+          confirmBtn && confirmBtn.removeEventListener("click", onConfirm);
+          resolve(ok);
+        }
+        function onHidden(){ cleanup(false); }
+        function onCancel(){ inst.hide(); cleanup(false); }
+        function onConfirm(){ inst.hide(); cleanup(true); }
+        modalEl.addEventListener("hidden.bs.modal", onHidden);
+        cancelBtn && cancelBtn.addEventListener("click", onCancel);
+        confirmBtn && confirmBtn.addEventListener("click", onConfirm);
+        inst.show();
+      });
+    }
+
+    function wireSpecialInfoButtons() {
+      document.querySelectorAll(".special-service-info-btn").forEach((btn) => {
+        btn.addEventListener("click", async (ev) => {
+          ev.preventDefault();
+          ev.stopPropagation();
+          let svc = null;
+          try { svc = JSON.parse(btn.getAttribute("data-service") || "{}"); } catch (e) { svc = null; }
+          await showSpecialServiceNotice(svc || { name: "MTN MASH UP DATA" });
+        });
+      });
+    }
+
+    function showPortedModal(opts){
+        return new Promise((resolve) => {
+          const modalEl = document.getElementById("portedModal");
+          if (!modalEl || !window.bootstrap) { resolve(true); return; }
+          const msgEl = document.getElementById("portedModalMsg");
+          const badgesEl = document.getElementById("portedModalPrefixes");
+          const btnCancel = document.getElementById("portedCancelBtn");
+          const btnConfirm = document.getElementById("portedConfirmBtn");
+          if (msgEl) msgEl.textContent = opts.message || "Ported number detected.";
+          if (badgesEl) {
+            badgesEl.innerHTML = "";
+            badgesEl.insertAdjacentHTML("beforeend", `<span class="badge text-bg-warning">Expected: ${opts.expected}</span>`);
+            badgesEl.insertAdjacentHTML("beforeend", `<span class="badge text-bg-secondary">Detected: ${opts.actual} (${opts.prefix})</span>`);
+          }
+          const inst = bootstrap.Modal.getOrCreateInstance(modalEl);
+          let done = false;
+          function cleanup(ok){
+            if (done) return;
+            done = true;
+            modalEl.removeEventListener("hidden.bs.modal", onHidden);
+            btnCancel?.removeEventListener("click", onCancel);
+            btnConfirm?.removeEventListener("click", onConfirm);
+            resolve(ok);
+          }
+          function onHidden(){ cleanup(false); }
+          function onCancel(){ inst.hide(); cleanup(false); }
+          function onConfirm(){ inst.hide(); cleanup(true); }
+          modalEl.addEventListener("hidden.bs.modal", onHidden);
+          btnCancel?.addEventListener("click", onCancel);
+          btnConfirm?.addEventListener("click", onConfirm);
+          inst.show();
+        });
+      }
+      async function ensurePortedConfirmedForLine(line, focusEl){
+        const phoneDigits = normalizePhone(line.phone || "");
+        const prefix = getPrefix(phoneDigits);
+        const expected = networkFromService(line);
+        const actual = networkFromPrefix(prefix);
+        if (!needsPortedConfirm(expected, actual)) return true;
+        const key = line.serviceId || line.serviceName || expected;
+        if (isPortedConfirmed(key, phoneDigits)) {
+          applyPortedFields(line, expected, actual, prefix);
+          return true;
+        }
+        const ok = await showPortedModal({
+          expected, actual, prefix,
+          message: "The phone prefix does not match the selected network."
+        });
+        if (ok){
+          setPortedConfirmed(key, phoneDigits);
+          applyPortedFields(line, expected, actual, prefix);
+          return true;
+        }
+        if (focusEl){
+          focusEl.classList.add("is-invalid");
+          focusEl.focus();
+          setTimeout(() => focusEl.classList.remove("is-invalid"), 1200);
+        }
+        return false;
+      }
+      async function ensurePortedConfirmedForCart(lines){
+        const items = Array.isArray(lines) ? lines : [];
+        for (const line of items){
+          const ok = await ensurePortedConfirmedForLine(line);
+          if (!ok) return false;
+        }
+        return true;
+      }
+
+    const KNOWN_NUMBER_VERIFY_URL = "/api/verify-known-number";
+    const knownNumberCache = new Map();
+    const buyPhoneVerifyBadge = document.getElementById("buyPhoneVerifyBadge");
+    const buyPhoneVerifyText = document.getElementById("buyPhoneVerifyText");
+
+    function needsKnownNumberVerification(svc){
+      const joined = [svc?.service_network, svc?.network, svc?.serviceName, svc?.name].filter(Boolean).join(" ").toLowerCase();
+      return joined.includes("mtn");
+    }
+
+    function setKnownNumberUi(inputEl, badgeEl, textEl, state, message){
+      if (inputEl) {
+        inputEl.classList.remove("is-valid", "is-invalid", "border-warning");
+        if (state === "ok") inputEl.classList.add("is-valid");
+        if (state === "fail") inputEl.classList.add("is-invalid");
+        if (state === "warn") inputEl.classList.add("border-warning");
+      }
+      if (badgeEl) {
+        badgeEl.innerHTML = state === "ok" ? "&#10003;" : state === "pending" ? "..." : (state === "fail" || state === "warn") ? "!" : "";
+        badgeEl.className = "input-group-text";
+        if (state === "ok") badgeEl.classList.add("text-success");
+        else if (state === "fail") badgeEl.classList.add("text-danger");
+        else if (state === "warn") badgeEl.classList.add("text-warning");
+        else if (state === "pending") badgeEl.classList.add("text-primary");
+        else badgeEl.classList.add("text-muted");
+      }
+      if (textEl) {
+        textEl.textContent = message || "";
+        textEl.className = "small mt-1";
+        if (state === "ok") textEl.classList.add("text-success");
+        else if (state === "fail") textEl.classList.add("text-danger");
+        else if (state === "warn") textEl.classList.add("text-warning");
+        else textEl.classList.add("text-muted");
+      }
+    }
+
+    function showKnownNumberModal(state, message){
+      const modalEl = document.getElementById("knownNumberModal");
+      if (!modalEl || !window.bootstrap) return null;
+      const titleEl = document.getElementById("knownNumberModalTitle");
+      const msgEl = document.getElementById("knownNumberModalMsg");
+      const spinnerEl = document.getElementById("knownNumberModalSpinner");
+      const iconEl = document.getElementById("knownNumberModalIcon");
+      const closeEl = document.getElementById("knownNumberModalClose");
+      const inst = bootstrap.Modal.getOrCreateInstance(modalEl);
+      if (titleEl) titleEl.textContent = state === "pending" ? "Verifying Number" : (state === "ok" || state === "warn") ? "Number Verified" : "Verification Failed";
+      if (msgEl) msgEl.textContent = message || "";
+      if (spinnerEl) spinnerEl.classList.toggle("d-none", state !== "pending");
+      if (iconEl) iconEl.innerHTML = state === "ok" ? "&#10003;" : (state === "fail" || state === "warn") ? "!" : "";
+      if (iconEl) iconEl.className = state === "ok" ? "fs-4 text-success" : state === "warn" ? "fs-4 text-warning" : state === "fail" ? "fs-4 text-danger" : "fs-4";
+      if (closeEl) closeEl.classList.toggle("d-none", state === "pending");
+      inst.show();
+      return inst;
+    }
+
+    async function verifyKnownNumber(line, inputEl, badgeEl, textEl, showModal = true){
+      if (!needsKnownNumberVerification(line)) {
+        setKnownNumberUi(inputEl, badgeEl, textEl, "idle", "");
+        return true;
+      }
+      const phone = normalizePhone(line.phone || "");
+      if (!/^0\d{9}$/.test(phone)) {
+        setKnownNumberUi(inputEl, badgeEl, textEl, "idle", "");
+        return false;
+      }
+      const cacheKey = phone;
+      if (knownNumberCache.has(cacheKey)) {
+        const cached = knownNumberCache.get(cacheKey);
+        setKnownNumberUi(inputEl, badgeEl, textEl, cached.state, cached.message);
+        return cached.ok;
+      }
+      setKnownNumberUi(inputEl, badgeEl, textEl, "pending", "Verifying number...");
+      const inst = showModal ? showKnownNumberModal("pending", "Verifying number...") : null;
+      try {
+        const res = await fetch(KNOWN_NUMBER_VERIFY_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "same-origin",
+          body: JSON.stringify({
+            phone,
+            serviceId: line.serviceId,
+            serviceName: line.serviceName,
+            service_network: line.service_network,
+            network: line.network,
+            source: "store",
+          })
+        });
+        const data = await res.json().catch(() => ({}));
+        const ok = !!(res.ok && data && data.allowed !== false);
+        const isWarningOnly = !!(data && data.warning_only);
+        const state = (isWarningOnly && ok) ? "ok" : ok ? "ok" : "fail";
+        const message = ok ? "Number verified." : "Number not in our database so you cant place order.";
+        knownNumberCache.set(cacheKey, { ok, state, message });
+        setKnownNumberUi(inputEl, badgeEl, textEl, state, message);
+        if (inst) {
+          showKnownNumberModal(state, message);
+          if (ok) setTimeout(() => inst.hide(), state === "warn" ? 2200 : 700);
+        }
+        if (ok && state === "ok") line.known_number_verified = true;
+        if (ok && state === "warn") line.known_number_warning = true;
+        return ok;
+      } catch (err) {
+        const message = "Could not verify number right now. Try again.";
+        setKnownNumberUi(inputEl, badgeEl, textEl, "fail", message);
+        if (inst) showKnownNumberModal("fail", message);
+        return false;
+      }
+    }
+
+    async function ensureKnownNumberVerifiedForLine(line, inputEl, badgeEl, textEl){
+      return verifyKnownNumber(line, inputEl, badgeEl, textEl, true);
+    }
+
+    async function ensureKnownNumberVerifiedForCart(lines){
+      const items = Array.isArray(lines) ? lines : [];
+      for (const line of items){
+        const ok = await verifyKnownNumber(line, null, null, null, false);
+        if (!ok) {
+          showKnownNumberModal("fail", "Number not in our database so you cant place order.");
+          return false;
+        }
+      }
+      return true;
+    }
+
+    function setLoading(btn, on) {
+      if (!btn) return;
+      const txt = btn.querySelector(".btn-text");
+      const sp = btn.querySelector(".spinner-border");
+      btn.disabled = !!on;
+      if (on) { if (txt) txt.classList.add("d-none"); if (sp) sp.classList.remove("d-none"); }
+      else { if (txt) txt.classList.remove("d-none"); if (sp) sp.classList.add("d-none"); }
+    }
+
+    // ================== toast + misc UI ==================
+    const toastEl = document.getElementById("appToast");
+    const toast = (toastEl && window.bootstrap) ? new bootstrap.Toast(toastEl, { delay: 2400 }) : null;
+
+    function tell(m) {
+      const body = document.getElementById("toastBody");
+      if (body) body.textContent = m || "Done";
+      if (toast) toast.show();
+      else alert(m || "Done");
+    }
+
+    const yEl = document.getElementById("y");
+    if (yEl) yEl.textContent = new Date().getFullYear();
+
+    // reveal on scroll (safe)
+    if ("IntersectionObserver" in window) {
+      const io = new IntersectionObserver((entries) => {
+        entries.forEach((e) => {
+          if (e.isIntersecting) {
+            e.target.classList.add("in");
+            io.unobserve(e.target);
+          }
+        });
+      }, { threshold: 0.12 });
+      document.querySelectorAll(".reveal").forEach((el) => io.observe(el));
+    } else {
+      document.querySelectorAll(".reveal").forEach((el) => el.classList.add("in"));
+    }
+
+    // hide FAB on Products tab
+    const fab = document.getElementById("fabCart");
+    const tabServices = document.getElementById("tab-services");
+    const tabProducts = document.getElementById("tab-products");
+    function updateFab() {
+      const productsActive = tabProducts && tabProducts.classList.contains("active");
+      if (fab) fab.classList.toggle("hide", !!productsActive);
+    }
+    if (tabServices) tabServices.addEventListener("shown.bs.tab", updateFab);
+    if (tabProducts) tabProducts.addEventListener("shown.bs.tab", updateFab);
+    updateFab();
+
+    // ================== data from backend ==================
+    const PRODUCTS = readJsonScript("productsJson", []);
+    const STORE_NAME = readJsonScript("storeNameJson", "Store");
+    const WA = String(readJsonScript("storeWaJson", "") || "").trim();
+
+    // ✅ NO DEFAULTS: must come from DB (backend scripts)
+    const PS_PAYER_EMAIL = String(readJsonScript("psEmailJson", "") || "").trim();
+    const PS_FIRST = String(readJsonScript("psFirstJson", "") || "").trim();
+    const PS_LAST  = String(readJsonScript("psLastJson", "") || "").trim();
+
+    function normalizePhoneForEmail(raw) {
+      const digits = String(raw || "").replace(/\D+/g, "");
+      if (!digits) return "";
+      if (digits.startsWith("233") && digits.length >= 12) return "0" + digits.slice(-9);
+      if (digits.length === 9) return "0" + digits;
+      if (digits.length === 10 && digits.startsWith("0")) return digits;
+      return digits;
+    }
+
+    function buildDummyPaystackEmail(phone) {
+      const p = normalizePhoneForEmail(phone);
+      return p ? (p + "hansmart@gmail.com") : "hansmart@gmail.com";
+    }
+
+    function getPaystackEmailFromCart() {
+      try {
+        const first = (cart && Array.isArray(cart._data)) ? cart._data.find(it => it && it.phone) : null;
+        const phoneEmail = buildDummyPaystackEmail(first ? first.phone : "");
+        if (phoneEmail) return phoneEmail;
+        return PS_PAYER_EMAIL || "";
+      } catch (_) {
+        return PS_PAYER_EMAIL || "";
+      }
+    }
+
+    function ensurePaystackIdentityOrExplain() {
+      const email = getPaystackEmailFromCart();
+      if (!email) {
+        tell("Payment needs a valid phone number. Add an item with a correct phone and try again.");
+        return false;
+      }
+      // first/last can be empty; Paystack accepts email only, but we pass what we have.
+      return true;
+    }
+
+    function normalizeProduct(p) {
+      const name = (p && (p.name || p.title)) || "Product";
+      const price = Number(p && (p.price ?? p.amount ?? 0)) || 0;
+      const desc = (p && (p.description || p.desc)) || "";
+      const img = (p && (p.image_url || p.image || p.photo_url || p.photo)) || "";
+      return { name, price, desc, img };
+    }
+
+    function shuffle(arr) {
+      const a = (arr || []).slice();
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        const tmp = a[i]; a[i] = a[j]; a[j] = tmp;
+      }
+      return a;
+    }
+
+    // go to products tab
+    function goProductsTab() {
+      try {
+        const trigger = document.getElementById("tab-products");
+        if (trigger) new bootstrap.Tab(trigger).show();
+        const pane = document.getElementById("pane-products");
+        if (pane) pane.scrollIntoView({ behavior: "smooth", block: "start" });
+      } catch (_) { }
+    }
+
+    const btnGoProducts = document.getElementById("btnGoProducts");
+    if (btnGoProducts) btnGoProducts.addEventListener("click", goProductsTab);
+
+    const recoViewAll = document.getElementById("recoViewAll");
+    if (recoViewAll) {
+      recoViewAll.addEventListener("click", () => {
+        const modalEl = document.getElementById("recoModal");
+        const inst = modalEl ? bootstrap.Modal.getInstance(modalEl) : null;
+        if (inst) inst.hide();
+        setTimeout(goProductsTab, 160);
+      });
+    }
+
+    function buildRecoTile(p) {
+      const safeName = String(p.name || "Product");
+      const img = p.img || ("https://via.placeholder.com/800x450?text=" + encodeURIComponent(safeName));
+      const msg = "Hello " + STORE_NAME + ", I want to order: " + safeName + " | Price: GHS " + money(p.price);
+      const waLink = WA ? ("https://wa.me/" + WA + "?text=" + encodeURIComponent(msg)) : "";
+
+      return (
+        '<div class="reco-item">' +
+        '  <div class="reco-tile h-100">' +
+        '    <div class="reco-thumb"><img src="' + img + '" alt="' + safeName.replace(/"/g, "&quot;") + '" loading="lazy"></div>' +
+        '    <div class="reco-body">' +
+        '      <p class="reco-name">' + safeName + "</p>" +
+        '      <p class="reco-meta">GHS <strong>' + money(p.price) + "</strong></p>" +
+        '      <div class="reco-actions">' +
+        (WA
+          ? ('<a class="btn btn-success flex-grow-1" href="' + waLink + '" target="_blank" rel="noopener"><i class="bi bi-whatsapp me-1"></i> WhatsApp</a>')
+          : ('<button class="btn btn-outline-secondary flex-grow-1" disabled><i class="bi bi-whatsapp me-1"></i> WhatsApp not set</button>')
+        ) +
+        '        <button class="btn btn-soft" type="button" data-reco-view="1" title="View all products"><i class="bi bi-bag"></i></button>' +
+        "      </div>" +
+        "    </div>" +
+        "  </div>" +
+        "</div>"
+      );
+    }
+
+    function renderRailAndModalProducts() {
+      const rail = document.getElementById("railReco");
+      const grid = document.getElementById("recoGrid");
+      const empty = document.getElementById("recoEmpty");
+
+      if (!PRODUCTS || !PRODUCTS.length) {
+        if (rail) rail.innerHTML = '<div class="text-muted small">No products yet.</div>';
+        if (grid) grid.innerHTML = "";
+        if (empty) empty.classList.remove("d-none");
+        return;
+      }
+
+      const picks = shuffle(PRODUCTS).slice(0, 6).map(normalizeProduct);
+
+      if (rail) {
+        rail.innerHTML = picks.slice(0, 4).map(p => {
+          const img = p.img || ("https://via.placeholder.com/800x450?text=" + encodeURIComponent(p.name));
+          return (
+            '<a class="mini-card" href="javascript:void(0)" data-rail-go="1" title="View all products">' +
+            '  <div class="mini-img"><img src="' + img + '" alt="' + p.name.replace(/"/g, "&quot;") + '" loading="lazy"></div>' +
+            '  <div class="mini-info">' +
+            '    <p class="mini-name">' + p.name + "</p>" +
+            '    <div class="mini-price">GHS ' + money(p.price) + "</div>" +
+            '    <div class="mini-note">Tap to see products</div>' +
+            "  </div>" +
+            "</a>"
+          );
+        }).join("");
+        rail.querySelectorAll('[data-rail-go="1"]').forEach(a => a.addEventListener("click", goProductsTab));
+      }
+
+      if (grid) {
+        grid.innerHTML = picks.map(buildRecoTile).join("");
+        grid.querySelectorAll('[data-reco-view="1"]').forEach(b => b.addEventListener("click", goProductsTab));
+      }
+      if (empty) empty.classList.add("d-none");
+    }
+    renderRailAndModalProducts();
+
+    // ✅ Show reco modal ONLY when user clicks "Buy"
+    const RECO_KEY = "store_reco_seen_" + (document.body.getAttribute("data-slug") || "");
+    function shouldShowReco() {
+      try {
+        const last = Number(localStorage.getItem(RECO_KEY) || "0");
+        return (Date.now() - last) > (10 * 60 * 1000);
+      } catch (_) { return true; }
+    }
+    function markRecoSeen() { try { localStorage.setItem(RECO_KEY, String(Date.now())); } catch (_) { } }
+    function openRecoModal() {
+      if (!PRODUCTS || !PRODUCTS.length) return;
+      if (!shouldShowReco()) return;
+      renderRailAndModalProducts();
+      markRecoSeen();
+      const modalEl = document.getElementById("recoModal");
+      if (!modalEl) return;
+      const m = new bootstrap.Modal(modalEl, { backdrop: true, keyboard: true, focus: true });
+      m.show();
+    }
+
+    // ================== EXISTING CART + PAY LOGIC ==================
+    const SLUG = document.body.getAttribute("data-slug") || "";
+    const CART_KEY = "store_cart_" + SLUG;
+    const PAY_CONFIRMED_KEY = "store_ps_confirmed_" + SLUG;
+
+    function _formatGb(n) {
+      if (n == null || isNaN(n)) return "-";
+      const r = Math.round(n);
+      return (Math.abs(n - r) < 1e-9 ? String(r) : String(parseFloat(n.toFixed(2)).toString())) + " GB";
+    }
+    function _extractGb(raw) {
+      if (!raw) return null;
+      const s = String(raw).trim();
+      var m = s.match(/^\s*([0-9]+(?:\.[0-9]+)?)\s*gb\s*$/i);
+      if (m) return parseFloat(m[1]);
+      m = s.match(/^\s*([0-9]+(?:\.[0-9]+)?)\s*mb\s*$/i);
+      if (m) return parseFloat(m[1]) / 1000;
+
+      if (s.startsWith("{") && s.endsWith("}")) {
+        try {
+          const j = JSON.parse(
+            s.replace(/'/g, '"')
+              .replace(/\bNone\b/g, "null")
+              .replace(/\bTrue\b/g, "true")
+              .replace(/\bFalse\b/g, "false")
+          );
+          if (j && typeof j === "object") {
+            if (j.gb != null && !isNaN(parseFloat(j.gb))) return parseFloat(j.gb);
+            if (j.offer != null && !isNaN(parseFloat(j.offer))) return parseFloat(j.offer) / 1000;
+            if (j.volume != null && !isNaN(parseFloat(j.volume))) return parseFloat(j.volume) / 1000;
+          }
+        } catch (_) { }
+      }
+      return null;
+    }
+
+    function parseMaybeObject(v) {
+      if (v && typeof v === "object") return v;
+      if (typeof v !== "string") return null;
+      const s = v.trim();
+      if (!(s.startsWith("{") && s.endsWith("}"))) return null;
+      try { return JSON.parse(s); } catch (_) { }
+      try {
+        const fixed = s.replace(/'/g, '"')
+          .replace(/\bNone\b/g, "null")
+          .replace(/\bTrue\b/g, "true")
+          .replace(/\bFalse\b/g, "false");
+        return JSON.parse(fixed);
+      } catch (_) { return null; }
+    }
+
+    function gbLabelFromOffer(o, svcName) {
+      const svc = (svcName || "").toLowerCase();
+      if (svc === "afa talktime") {
+        let v = o ? o.value : undefined;
+        const maybeObj = parseMaybeObject(v);
+        if (maybeObj) v = maybeObj;
+        if (v && typeof v === "object" && v.volume != null) {
+          const mins = Number(v.volume);
+          if (!isNaN(mins)) return Math.round(mins) + " mins";
+        }
+        if (typeof v === "string") {
+          const m = v.match(/(\d+(?:\.\d+)?)/);
+          if (m) return Math.round(parseFloat(m[1])) + " mins";
+        }
+      }
+      if (o && typeof o.value_text === "string" && o.value_text.trim()) {
+        const vt = o.value_text.trim();
+        if (/min/i.test(vt)) return vt;
+        const mbMatch = vt.match(/^\s*([0-9]+(?:\.[0-9]+)?)\s*mb\s*$/i);
+        if (mbMatch) return _formatGb(parseFloat(mbMatch[1]) / 1000);
+      }
+      let v = o ? o.value : undefined;
+      const maybeObj = parseMaybeObject(v);
+      if (maybeObj) v = maybeObj;
+
+      let gb = null;
+      if (v && typeof v === "object") {
+        if (v.gb != null && !isNaN(parseFloat(v.gb))) gb = parseFloat(v.gb);
+        else if (v.offer != null && !isNaN(parseFloat(v.offer))) gb = parseFloat(v.offer) / 1000;
+        else if (v.volume != null && !isNaN(parseFloat(v.volume))) gb = parseFloat(v.volume) / 1000;
+      }
+      if (gb == null && typeof v === "string") {
+        const g = v.match(/^\s*([0-9]+(?:\.[0-9]+)?)\s*gb\s*$/i); if (g) gb = parseFloat(g[1]);
+        const m = v.match(/^\s*([0-9]+(?:\.[0-9]+)?)\s*mb\s*$/i); if (m) gb = parseFloat(m[1]) / 1000;
+      }
+      if (gb != null) return _formatGb(gb);
+      if (typeof v === "string") return v.replace(/gb/ig, "GB");
+      return "-";
+    }
+
+    const cart = {
+      _data: [],
+      load() { try { this._data = JSON.parse(sessionStorage.getItem(CART_KEY) || "[]") || []; } catch (e) { this._data = []; } },
+      save() { try { sessionStorage.setItem(CART_KEY, JSON.stringify(this._data)); } catch (e) { } },
+      key(line){
+        return [line && (line.serviceId || line.service_id || ""), line && (line.phone || ""), line && (line.value || ""), Number(line && line.amount || 0)].join("|");
+      },
+      hasDuplicate(line){
+        const key = this.key(line);
+        for (let i = 0; i < this._data.length; i++) {
+          if (this.key(this._data[i]) === key) return true;
+        }
+        return false;
+      },
+      add(line) {
+        if (line && line.phone) {
+          const p = normalizePhone(line.phone);
+          if (!/^0\d{9}$/.test(p)) {
+            tell("Phone must be 10 digits (e.g. 0530393625)");
+            return;
+          }
+          line.phone = p;
+        }
+        this._data.push(line);
+        this.save();
+        renderCart();
+      },
+      remove(i) { this._data.splice(i, 1); this.save(); renderCart(); },
+      clear() {
+        this._data = [];
+        try { sessionStorage.removeItem(CART_KEY); } catch (e) { }
+        try { localStorage.removeItem(CART_KEY); } catch (e) { }
+        renderCart();
+      },
+      total() { return this._data.reduce((t, i) => t + Number(i.amount || 0), 0); }
+    };
+
+    const buyModalEl = document.getElementById("buyServiceModal");
+    const buyModal = buyModalEl ? bootstrap.Modal.getOrCreateInstance(buyModalEl) : null;
+    const buyServiceImg = document.getElementById("buyServiceImg");
+    const buyServiceName = document.getElementById("buyServiceName");
+    const buyOffer = document.getElementById("buyOffer");
+    const buyPhone = document.getElementById("buyPhone");
+    const buyPhoneClearBtn = document.getElementById("buyPhoneClearBtn");
+    const buyAddToCart = document.getElementById("buyAddToCart");
+    let activeBuyService = null;
+
+    function sanitizePhoneInput(raw){
+      let d = String(raw || "").replace(/\D+/g, "");
+      if (d.startsWith("233") && d.length >= 12) d = "0" + d.slice(-9);
+      if (d.length > 10) d = d.slice(0, 10);
+      return d;
+    }
+
+    function bindClearInput(inputEl, clearBtn, onClear){
+      if (!inputEl || !clearBtn) return;
+      function sync(){
+        clearBtn.classList.toggle("d-none", !(inputEl.value || "").length);
+      }
+      inputEl._syncClearButton = sync;
+      clearBtn.addEventListener("click", () => {
+        inputEl.value = "";
+        if (typeof onClear === "function") onClear();
+        sync();
+        inputEl.focus();
+      });
+      inputEl.addEventListener("input", sync);
+      sync();
+    }
+
+    function populateBuyModal(svc) {
+      activeBuyService = svc || {};
+      activeBuyService.offers = (activeBuyService.offers || []).filter(o => o && o.total != null);
+      if (buyServiceName) buyServiceName.textContent = activeBuyService.name || "Service";
+      if (buyServiceImg) {
+        buyServiceImg.src = activeBuyService.image_url || ("https://via.placeholder.com/160x160?text=" + encodeURIComponent(activeBuyService.name || "Service"));
+        buyServiceImg.alt = activeBuyService.name || "Service";
+      }
+      if (buyOffer) {
+        buyOffer.innerHTML = '<option value="">Choose offer</option>';
+        activeBuyService.offers.forEach((o, i) => {
+          const opt = document.createElement("option");
+          opt.value = String(i);
+          opt.dataset.total = o.total ?? "";
+          opt.dataset.base = o.amount ?? "";
+          opt.textContent = "GHS " + Number(o.total || 0).toFixed(2) + " - " + (gbLabelFromOffer(o, activeBuyService.name) || "-");
+          buyOffer.appendChild(opt);
+        });
+      }
+      if (buyPhone) buyPhone.value = "";
+      if (buyPhone && typeof buyPhone._syncClearButton === "function") buyPhone._syncClearButton();
+      setKnownNumberUi(buyPhone, buyPhoneVerifyBadge, buyPhoneVerifyText, "idle", "");
+    }
+
+    function flyToCart(fromEl) {
+      const cartBtn = document.getElementById("fabCart");
+      if (!fromEl || !cartBtn) return;
+      const start = fromEl.getBoundingClientRect();
+      const end = cartBtn.getBoundingClientRect();
+      const dot = document.createElement("div");
+      dot.className = "cart-fly";
+      dot.innerHTML = '<i class="bi bi-cart-plus"></i>';
+      dot.style.left = (start.left + start.width / 2 - 19) + "px";
+      dot.style.top = (start.top + start.height / 2 - 19) + "px";
+      document.body.appendChild(dot);
+      dot.getBoundingClientRect();
+      dot.style.transform = "translate(" + (end.left + end.width / 2 - start.left - start.width / 2) + "px," + (end.top + end.height / 2 - start.top - start.height / 2) + "px) scale(.45)";
+      dot.style.opacity = "0";
+      setTimeout(() => dot.remove(), 650);
+      cartBtn.animate(
+        [{ transform: "scale(1)" }, { transform: "scale(1.12)" }, { transform: "scale(1)" }],
+        { duration: 420, easing: "ease-out" }
+      );
+    }
+
+    document.querySelectorAll(".select-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const can = btn.getAttribute("data-can") === "1";
+        if (!can) { tell(btn.getAttribute("data-reason") || "This service is unavailable."); return; }
+
+        let svc = {};
+        try { svc = JSON.parse(btn.getAttribute("data-service") || "{}"); } catch (e) { }
+
+        svc.offers = (svc.offers || []).map(o => {
+          const amountNum = Number(o.amount);
+          const amount = Number.isFinite(amountNum) ? amountNum : 0;
+          return Object.assign({}, o, { amount: amount, value_text: (o.value_text || gbLabelFromOffer(o, svc.name)) });
+        });
+
+        populateBuyModal(svc);
+        if (buyModal) buyModal.show();
+      });
+    });
+    wireSpecialInfoButtons();
+
+    if (buyPhone) {
+      buyPhone.addEventListener("input", () => {
+        buyPhone.value = sanitizePhoneInput(buyPhone.value);
+        setKnownNumberUi(buyPhone, buyPhoneVerifyBadge, buyPhoneVerifyText, "idle", "");
+        clearTimeout(buyPhone._verifyTimer);
+        if (!activeBuyService || !needsKnownNumberVerification(activeBuyService)) return;
+        if (!/^0\d{9}$/.test(buyPhone.value || "")) return;
+        buyPhone._verifyTimer = setTimeout(() => {
+          verifyKnownNumber(
+            {
+              serviceId: activeBuyService?._id_str,
+              serviceName: activeBuyService?.name,
+              service_network: activeBuyService?.service_network,
+              network: activeBuyService?.network,
+              phone: buyPhone.value,
+            },
+            buyPhone,
+            buyPhoneVerifyBadge,
+            buyPhoneVerifyText,
+            true
+          );
+        }, 180);
+      });
+    }
+    bindClearInput(buyPhone, buyPhoneClearBtn, () => {
+      setKnownNumberUi(buyPhone, buyPhoneVerifyBadge, buyPhoneVerifyText, "idle", "");
+      clearTimeout(buyPhone && buyPhone._verifyTimer);
+    });
+
+    if (buyAddToCart) {
+      buyAddToCart.addEventListener("click", async () => {
+        const svc = activeBuyService || {};
+        const idx = Number(buyOffer ? buyOffer.value : "");
+        const of = (svc.offers || [])[idx];
+        const phone = normalizePhone(buyPhone ? buyPhone.value : "");
+        if (isNaN(idx) || !of) { tell("Please choose an offer."); if (buyOffer) buyOffer.focus(); return; }
+        if (!/^0\d{9}$/.test(phone)) { tell("Phone must be 10 digits (e.g. 0530393625)"); if (buyPhone) buyPhone.focus(); return; }
+
+        setLoading(buyAddToCart, true);
+        const line = {
+          serviceId: svc._id_str,
+          serviceName: svc.name,
+          service_network: svc.service_network,
+          network: svc.network,
+          phone: phone,
+          value: of.value_text || "-",
+          value_obj: of.value || null,
+          base_amount: Number(of.amount || 0),
+          amount: Number(of.total || 0)
+        };
+        const okNotice = await showSpecialServiceNotice(svc);
+        if (!okNotice) { setLoading(buyAddToCart, false); return; }
+        const knownOk = await ensureKnownNumberVerifiedForLine(line, buyPhone, buyPhoneVerifyBadge, buyPhoneVerifyText);
+        if (!knownOk) { setLoading(buyAddToCart, false); return; }
+        const ok = await ensurePortedConfirmedForLine(line, buyPhone);
+        if (!ok) { setLoading(buyAddToCart, false); return; }
+        if (cart.hasDuplicate(line)) {
+          const okDup = await showDuplicateModal("This number is already in your cart for the same bundle. Add anyway?");
+          if (!okDup) { setLoading(buyAddToCart, false); return; }
+        }
+        cart.add(line);
+        setLoading(buyAddToCart, false);
+        if (buyModal) buyModal.hide();
+        flyToCart(buyAddToCart);
+        tell("Added to cart");
+      });
+    }
+
+    const cartBody = document.getElementById("cartBody");
+    const cartTotalEl = document.getElementById("cartTotal");
+    const paystackTotalEl = document.getElementById("paystackTotal");
+    const cartEmpty = document.getElementById("cartEmpty");
+    const cartWrap = document.getElementById("cartWrap");
+    const cartCount = document.getElementById("cartCount");
+    const paymentNote = document.getElementById("paymentNote");
+    const btnPay = document.getElementById("btnPay");
+    const btnProcess = document.getElementById("btnProcess");
+    const PAYSTACK_FEE_RATE = 0.02;
+
+    function hasMashupService(items) {
+      const rows = Array.isArray(items) ? items : [];
+      return rows.some(it => String((it && (it.serviceName || it.service || it.name)) || "").trim().toLowerCase() === SPECIAL_SERVICE_NAME);
+    }
+
+    function mashupStatusNoteText() {
+      return "Order received and processing. Confirm balance once delivered: ask the customer to dial *124#. They might also get an SMS from Feeli when it lands.";
+    }
+
+    function calcPaystackTotals(baseTotal) {
+      const base = Number(baseTotal || 0);
+      const fee = Math.round(base * PAYSTACK_FEE_RATE * 100) / 100;
+      const total = Math.round((base + fee) * 100) / 100;
+      return { fee: fee, total: total };
+    }
+
+    function renderCart() {
+      if (!cartBody) return;
+      cartBody.innerHTML = "";
+      cart._data.forEach((it, i) => {
+        const tr = document.createElement("tr");
+        tr.innerHTML =
+          "<td>" + it.serviceName + "</td>" +
+          "<td>" + it.phone + "</td>" +
+          "<td>" + (it.value || "-") + "</td>" +
+          '<td class="text-end"><strong>GHS ' + money2(it.amount || 0) + "</strong></td>" +
+          '<td class="text-end"><button class="btn btn-sm btn-outline-danger" data-rm="' + i + '">Remove</button></td>';
+        cartBody.appendChild(tr);
+      });
+
+      const n = cart._data.length;
+      if (cartCount) cartCount.textContent = String(n);
+
+      const payTotal = cart.total();
+      const paystackTotals = calcPaystackTotals(payTotal);
+      if (cartTotalEl) cartTotalEl.textContent = money2(payTotal);
+      if (paystackTotalEl) paystackTotalEl.textContent = money2(paystackTotals.total);
+
+      if (cartEmpty) cartEmpty.classList.toggle("d-none", n !== 0);
+      if (cartWrap) cartWrap.classList.toggle("d-none", n === 0);
+
+      lockProcessUntilPayment();
+    }
+
+    if (cartBody) {
+      cartBody.addEventListener("click", (e) => {
+        const b = e.target.closest("button[data-rm]");
+        if (!b) return;
+        cart.remove(Number(b.getAttribute("data-rm")));
+        tell("Removed");
+      });
+    }
+
+    const btnClear = document.getElementById("btnClear");
+    if (btnClear) {
+      btnClear.addEventListener("click", () => {
+        if (!cart._data.length) return;
+        if (confirm("Clear all items?")) { cart.clear(); tell("Cart cleared"); }
+      });
+    }
+
+    function saveConfirmedPayment(obj) { try { localStorage.setItem(PAY_CONFIRMED_KEY, JSON.stringify(obj || {})); } catch (e) { } }
+    function getConfirmedPayment() { try { return JSON.parse(localStorage.getItem(PAY_CONFIRMED_KEY) || "{}"); } catch (e) { return {}; } }
+    function clearConfirmedPayment() { try { localStorage.removeItem(PAY_CONFIRMED_KEY); } catch (e) { } }
+
+    function isPaidEnough(confirmedAmtGhs, requiredGhs) {
+      return Number(confirmedAmtGhs || 0) + 1e-2 >= Number(requiredGhs || 0);
+    }
+
+    function lockProcessUntilPayment() {
+      const payTotal = cart.total();
+      const confirmed = getConfirmedPayment();
+      const ok = confirmed && confirmed.amount_ghs != null && isPaidEnough(confirmed.amount_ghs, payTotal);
+
+      if (btnProcess) btnProcess.disabled = !ok;
+      if (paymentNote) {
+        paymentNote.textContent = ok
+          ? ("Payment confirmed (Ref: " + (confirmed.reference || "") + "). Verifying & processing…")
+          : 'Payment required before processing. Click “Pay Now” (includes 2% fee).';
+      }
+    }
+
+    if (btnPay) {
+      btnPay.addEventListener("click", async () => {
+        if (!cart._data.length) { tell("Cart is empty."); return; }
+
+        // ✅ must have DB identity; no defaults
+        if (!ensurePaystackIdentityOrExplain()) return;
+
+        const pk = (window.PAYSTACK_PUBLIC_KEY || "").trim();
+        if (!pk) { tell("Payment is not configured. Contact support."); return; }
+
+        if (typeof window.PaystackPop === "undefined") {
+          tell("Paystack script not loaded. Please refresh or contact support.");
+          return;
+        }
+
+        let validated;
+        try {
+          const validateRes = await fetch("/api/store-cart-validate/" + encodeURIComponent(SLUG), {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ cart: cart._data })
+          });
+          validated = await validateRes.json();
+          if (!validateRes.ok || !validated.success) {
+            tell((validated && validated.message) || "Some packages are no longer available.");
+            return;
+          }
+        } catch (e) {
+          tell("Could not validate cart right now.");
+          return;
+        }
+
+        const payTotalGhs = Number(validated.total_amount || 0);
+        const paystackTotals = calcPaystackTotals(payTotalGhs);
+        const amountPesewas = pesewas(paystackTotals.total);
+        const ref = "PS-" + Date.now() + "-" + Math.floor(Math.random() * 1e6);
+
+        const items = cart._data.map(c => ({
+          s: c.serviceName, p: c.phone, v: c.value,
+          a: Number(c.amount || 0)
+        }));
+
+        setLoading(btnPay, true);
+
+        const psEmail = getPaystackEmailFromCart();
+        const handler = PaystackPop.setup({
+          key: pk,
+          email: psEmail,
+          amount: amountPesewas,
+          currency: "GHS",
+          firstname: PS_FIRST,
+          lastname: PS_LAST,
+          reference: ref,
+          metadata: {
+            payer: { email: psEmail, first_name: PS_FIRST, last_name: PS_LAST },
+            cart_snapshot: items,
+            pay_total_ghs: Number(paystackTotals.total.toFixed(2)),
+            base_total_ghs: Number(payTotalGhs.toFixed(2)),
+            fee_ghs: Number(paystackTotals.fee.toFixed(2)),
+            fee_note: "2% Paystack fee added to checkout amount; backend accepts any paid >= cart total.",
+            source: "nagonu_store_inline_checkout",
+            slug: SLUG
+          },
+          callback: function (response) {
+            const confirmedObj = {
+              reference: response.reference || ref,
+              amount_pesewas: amountPesewas,
+              amount_ghs: paystackTotals.total,
+              base_amount_ghs: payTotalGhs,
+              fee_ghs: paystackTotals.fee,
+              confirmed_at: new Date().toISOString(),
+              via_inline: true
+            };
+            saveConfirmedPayment(confirmedObj);
+            setLoading(btnPay, false);
+            tell("Payment received — verifying…");
+            lockProcessUntilPayment();
+            proceedCheckoutAuto();
+          },
+          onClose: function () {
+            setLoading(btnPay, false);
+          }
+        });
+
+        try { handler.openIframe(); }
+        catch (e) { setLoading(btnPay, false); tell("Unable to open payment window."); }
+      });
+    }
+
+    if (btnProcess) btnProcess.addEventListener("click", () => proceedCheckoutAuto());
+
+    async function proceedCheckoutAuto() {
+      const confirmed = getConfirmedPayment();
+      if (!cart._data.length) { tell("Cart is empty."); return; }
+
+      // ✅ must have DB identity; no defaults
+      if (!ensurePaystackIdentityOrExplain()) return;
+
+      const payNow = cart.total();
+
+      if (!confirmed || confirmed.amount_ghs == null) {
+        tell("Please pay first."); return;
+      }
+      if (!isPaidEnough(confirmed.amount_ghs, payNow)) {
+        tell("Amount paid is less than required. Please complete full payment.");
+        if (btnProcess) btnProcess.disabled = true;
+        return;
+      }
+
+      const knownOk = await ensureKnownNumberVerifiedForCart(cart._data);
+      if (!knownOk) return;
+      const portedOk = await ensurePortedConfirmedForCart(cart._data);
+      if (!portedOk) return;
+
+      if (btnProcess) setLoading(btnProcess, true);
+
+      try {
+        const payerEmail = getPaystackEmailFromCart();
+        const r = await fetch("/store-checkout/" + encodeURIComponent(SLUG), {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            cart: cart._data,
+            method: "paystack_inline",
+            paystack: {
+              reference: confirmed.reference || "",
+              amount_pesewas: Math.round(payNow * 100),
+              amount_ghs: payNow,
+              via_inline: true,
+              payer: { email: payerEmail, first_name: PS_FIRST, last_name: PS_LAST }
+            }
+          })
+        });
+
+        const j = await r.json();
+        if (r.ok && j.success) {
+          const hadMashup = hasMashupService(cart._data);
+          tell("Order received: " + (j.order_id || ""));
+          cart.clear();
+          clearConfirmedPayment();
+
+          const statusBox = document.getElementById("orderStatusBox");
+          const statusText = document.getElementById("orderStatusText");
+          const statusLink = document.getElementById("orderStatusLink");
+          if (statusBox) statusBox.classList.remove("d-none");
+          if (statusText) statusText.textContent = (j.order_id || "");
+          const first = j.items && j.items[0];
+          if (statusLink && first && first.phone) {
+            statusLink.href = "/check-status?phone=" + encodeURIComponent(first.phone) + "&store=" + encodeURIComponent({{ (store.slug or '')|tojson }});
+            statusLink.classList.remove("d-none");
+          } else if (statusLink) {
+            statusLink.classList.add("d-none");
+          }
+          if (paymentNote) {
+            paymentNote.textContent = hadMashup ? mashupStatusNoteText() : "Order received and processing. You can close this window.";
+          }
+        } else {
+          tell(j.message || "Checkout failed.");
+        }
+      } catch (_e) {
+        tell("Network error.");
+      }
+
+      if (btnProcess) setLoading(btnProcess, false);
+    }
+
+    // Store-page cart lasts only for this browser tab. Closing the tab or
+    // window starts the next visit with an empty cart.
+    try { localStorage.removeItem(CART_KEY); } catch (e) { }
+    cart.load();
+    renderCart();
+  })();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Users - SIR HANS</title>
+  <style>
+    body { background:#f5f8fb; }
+    .users-header { background:linear-gradient(120deg,#0a1a2f,#0ea5e9);color:white;border-radius:16px;padding:24px;margin:28px 0 24px; }
+    .users-card { background:white;border:1px solid #e3eaf1;border-radius:14px;padding:24px;margin-bottom:24px; }
+    .page-options { display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px; }
+    .page-option { display:flex;gap:10px;align-items:center;border:1px solid #dce5ee;border-radius:8px;padding:12px;cursor:pointer; }
+    .page-option:has(input:checked) { background:#eff9ff;border-color:#0ea5e9; }
+    .page-option input { width:18px;height:18px;accent-color:#0284c7;flex-shrink:0; }
+    .user-pages { max-width:430px;white-space:normal; }
+  </style>
+</head>
+<body>
+{% include 'admin_sidebar.html' %}
+<main class="customer-content">
+  <header class="users-header"><h1 class="h3">Users</h1><p class="mb-0">Create users and choose the pages they can access.</p></header>
+  {% for category, message in get_flashed_messages(with_categories=true) %}
+    <div class="alert alert-{{ category }}" role="status">{{ message }}</div>
+  {% endfor %}
+  {% if error %}<div class="alert alert-danger" role="alert">{{ error }}</div>{% endif %}
+  <section class="users-card" aria-labelledby="form-title">
+    <h2 id="form-title" class="h5 mb-3">{{ 'Edit user: ' ~ editing.username if editing else 'Create a user' }}</h2>
+    <form method="post" action="{{ url_for('admin_users.users_page') }}">
+      <input type="hidden" name="csrf_token" value="{{ session.users_csrf }}">
+      <input type="hidden" name="action" value="{{ 'update' if editing else 'create' }}">
+      {% if editing %}<input type="hidden" name="user_id" value="{{ editing._id }}">{% endif %}
+      <div class="row g-3 mb-4">
+        <div class="col-md-4"><label class="form-label" for="name">Full name</label><input class="form-control" id="name" name="name" required maxlength="120" autocomplete="name" value="{{ form.get('name', '') }}"></div>
+        <div class="col-md-4"><label class="form-label" for="username">Username</label><input class="form-control" id="username" name="username" required minlength="3" maxlength="64" pattern="[A-Za-z0-9._\-]+" autocomplete="off" value="{{ form.get('username', '') }}"><div class="form-text">Used to sign in.</div></div>
+        <div class="col-md-4"><label class="form-label" for="email">Email</label><input class="form-control" type="email" id="email" name="email" required maxlength="254" autocomplete="email" value="{{ form.get('email', '') }}"></div>
+        <div class="col-md-6"><label class="form-label" for="password">{{ 'New password (optional)' if editing else 'Password' }}</label><input class="form-control" type="password" id="password" name="password" minlength="8" maxlength="256" autocomplete="new-password" {{ '' if editing else 'required' }}><div class="form-text">{{ 'Leave blank to keep the current password. Changing it signs the user out.' if editing else 'At least 8 characters. Share the credentials securely with the user.' }}</div></div>
+        <div class="col-md-6"><label class="form-label" for="confirm-password">Confirm password</label><input class="form-control" type="password" id="confirm-password" name="confirm_password" maxlength="256" autocomplete="new-password" {{ '' if editing else 'required' }}></div>
+      </div>
+      <fieldset>
+        <legend class="h6">Sidebar pages</legend>
+        <p class="text-secondary small">Select at least one page. Users can view and perform the existing actions on selected pages, except choosing or changing service providers. Other pages are hidden and inaccessible. Users, Admin Profile and provider controls remain available only to full admins.</p>
+        <div class="d-flex gap-2 mb-3"><button type="button" class="btn btn-sm btn-outline-secondary" data-select-pages="all">Select all</button><button type="button" class="btn btn-sm btn-outline-secondary" data-select-pages="none">Clear selection</button><span id="selection-count" class="small align-self-center" aria-live="polite"></span></div>
+        <div class="page-options">
+          {% for key, label, endpoint, icon in pages %}
+          <label class="page-option" for="page-{{ key }}"><input type="checkbox" id="page-{{ key }}" name="allowed_pages" value="{{ key }}" {% if key in form.get('allowed_pages', []) %}checked{% endif %}><i class="bi bi-{{ icon }}" aria-hidden="true"></i><span>{{ label }}</span></label>
+          {% endfor %}
+        </div>
+      </fieldset>
+      <div class="d-flex gap-2 mt-4"><button class="btn btn-primary" type="submit">{{ 'Save changes' if editing else 'Create user' }}</button>{% if editing %}<a class="btn btn-outline-secondary" href="{{ url_for('admin_users.users_page') }}">Cancel</a>{% endif %}</div>
+    </form>
+  </section>
+  <section class="users-card" aria-labelledby="users-title">
+    <h2 id="users-title" class="h5">Managed users <span class="badge bg-secondary">{{ accounts|length }}</span></h2>
+    <p class="small text-secondary">Changes to page access apply immediately. Disabling an account also ends its current sessions.</p>
+    {% if accounts %}
+    <div class="table-responsive"><table class="table align-middle">
+      <thead><tr><th scope="col">User</th><th scope="col">Status</th><th scope="col">Assigned pages</th><th scope="col">Actions</th></tr></thead>
+      <tbody>{% for user in accounts %}<tr>
+        <td><strong>{{ user.name }}</strong><div class="small">{{ user.username }}</div><div class="small text-secondary">{{ user.email }}</div></td>
+        <td><span class="badge {{ 'bg-success' if user.get('status', 'active') == 'active' else 'bg-secondary' }}">{{ 'Active' if user.get('status', 'active') == 'active' else 'Disabled' }}</span></td>
+        <td class="user-pages">{% for key, label, endpoint, icon in pages %}{% if key in user.get('allowed_pages', []) %}<span class="badge bg-light text-dark border mb-1">{{ label }}</span> {% endif %}{% endfor %}{% if not user.get('allowed_pages') %}<span class="text-secondary">No pages assigned</span>{% endif %}</td>
+        <td><div class="d-flex gap-2 flex-wrap"><a class="btn btn-sm btn-outline-primary" href="{{ url_for('admin_users.users_page', edit=user._id) }}">Edit<span class="visually-hidden"> {{ user.username }}</span></a>
+          <form method="post" action="{{ url_for('admin_users.users_page') }}"><input type="hidden" name="csrf_token" value="{{ session.users_csrf }}"><input type="hidden" name="action" value="status"><input type="hidden" name="user_id" value="{{ user._id }}"><input type="hidden" name="status" value="{{ 'blocked' if user.get('status', 'active') == 'active' else 'active' }}"><button class="btn btn-sm btn-outline-secondary" type="submit">{{ 'Disable' if user.get('status', 'active') == 'active' else 'Enable' }}<span class="visually-hidden"> {{ user.username }}</span></button></form>
+        </div></td>
+      </tr>{% endfor %}</tbody>
+    </table></div>
+    {% else %}<div class="text-center py-4 text-secondary"><i class="bi bi-people fs-1" aria-hidden="true"></i><p class="mt-2 mb-0">No managed users yet. Create your first user above.</p></div>{% endif %}
+  </section>
+</main>
+<script>
+  const pageInputs = [...document.querySelectorAll('input[name="allowed_pages"]')];
+  function updateSelection() {
+    document.getElementById('selection-count').textContent = `${pageInputs.filter(input => input.checked).length} pages selected`;
+  }
+  document.querySelectorAll('[data-select-pages]').forEach(button => button.addEventListener('click', () => {
+    pageInputs.forEach(input => { input.checked = button.dataset.selectPages === 'all'; });
+    updateSelection();
+  }));
+  pageInputs.forEach(input => input.addEventListener('change', updateSelection));
+  updateSelection();
+</script>
+</body>
+</html>

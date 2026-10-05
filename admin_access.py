@@ -63,11 +63,11 @@ def can_manage_providers():
 # Presentation only: never replace the provider IDs stored in the database.
 PROVIDER_CODES = {
     "bundleportal": "BNP", "portal02": "PT2", "dataconnect": "DTC",
-    "datakazina": "DTK", "codecraft": "CDK", "skplug": "SKP",
+    "datakazina": "DTK", "datakazina_mtn": "DTK", "datakazina_mtn_express": "DTK-E", "codecraft": "CDK", "skplug": "SKP",
 }
 _PROVIDER_NAME_RE = re.compile(
     r"bundle[\s_-]*portal(?:[\s_-]*api)?|portal[\s_-]*0*2|"
-    r"data[\s_-]*connect|dconnect|data[\s_-]*kazina|dakazina|"
+    r"data[\s_-]*connect|dconnect|data[\s_-]*kazina(?:[\s_-]*mtn(?:[\s_-]*express)?)?|dakazina|"
     r"code[\s_-]*craft|sk[\s_-]*plug", re.I,
 )
 
@@ -83,6 +83,10 @@ def _provider_code(value):
         return "BNP"
     key = {"portal2": "portal02", "portal002": "portal02",
            "dconnect": "dataconnect", "dakazina": "datakazina"}.get(key, key)
+    if key == "datakazinamtn":
+        return PROVIDER_CODES["datakazina_mtn"]
+    if key == "datakazinamtnexpress":
+        return PROVIDER_CODES["datakazina_mtn_express"]
     return PROVIDER_CODES.get(key)
 
 
@@ -96,7 +100,7 @@ def provider_display_name(value, full_name=None):
 def provider_badge_class(value):
     # Neutral class names keep supplier names out of managed users' HTML/CSS.
     return {"CDK": "prov-1", "DTC": "prov-2", "PT2": "prov-3",
-            "DTK": "prov-4", "SKP": "prov-5"}.get(_provider_code(value), "")
+            "DTK": "prov-4", "DTK-E": "prov-4", "SKP": "prov-5"}.get(_provider_code(value), "")
 
 
 def provider_status_text(value):

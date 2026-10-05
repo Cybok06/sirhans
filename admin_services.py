@@ -1,3 +1,4 @@
+from datakazina_routes import ALL_PROVIDERS as DATAKAZINA_PROVIDERS, supports_service as datakazina_supports_service
 from flask import Blueprint, render_template, session, redirect, url_for, request, flash, jsonify, Request
 from db import db
 from admin_access import can_manage_providers
@@ -37,7 +38,7 @@ def _norm_type(t: str | None) -> str | None:
     t = t.strip().upper()
     return t if t in _ALLOWED_TYPES else None
 
-_ALLOWED_PROVIDERS = {"portal02", "dataconnect", "codecraft", "datakazina", "skplug", "bundleportal", *BUNDLE_PORTAL_PROVIDERS}
+_ALLOWED_PROVIDERS = {"portal02", "dataconnect", "codecraft", "datakazina", "skplug", "bundleportal", *DATAKAZINA_PROVIDERS, *BUNDLE_PORTAL_PROVIDERS}
 def _norm_provider(p: str | None) -> str | None:
     if not p:
         return None
@@ -340,6 +341,8 @@ def create_service():
     image_url = (request.form.get("image_url") or "").strip()
     service_type = _norm_type(request.form.get("service_type")) or "API"
     provider = _norm_provider(request.form.get("provider")) or "portal02"
+    if provider in DATAKAZINA_PROVIDERS and not datakazina_supports_service({"name": service_name}):
+        return jsonify(success=False, error="DataKazina supports MTN Normal and MTN Express services only."), 400
     if provider in BUNDLE_PORTAL_PROVIDERS and not bundle_portal_supports_service(provider, {"name": service_name}):
         return jsonify(success=False, error="This Bundle Portal route does not support the selected service."), 400
 
@@ -748,6 +751,12 @@ def set_service_provider(service_id):
         raw = payload.get("provider")
 
     provider_val = _norm_provider(raw)
+    if provider_val in DATAKAZINA_PROVIDERS:
+        service = services_col.find_one({"_id": _id})
+        if not service:
+            return jsonify(success=False, error="Service not found"), 404
+        if not datakazina_supports_service(service):
+            return jsonify(success=False, error="DataKazina supports MTN Normal and MTN Express services only."), 400
     if provider_val in BUNDLE_PORTAL_PROVIDERS:
         service = services_col.find_one({"_id": _id})
         if not service:
@@ -757,7 +766,7 @@ def set_service_provider(service_id):
         if not bundle_portal_configured() or not (os.getenv("BUNDLE_PORTAL_WEBHOOK_SECRET") or os.getenv("BUNDLEPORTAL_WEBHOOK_SECRET")):
             return jsonify(success=False, error="Configure the Bundle Portal API key and webhook secret before enabling this route."), 400
     if not provider_val:
-        return jsonify({"success": False, "error": "provider must be 'portal02', 'dataconnect', 'codecraft', 'datakazina', 'skplug', or 'bundleportal'"}), 400
+        return jsonify({"success": False, "error": "provider must be 'portal02', 'dataconnect', 'codecraft', 'datakazina_mtn', 'datakazina_mtn_express', 'skplug', or 'bundleportal'"}), 400
 
     res = services_col.update_one(
         {"_id": _id},

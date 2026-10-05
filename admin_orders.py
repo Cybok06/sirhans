@@ -1,3 +1,4 @@
+from datakazina_routes import ALL_PROVIDERS as DATAKAZINA_PROVIDERS
 from bundle_portal import PROVIDERS as BUNDLE_PORTAL_PROVIDERS
 # admin_orders.py  — Admin Orders + DB-Backed Scheduler (Render-safe) + Bulk Deliver (Selected)
 from flask import Blueprint, current_app, render_template, session, redirect, url_for, request, flash, jsonify, send_file
@@ -262,6 +263,10 @@ def _normalize_provider(value):
         return "dataconnect"
     if key in {"portal02", "portal2", "portal002"} or ("portal" in key and "02" in key):
         return "portal02"
+    if key == "datakazinamtnexpress":
+        return "datakazina_mtn_express"
+    if key == "datakazinamtn":
+        return "datakazina_mtn"
     if key in {"datakazina", "dakazina"} or ("kazina" in key and ("data" in key or "daka" in key)):
         return "datakazina"
     return raw
@@ -1063,7 +1068,7 @@ def admin_view_orders():
                     uid = None
             o["user"] = users_col.find_one({"_id": uid}) if uid else {}
             # Derive API flags (UI-only) — FIXED
-            valid_providers = {"codecraft", "dataconnect", "portal02", "datakazina", "skplug", "bundleportal", *BUNDLE_PORTAL_PROVIDERS}
+            valid_providers = {"codecraft", "dataconnect", "portal02", "datakazina", "skplug", "bundleportal", *DATAKAZINA_PROVIDERS, *BUNDLE_PORTAL_PROVIDERS}
 
             # statuses that should NEVER be considered "passed through API"
             NOT_PASSED_STATUSES = {
@@ -1115,7 +1120,7 @@ def admin_view_orders():
                     else:
                         # fallback: allow unknown-but-not-not_applicable statuses
                         api_passed = True
-                elif prov == "datakazina" and not api_status:
+                elif prov in DATAKAZINA_PROVIDERS and not api_status:
                     if has_provider_ref or line_status in PASSED_STATUSES:
                         api_passed = True
 

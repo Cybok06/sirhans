@@ -480,7 +480,10 @@
                       <option value="portal02" {{ 'selected' if p == 'portal02' else '' }}>Portal-02</option>
                       <option value="dataconnect" {{ 'selected' if p == 'dataconnect' else '' }}>DataConnect</option>
                       <option value="codecraft" {{ 'selected' if p == 'codecraft' else '' }}>CodeCraft</option>
-                      <option value="datakazina" {{ 'selected' if p == 'datakazina' else '' }}>DataKazina</option>
+                      {% if (svc.name or '')|trim|lower in ['mtn normal', 'mtn express'] %}
+                      <option value="datakazina_mtn" {{ 'selected' if p == 'datakazina_mtn' or (p == 'datakazina' and (svc.name or '')|trim|lower == 'mtn normal') else '' }}>DataKazina MTN</option>
+                      <option value="datakazina_mtn_express" {{ 'selected' if p == 'datakazina_mtn_express' or (p == 'datakazina' and (svc.name or '')|trim|lower == 'mtn express') else '' }}>DataKazina MTN Express</option>
+                      {% endif %}
                       <option value="skplug" {{ 'selected' if p == 'skplug' else '' }}>SKPlug</option>
                       <option value="bundleportal" {{ 'selected' if p == 'bundleportal' else '' }}>BundlePortal</option>
                       {% if (svc.name or '')|trim|lower in ['mtn normal', 'mtn express'] %}
@@ -575,7 +578,8 @@
                       <option value="portal02" selected>Portal-02 (default)</option>
                       <option value="dataconnect">DataConnect</option>
                       <option value="codecraft">CodeCraft</option>
-                      <option value="datakazina">DataKazina</option>
+                      <option value="datakazina_mtn">DataKazina MTN</option>
+                      <option value="datakazina_mtn_express">DataKazina MTN Express</option>
                       <option value="skplug">SKPlug</option>
                       <option value="bundleportal">BundlePortal</option>
                       <option value="bundleportal_mtn">Bundle Portal MTN (MTN Normal / Express)</option>

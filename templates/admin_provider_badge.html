@@ -1,6 +1,6 @@
 {% macro provider_badge(provider) -%}
   {% if provider %}
-    {% set full_name = {'codecraft': 'CodeCraft', 'dataconnect': 'DataConnect', 'portal02': 'Portal-02', 'datakazina': 'DataKazina', 'skplug': 'SKPlug'}.get(provider, provider) %}
+    {% set full_name = {'codecraft': 'CodeCraft', 'dataconnect': 'DataConnect', 'portal02': 'Portal-02', 'datakazina': 'DataKazina', 'datakazina_mtn': 'DataKazina MTN', 'datakazina_mtn_express': 'DataKazina MTN Express', 'skplug': 'SKPlug'}.get(provider, provider) %}
     <span class="prov-badge {{ provider_badge_class(provider) }}">{{ provider_display_name(provider, full_name) }}</span>
   {% else %}
     <span class="text-muted">&mdash;</span>

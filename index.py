@@ -1,5 +1,6 @@
 # index.py — Public landing page ONLY (no checkout / no orders)
 from __future__ import annotations
+from datakazina_routes import ALL_PROVIDERS as DATAKAZINA_PROVIDERS, network_id as datakazina_network_id
 from bundle_portal import PROVIDERS as BUNDLE_PORTAL_PROVIDERS, supports_service as bundle_portal_supports_service, package_size as bundle_portal_package_size
 
 from flask import Blueprint, render_template, jsonify, request, abort, send_from_directory
@@ -957,7 +958,7 @@ def _create_public_order_from_verified_payment(
         svc_provider_from_db = str(provider_raw).strip().lower() if provider_raw is not None else ""
         provider_pref = (svc_provider_from_db or (item.get("provider") or "portal02"))
         svc_provider = str(provider_pref).strip().lower()
-        if svc_provider not in ("portal02", "dataconnect", "codecraft", "datakazina", "skplug", "bundleportal", *BUNDLE_PORTAL_PROVIDERS):
+        if svc_provider not in ("portal02", "dataconnect", "codecraft", "datakazina", "skplug", "bundleportal", *DATAKAZINA_PROVIDERS, *BUNDLE_PORTAL_PROVIDERS):
             jlog(
                 "provider_defaulted_to_portal02",
                 order_id=order_id,
@@ -979,7 +980,7 @@ def _create_public_order_from_verified_payment(
             )
             svc_provider = "portal02"
 
-        if svc_provider == "datakazina" and not (is_mtn_express or is_mtn_normal):
+        if svc_provider in DATAKAZINA_PROVIDERS and not (is_mtn_express or is_mtn_normal):
             jlog(
                 "provider_defaulted_to_portal02",
                 order_id=order_id,
@@ -993,7 +994,7 @@ def _create_public_order_from_verified_payment(
         use_codecraft = api_allowed and svc_provider == "codecraft"
         use_datakazina = (
             (is_mtn_express or is_mtn_normal)
-            and svc_provider == "datakazina"
+            and svc_provider in DATAKAZINA_PROVIDERS
             and api_allowed
         )
         use_dataconnect = (
@@ -1109,8 +1110,8 @@ def _create_public_order_from_verified_payment(
             continue
 
         if use_datakazina:
-            shared_bundle = _resolve_datakazina_shared_bundle(value_obj, item)
-            dk_network_id = 3
+            dk_network_id = datakazina_network_id(svc_provider, svc_name)
+            shared_bundle = _resolve_datakazina_shared_bundle(value_obj, item, dk_network_id)
 
             if not phone or not shared_bundle:
                 total_processing_amount += amt_total
@@ -1132,7 +1133,7 @@ def _create_public_order_from_verified_payment(
                         "line_status": "processing",
                         "api_status": "skipped_missing_fields",
                         "api_response": {"note": "DataKazina fields missing; queued for processing."},
-                        "provider": "datakazina",
+                        "provider": svc_provider,
                     }
                 )
                 continue
@@ -1151,7 +1152,7 @@ def _create_public_order_from_verified_payment(
                     "serviceId": service_id_raw,
                     "serviceName": svc_name,
                     "service_type": svc_type,
-                    "provider": "datakazina",
+                    "provider": svc_provider,
                     "provider_network": "mtn",
                     "provider_reference": None,
                     "provider_order_id": None,
@@ -1169,7 +1170,7 @@ def _create_public_order_from_verified_payment(
                 {
                     "provider_request_order_id": external_ref,
                     "phone": phone,
-                    "provider": "datakazina",
+                    "provider": svc_provider,
                     "network_id": dk_network_id,
                     "shared_bundle": int(shared_bundle),
                     "service_id": svc_doc["_id"] if svc_doc else None,

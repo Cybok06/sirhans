@@ -1,3 +1,4 @@
+from datakazina_routes import ALL_PROVIDERS as DATAKAZINA_PROVIDERS, network_id as datakazina_network_id
 from bundle_portal import PROVIDERS as BUNDLE_PORTAL_PROVIDERS, supports_service as bundle_portal_supports_service, package_size as bundle_portal_package_size
 from flask import Blueprint, request, jsonify, session, render_template, abort
 from bson import ObjectId
@@ -600,69 +601,60 @@ def _resolve_shared_bundle_mb(value_obj: dict, item: dict) -> int | None:
     return None
 
 
-def _resolve_datakazina_shared_bundle(value_obj: dict, item: dict) -> int | None:
-    """
-    Resolve DataKazina shared_bundle (package identifier).
-    Prefers explicit package id from the MTN offer mapping, then falls back
-    to parsing raw value text or converting MB->GB when an id is missing.
-    """
-    if not isinstance(value_obj, dict):
-        value_obj = value_obj or {}
+_datakazina_package_cache = {"key": None, "expires": 0, "packages": []}
 
-    for key in ("id", "package_id", "pkg_id", "bundle_id", "shared_bundle"):
-        if value_obj.get(key) not in (None, "", []):
-            try:
-                return int(float(value_obj.get(key)))
-            except Exception:
-                pass
 
-    raw_val = item.get("value") or item.get("label") or ""
-    if isinstance(raw_val, str):
-        txt = raw_val.strip()
-        if txt.startswith("{") and txt.endswith("}"):
-            try:
-                parsed = json.loads(txt)
-                if isinstance(parsed, dict) and parsed.get("id") not in (None, "", []):
-                    return int(float(parsed.get("id")))
-            except Exception:
-                try:
-                    parsed = ast.literal_eval(txt)
-                    if isinstance(parsed, dict) and parsed.get("id") not in (None, "", []):
-                        return int(float(parsed.get("id")))
-                except Exception:
-                    pass
+def _datakazina_get_packages_cached() -> list[dict]:
+    cache_key = (DATAKAZINA_BASE_URL, _clean_api_key(DATAKAZINA_API_KEY))
+    if _datakazina_package_cache["key"] == cache_key and time.monotonic() < _datakazina_package_cache["expires"]:
+        return _datakazina_package_cache["packages"]
+    try:
+        response = requests.get(
+            f"{DATAKAZINA_BASE_URL.rstrip('/')}/fetch-data-packages",
+            headers={"x-api-key": cache_key[1], "Accept": "application/json"},
+            timeout=DATAKAZINA_TIMEOUT,
+        )
+        response.raise_for_status()
+        payload = response.json()
+        packages = payload if isinstance(payload, list) else payload.get("data", [])
+        if not isinstance(packages, list):
+            return []
+        packages = [package for package in packages if isinstance(package, dict)]
+        _datakazina_package_cache.update(key=cache_key, expires=time.monotonic() + 300, packages=packages)
+        return packages
+    except (requests.RequestException, ValueError, AttributeError) as exc:
+        jlog("datakazina_package_fetch_failed", error=str(exc))
+        return []
 
-        m = re.search(r"pkg\s*([0-9]+)", txt.lower())
-        if m:
-            try:
-                return int(m.group(1))
-            except Exception:
-                pass
 
-        if re.fullmatch(r"\d+", txt):
-            try:
-                return int(txt)
-            except Exception:
-                pass
-
-        m_gb = re.search(r"(\d+(?:\.\d+)?)\s*gb", txt.lower())
-        if m_gb:
-            try:
-                return max(1, int(float(m_gb.group(1))))
-            except Exception:
-                pass
-
-    vol = value_obj.get("volume")
-    if vol not in (None, "", []):
-        try:
-            vol_mb = float(vol)
-            if vol_mb >= 1000:
-                gb = int(round(vol_mb / 1000.0))
-                return max(1, gb)
-            return int(vol_mb)
-        except Exception:
-            pass
-
+def _resolve_datakazina_shared_bundle(value_obj: dict, item: dict, network_id: int = 3) -> int | None:
+    """Map the purchased size to a provider package ID on the correct network."""
+    value_obj = value_obj if isinstance(value_obj, dict) else {}
+    explicit_id = None
+    for key in ("shared_bundle", "package_id", "pkg_id", "bundle_id", "id"):
+        value = _to_float(value_obj.get(key))
+        if value and value > 0 and value.is_integer():
+            explicit_id = int(value)
+            break
+    raw_value = item.get("value") or item.get("label") or ""
+    if explicit_id is None and isinstance(raw_value, str):
+        match = re.fullmatch(r"(?:pkg\s*)?(\d+)", raw_value.strip(), flags=re.I)
+        if match:
+            explicit_id = int(match.group(1))
+    size_gb = bundle_portal_package_size(value_obj, item)
+    for package in _datakazina_get_packages_cached():
+        if _to_float(package.get("network_id")) != network_id:
+            continue
+        if str(package.get("status") or "").strip().lower() != "in stock":
+            continue
+        package_id = _to_float(package.get("id"))
+        if not package_id or not package_id.is_integer():
+            continue
+        if size_gb is not None:
+            if _to_float(package.get("volume")) == float(size_gb):
+                return int(package_id)
+        elif package_id == explicit_id:
+            return int(package_id)
     return None
 
 
@@ -1263,6 +1255,7 @@ def _datakazina_submit_single(
     order_id: str | None = None,
     debug_events: list | None = None,
     meta: dict | None = None,
+    network_id: int = 3,
 ):
     key = _clean_api_key(DATAKAZINA_API_KEY)
     if not key:
@@ -1290,7 +1283,7 @@ def _datakazina_submit_single(
     }
     body = {
         "recipient_msisdn": str(recipient_msisdn),
-        "network_id": 3,
+        "network_id": int(network_id),
         "shared_bundle": int(shared_bundle),
         "incoming_api_ref": str(incoming_api_ref),
     }
@@ -1319,7 +1312,7 @@ def _datakazina_submit_single(
         ok = (
             200 <= resp.status_code < 300
             and isinstance(payload, dict)
-            and bool(payload.get("success")) is True
+            and payload.get("success") is True
         )
         if isinstance(payload, dict):
             payload.setdefault("http_status", resp.status_code)
@@ -1376,6 +1369,7 @@ def _datakazina_submit_many_as_single_orders(jobs: list[dict]):
             order_id=job.get("order_id"),
             debug_events=job.get("debug_events"),
             meta=job.get("meta"),
+            network_id=job.get("network_id") or 3,
         )
         results.append(resp)
         if resp.get("ok"):
@@ -1735,7 +1729,7 @@ def _background_process_providers(order_id: str, api_jobs: list[dict]):
                     order_id=order_id,
                     debug_events=local_debug,
                 )
-            elif provider == "datakazina":
+            elif provider in DATAKAZINA_PROVIDERS:
                 resp = _datakazina_submit_single(
                     recipient_msisdn=phone,
                     shared_bundle=shared_bundle,
@@ -1743,6 +1737,7 @@ def _background_process_providers(order_id: str, api_jobs: list[dict]):
                     order_id=order_id,
                     debug_events=local_debug,
                     meta={"line_index": job.get("line_index")},
+                    network_id=network_id or 3,
                 )
                 ok = bool(resp.get("ok"))
                 payload = resp.get("response") if isinstance(resp, dict) else {}
@@ -1812,7 +1807,7 @@ def _background_process_providers(order_id: str, api_jobs: list[dict]):
             }
             if provider == "dataconnect":
                 update_fields["items.$.line_status"] = "processing" if ok else "failed"
-            if provider == "datakazina":
+            if provider in DATAKAZINA_PROVIDERS:
                 update_fields["items.$.line_status"] = "processing" if ok else "failed"
             if provider == "skplug":
                 update_fields["items.$.line_status"] = "processing" if ok else "failed"
@@ -2279,7 +2274,7 @@ def process_checkout():
 
             provider_raw = svc_doc.get("provider") if svc_doc else None
             svc_provider_from_db = str(provider_raw).strip().lower() if provider_raw is not None else ""
-            if svc_provider_from_db not in ("portal02", "dataconnect", "codecraft", "datakazina", "skplug", "bundleportal", *BUNDLE_PORTAL_PROVIDERS):
+            if svc_provider_from_db not in ("portal02", "dataconnect", "codecraft", "datakazina", "skplug", "bundleportal", *DATAKAZINA_PROVIDERS, *BUNDLE_PORTAL_PROVIDERS):
                 jlog(
                     "provider_defaulted_to_portal02",
                     order_id=order_id,
@@ -2301,7 +2296,7 @@ def process_checkout():
                 )
                 svc_provider_from_db = "portal02"
 
-            if svc_provider_from_db == "datakazina" and not (is_mtn_express or is_mtn_normal):
+            if svc_provider_from_db in DATAKAZINA_PROVIDERS and not (is_mtn_express or is_mtn_normal):
                 jlog(
                     "provider_defaulted_to_portal02",
                     order_id=order_id,
@@ -2315,7 +2310,7 @@ def process_checkout():
             use_codecraft = svc_provider_from_db == "codecraft" and api_allowed
             use_datakazina = (
                 (is_mtn_express or is_mtn_normal)
-                and svc_provider_from_db == "datakazina"
+                and svc_provider_from_db in DATAKAZINA_PROVIDERS
                 and api_allowed
             )
 
@@ -2441,8 +2436,8 @@ def process_checkout():
                 continue
 
             if use_datakazina:
-                shared_bundle = _resolve_datakazina_shared_bundle(value_obj, item)
-                dk_network_id = 3
+                dk_network_id = datakazina_network_id(svc_provider_from_db, svc_name)
+                shared_bundle = _resolve_datakazina_shared_bundle(value_obj, item, dk_network_id)
 
                 if not phone or not shared_bundle:
                     has_processing = True
@@ -2468,7 +2463,7 @@ def process_checkout():
                                 "note": "DataKazina fields missing; queued for processing",
                                 "got": {"phone": bool(phone), "shared_bundle": shared_bundle},
                             },
-                            "provider": "datakazina",
+                            "provider": svc_provider_from_db,
                         }
                     )
                     continue
@@ -2491,7 +2486,7 @@ def process_checkout():
                     "serviceId": service_id_raw,
                     "serviceName": svc_name,
                     "service_type": svc_type,
-                    "provider": "datakazina",
+                    "provider": svc_provider_from_db,
                     "provider_network": "mtn",
                     "provider_reference": None,
                     "provider_order_id": None,
@@ -2510,7 +2505,7 @@ def process_checkout():
                 job_payload = {
                     "provider_request_order_id": external_ref,
                     "phone": phone,
-                    "provider": "datakazina",
+                    "provider": svc_provider_from_db,
                     "network_id": dk_network_id,
                     "shared_bundle": int(shared_bundle),
                     "service_id": svc_doc["_id"],
@@ -3020,6 +3015,22 @@ def invoice_view(order_id):
     order = orders_col.find_one({"order_id": order_id})
     if not order:
         abort(404)
+
+    # Store checkout saves one order per recipient; show the entire paid cart
+    # on the receipt reached through its primary order ID.
+    group_id = (order.get("debug") or {}).get("bulk_group_order_id")
+    if order.get("store_slug") and group_id:
+        siblings = list(orders_col.find({
+            "store_slug": order["store_slug"],
+            "debug.bulk_group_order_id": group_id,
+        }).sort("debug.bulk_group_index", 1))
+        if siblings:
+            order = dict(order)
+            order["items"] = [item for sibling in siblings for item in sibling.get("items", [])]
+            for field in ("total_amount", "charged_amount", "profit_amount_total"):
+                order[field] = round(sum(float(sibling.get(field) or 0) for sibling in siblings), 2)
+            statuses = {sibling.get("status") for sibling in siblings}
+            order["status"] = statuses.pop() if len(statuses) == 1 else "processing"
 
     user = {}
     try:

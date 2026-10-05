@@ -1,5 +1,6 @@
 # routes/store_page.py
 from __future__ import annotations
+from datakazina_routes import ALL_PROVIDERS as DATAKAZINA_PROVIDERS, network_id as datakazina_network_id
 from bundle_portal import PROVIDERS as BUNDLE_PORTAL_PROVIDERS, supports_service as bundle_portal_supports_service, package_size as bundle_portal_package_size
 
 from datetime import datetime, timedelta
@@ -315,6 +316,8 @@ def _persist_store_split_orders(
         order_doc = dict(base_order_fields)
         order_doc["order_id"] = line_order_id
         order_doc["items"] = [item]
+        if "pending_provider_jobs" in order_doc:
+            order_doc["pending_provider_jobs"] = [job_map[line_ref]] if line_ref in job_map else []
         order_doc["total_amount"] = total_amount
         order_doc["charged_amount"] = total_amount if status != "skipped" else 0.0
         order_doc["profit_amount_total"] = profit_amount_total
@@ -1940,6 +1943,13 @@ def _server_reprice_store_cart(
             )
             raise ValueError(f"{service_name}: {reason_text}")
 
+        if svc_doc and str(svc_doc.get("provider") or "").strip().lower() in DATAKAZINA_PROVIDERS:
+            name = str(svc_doc.get("name") or "").strip().lower()
+            if name in {"mtn express", "mtn normal"}:
+                dk_network_id = datakazina_network_id(svc_doc.get("provider"), name)
+                if _resolve_datakazina_shared_bundle(value_obj, item, dk_network_id) is None:
+                    raise ValueError(f"{svc_doc.get('name')}: this package is unavailable from DataKazina. Please try again later.")
+
         canonical = _canonical_store_total_for_offer(
             store_doc or {}, svc_doc or {}, value_obj, item.get("value")
         )
@@ -2259,9 +2269,9 @@ def place_store_order(payload: Dict[str, Any], channel: str = "store_web") -> Tu
 
         provider_raw = svc_doc.get("provider") if svc_doc else None
         svc_provider = str(provider_raw or "").strip().lower()
-        if svc_provider not in ("portal02", "dataconnect", "codecraft", "datakazina", "skplug", "bundleportal", *BUNDLE_PORTAL_PROVIDERS):
+        if svc_provider not in ("portal02", "dataconnect", "codecraft", "datakazina", "skplug", "bundleportal", *DATAKAZINA_PROVIDERS, *BUNDLE_PORTAL_PROVIDERS):
             svc_provider = "portal02"
-        if svc_provider in ("dataconnect", "datakazina") and not (is_mtn_express or is_mtn_normal):
+        if svc_provider in {"dataconnect", *DATAKAZINA_PROVIDERS} and not (is_mtn_express or is_mtn_normal):
             svc_provider = "portal02"
 
         provider_name = "manual"
@@ -2356,19 +2366,19 @@ def place_store_order(payload: Dict[str, Any], channel: str = "store_web") -> Tu
                 api_status = "skipped_missing_fields"
                 api_note = "BundlePortal fields missing; queued for manual processing."
 
-        elif api_allowed and svc_provider == "datakazina":
-            shared_bundle = _resolve_datakazina_shared_bundle(value_obj, item)
-            provider_name = "datakazina"
+        elif api_allowed and svc_provider in DATAKAZINA_PROVIDERS:
+            network_id = datakazina_network_id(svc_provider, svc_name)
+            shared_bundle = _resolve_datakazina_shared_bundle(value_obj, item, network_id)
+            provider_name = svc_provider
             provider_network = "mtn"
             if phone and shared_bundle:
                 api_status = "submitting"
                 api_note = "Submitting directly to DataKazina."
-                network_id = 3
                 job_payload = {
                     "provider_request_order_id": external_ref,
                     "phone": phone,
-                    "provider": "datakazina",
-                    "network_id": 3,
+                    "provider": svc_provider,
+                    "network_id": network_id,
                     "shared_bundle": int(shared_bundle),
                     "service_id": svc_doc["_id"] if svc_doc else None,
                     "line_index": idx,
@@ -2633,6 +2643,21 @@ def store_checkout_paystack(slug: str):
         if not ok:
             return jsonify({"success": False, "message": f"Payment verification failed: {fail_reason}"}), 400
         paystack_verified = True
+
+        # Paystack's verified metadata preserves the cart that was paid for.
+        metadata = verify_data.get("metadata") or {}
+        if isinstance(metadata, str):
+            try:
+                metadata = json.loads(metadata)
+            except (TypeError, ValueError):
+                metadata = {}
+        if isinstance(metadata, dict) and metadata.get("checkout_cart"):
+            if metadata.get("slug") != slug:
+                return jsonify({"success": False, "message": "Payment belongs to another store."}), 400
+            try:
+                cart, total_requested = _server_reprice_store_cart(store_doc, metadata["checkout_cart"])
+            except (TypeError, ValueError) as exc:
+                return jsonify({"success": False, "message": str(exc)}), 400
 
         paid_pes = int(verify_data.get("amount") or 0)
         paid_ghs = round(paid_pes / 100.0, 2)
@@ -2953,7 +2978,7 @@ def store_checkout_paystack(slug: str):
 
             provider_raw = svc_doc.get("provider") if svc_doc else None
             svc_provider_from_db = str(provider_raw).strip().lower() if provider_raw is not None else ""
-            if svc_provider_from_db not in ("portal02", "dataconnect", "codecraft", "datakazina", "skplug", "bundleportal", *BUNDLE_PORTAL_PROVIDERS):
+            if svc_provider_from_db not in ("portal02", "dataconnect", "codecraft", "datakazina", "skplug", "bundleportal", *DATAKAZINA_PROVIDERS, *BUNDLE_PORTAL_PROVIDERS):
                 jlog(
                     "provider_defaulted_to_portal02",
                     order_id=order_id,
@@ -2975,7 +3000,7 @@ def store_checkout_paystack(slug: str):
                 )
                 svc_provider_from_db = "portal02"
 
-            if svc_provider_from_db == "datakazina" and not (is_mtn_express or is_mtn_normal):
+            if svc_provider_from_db in DATAKAZINA_PROVIDERS and not (is_mtn_express or is_mtn_normal):
                 jlog(
                     "provider_defaulted_to_portal02",
                     order_id=order_id,
@@ -2989,7 +3014,7 @@ def store_checkout_paystack(slug: str):
             use_codecraft = svc_provider_from_db == "codecraft" and api_allowed
             use_datakazina = (
                 (is_mtn_express or is_mtn_normal)
-                and svc_provider_from_db == "datakazina"
+                and svc_provider_from_db in DATAKAZINA_PROVIDERS
                 and api_allowed
             )
             use_dataconnect = (
@@ -3117,8 +3142,8 @@ def store_checkout_paystack(slug: str):
                 continue
 
             if use_datakazina:
-                shared_bundle = _resolve_datakazina_shared_bundle(value_obj, item)
-                dk_network_id = 3
+                dk_network_id = datakazina_network_id(svc_provider_from_db, svc_name)
+                shared_bundle = _resolve_datakazina_shared_bundle(value_obj, item, dk_network_id)
 
                 if not phone or not shared_bundle:
                     total_processing_amount += amt_total
@@ -3144,7 +3169,7 @@ def store_checkout_paystack(slug: str):
                                 "note": "DataKazina fields missing; queued for processing",
                                 "got": {"phone": bool(phone), "shared_bundle": shared_bundle},
                             },
-                            "provider": "datakazina",
+                            "provider": svc_provider_from_db,
                         }
                     )
                     continue
@@ -3165,7 +3190,7 @@ def store_checkout_paystack(slug: str):
                     "serviceId": service_id_raw,
                     "serviceName": svc_name,
                     "service_type": svc_type,
-                    "provider": "datakazina",
+                    "provider": svc_provider_from_db,
                     "provider_network": "mtn",
                     "provider_reference": None,
                     "provider_order_id": None,
@@ -3184,7 +3209,7 @@ def store_checkout_paystack(slug: str):
                 job_payload = {
                     "provider_request_order_id": external_ref,
                     "phone": phone,
-                    "provider": "datakazina",
+                    "provider": svc_provider_from_db,
                     "network_id": dk_network_id,
                     "shared_bundle": int(shared_bundle),
                     "service_id": svc_doc["_id"],

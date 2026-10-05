@@ -3124,12 +3124,13 @@
           return;
         }
 
+        const paymentCart = JSON.parse(JSON.stringify(cart._data));
         let validated;
         try {
           const validateRes = await fetch("/api/store-cart-validate/" + encodeURIComponent(SLUG), {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ cart: cart._data })
+            body: JSON.stringify({ cart: paymentCart })
           });
           validated = await validateRes.json();
           if (!validateRes.ok || !validated.success) {
@@ -3148,7 +3149,8 @@
         const amountPesewas = pesewas(paystackTotals.total);
         const ref = "PS-" + Date.now() + "-" + Math.floor(Math.random() * 1e6);
 
-        const items = cart._data.map(c => ({
+        const checkoutCart = validated.cart || paymentCart;
+        const items = checkoutCart.map(c => ({
           s: c.serviceName, p: c.phone, v: c.value,
           a: Number(c.amount || 0)
         }));
@@ -3168,6 +3170,7 @@
           metadata: {
             payer: { email: psEmail, first_name: PS_FIRST, last_name: PS_LAST },
             cart_snapshot: items,
+            checkout_cart: checkoutCart,
             pay_total_ghs: Number(paystackTotals.total.toFixed(2)),
             base_total_ghs: Number(payTotalGhs.toFixed(2)),
             fee_ghs: Number(paystackTotals.fee.toFixed(2)),
@@ -3177,6 +3180,7 @@
           },
           callback: function (response) {
             const confirmedObj = {
+              cart: checkoutCart,
               reference: response.reference || ref,
               amount_pesewas: amountPesewas,
               amount_ghs: paystackTotals.total,
@@ -3206,14 +3210,19 @@
 
     if (btnProcess) btnProcess.addEventListener("click", () => proceedCheckoutAuto());
 
+    let checkoutInProgress = false;
     async function proceedCheckoutAuto() {
+      if (checkoutInProgress) return;
+      checkoutInProgress = true;
+      try {
       const confirmed = getConfirmedPayment();
-      if (!cart._data.length) { tell("Cart is empty."); return; }
+      const checkoutCart = Array.isArray(confirmed.cart) ? confirmed.cart : cart._data;
+      if (!checkoutCart.length) { tell("Cart is empty."); return; }
 
       // ✅ must have DB identity; no defaults
       if (!ensurePaystackIdentityOrExplain()) return;
 
-      const payNow = cart.total();
+      const payNow = checkoutCart.reduce((total, item) => total + Number(item.amount || 0), 0);
 
       if (!confirmed || confirmed.amount_ghs == null) {
         tell("Please pay first."); return;
@@ -3224,9 +3233,9 @@
         return;
       }
 
-      const knownOk = await ensureKnownNumberVerifiedForCart(cart._data);
+      const knownOk = await ensureKnownNumberVerifiedForCart(checkoutCart);
       if (!knownOk) return;
-      const portedOk = await ensurePortedConfirmedForCart(cart._data);
+      const portedOk = await ensurePortedConfirmedForCart(checkoutCart);
       if (!portedOk) return;
 
       if (btnProcess) setLoading(btnProcess, true);
@@ -3237,7 +3246,7 @@
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            cart: cart._data,
+            cart: checkoutCart,
             method: "paystack_inline",
             paystack: {
               reference: confirmed.reference || "",
@@ -3265,7 +3274,10 @@
         tell("Network error.");
       }
 
-      if (btnProcess) setLoading(btnProcess, false);
+      } finally {
+        checkoutInProgress = false;
+        if (btnProcess) setLoading(btnProcess, false);
+      }
     }
 
     // Store-page cart lasts only for this browser tab. Closing the tab or

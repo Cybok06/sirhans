@@ -1,0 +1,2894 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Customer Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- Bootstrap & Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <link rel="icon" type="image/png" href="https://res.cloudinary.com/dcmewvlyx/image/upload/v1755183040/logo_qmykvn.jpg">
+
+  <style>
+    :root { --sea-blue:#0ea5e9; --soft:#f6f8fb; --ink:#0b1320; }
+    body { background: var(--soft); }
+
+    .scrolling-wrapper { -webkit-overflow-scrolling: touch; scrollbar-width: thin; scrollbar-color: var(--sea-blue) #f1f1f1; }
+    .scrolling-wrapper::-webkit-scrollbar { height: 8px; }
+    .scrolling-wrapper::-webkit-scrollbar-track { background: #f1f1f1; }
+    .scrolling-wrapper::-webkit-scrollbar-thumb { background-color: var(--sea-blue); border-radius: 10px; }
+
+    .svc-card { border:1px solid #e9ecef; border-radius:14px; padding:1rem; height:100%; background:#fff; }
+    .svc-img  { width:100%; height:140px; object-fit:cover; border-radius:10px; background:#f3f6f9; }
+
+    /* Flags */
+    .svc-flags { gap: .35rem; }
+    .svc-flag { font-size:.75rem; padding:.35rem .55rem; border-radius:999px; border:1px solid transparent; }
+    .flag-open { background:rgba(25,135,84,.12); color:#198754; border-color:rgba(25,135,84,.30); }
+    .flag-closed { background:rgba(220,53,69,.12); color:#dc3545; border-color:rgba(220,53,69,.30); }
+    .flag-available { background:rgba(13,110,253,.08); color:#0d6efd; border-color:rgba(13,110,253,.20); }
+    .flag-oos { background:rgba(108,117,125,.15); color:#6c757d; border-color:rgba(108,117,125,.25); }
+
+    .floating-cart { position:fixed; right:16px; bottom:16px; z-index:1055; }
+    .btn-cart { position:relative; border-radius:999px; padding:.75rem 1rem; font-weight:600;
+                background:var(--sea-blue); color:#fff; border:none;
+                box-shadow:0 8px 24px rgba(14,165,233,.35); }
+    .btn-cart .badge { position:absolute; top:-6px; right:-6px; }
+
+    .bulk-trigger { cursor:text; }
+    .amount-cell { min-width: 110px; text-align:right; }
+
+    @media (max-width:576px){
+      .svc-img{height:120px}
+      .btn-cart{padding:.6rem .9rem}
+      .input-group>.form-select{min-width: 150px;}
+    }
+
+    /* Loader overlay */
+    .loader-overlay {
+      position: fixed; inset: 0; background: rgba(11,19,32,.35);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 2000; backdrop-filter: blur(1.5px);
+      transition: opacity .2s ease;
+    }
+    .loader-card {
+      background: #fff; border-radius: 14px; padding: 1.25rem 1.5rem;
+      box-shadow: 0 10px 30px rgba(0,0,0,.15);
+      display: flex; align-items: center; gap: .75rem; min-width: 260px;
+    }
+    .loader-text { font-weight: 600; color: var(--ink); }
+    .loader-sub { font-size: .9rem; color: #6c757d; margin-top: -6px; }
+
+    .modal-content { border: 0; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,.15); }
+    .table > :not(caption) > * > * { vertical-align: middle; }
+
+    /* invalid phone highlight */
+    .phone-input.is-invalid { border-color: #dc3545; padding-right: calc(1.5em + .75rem); background-image: none; }
+
+    /* Ported number modal */
+    .ported-modal .modal-header{background:#fff7ed;border-bottom:1px solid #fed7aa}
+    .ported-modal .warn-icon{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:999px;background:#ffedd5;color:#b45309}
+    .ported-modal .prefix-badges{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:.75rem}
+    .ported-modal .prefix-badges .badge{font-size:.78rem}
+
+    .wallet-hero { position: relative; }
+    .wallet-hero-card{
+      position:relative;
+      overflow:hidden;
+      border-radius:28px;
+      padding:1.35rem;
+      background:
+        radial-gradient(circle at top right, rgba(125,211,252,.24), transparent 28%),
+        radial-gradient(circle at bottom left, rgba(251,191,36,.18), transparent 24%),
+        linear-gradient(135deg, #082f49 0%, #0f3f63 42%, #155e75 100%);
+      box-shadow:0 24px 54px rgba(8,47,73,.22);
+      border:1px solid rgba(255,255,255,.08);
+    }
+    .wallet-hero-card::before{
+      content:"";
+      position:absolute;
+      inset:0;
+      background:
+        linear-gradient(115deg, rgba(255,255,255,.08), rgba(255,255,255,0) 40%),
+        repeating-linear-gradient(135deg, rgba(255,255,255,.04) 0 10px, rgba(255,255,255,0) 10px 20px);
+      pointer-events:none;
+    }
+    .wallet-hero-card > *{ position:relative; z-index:1; }
+    .hero-eyebrow{
+      display:inline-flex;
+      align-items:center;
+      gap:.45rem;
+      padding:.45rem .8rem;
+      border-radius:999px;
+      background:rgba(255,255,255,.1);
+      color:#d9f3ff;
+      font-size:.82rem;
+      font-weight:700;
+      letter-spacing:.04em;
+      text-transform:uppercase;
+    }
+    .hero-title{ font-size:clamp(1.6rem, 3vw, 2.3rem); font-weight:800; color:#fff; margin:.95rem 0 .4rem; }
+    .hero-subtitle{ color:rgba(226,244,255,.8); margin:0; max-width:48ch; }
+    .hero-balance-label{ color:rgba(226,244,255,.72); font-size:.88rem; text-transform:uppercase; letter-spacing:.06em; margin-top:1.25rem; }
+    .hero-balance-amount{ color:#fff; font-size:clamp(1.75rem, 3vw, 2.6rem); font-weight:800; line-height:1.1; }
+    .hero-meta{
+      display:flex;
+      flex-wrap:wrap;
+      gap:.65rem;
+      margin-top:1rem;
+    }
+    .hero-pill{
+      display:inline-flex;
+      align-items:center;
+      gap:.45rem;
+      padding:.6rem .9rem;
+      border-radius:999px;
+      background:rgba(255,255,255,.12);
+      color:#f8fafc;
+      font-weight:700;
+      font-size:.9rem;
+    }
+    .hero-pill strong{ color:#fde68a; }
+    .hero-stats{
+      display:grid;
+      grid-template-columns:repeat(3, minmax(0, 1fr));
+      gap:.85rem;
+    }
+    .hero-stat{
+      background:rgba(255,255,255,.1);
+      border:1px solid rgba(255,255,255,.08);
+      border-radius:20px;
+      padding:1rem;
+      backdrop-filter:blur(10px);
+    }
+    .hero-stat-label{
+      color:rgba(226,244,255,.72);
+      font-size:.8rem;
+      text-transform:uppercase;
+      letter-spacing:.05em;
+      margin-bottom:.35rem;
+    }
+    .hero-stat-value{ color:#fff; font-size:1.5rem; font-weight:800; line-height:1.1; }
+    .hero-stat-note{ color:rgba(226,244,255,.72); font-size:.82rem; margin-top:.35rem; }
+    .hero-chart-card{
+      margin-top:.95rem;
+      padding:1rem 1rem .85rem;
+      border-radius:22px;
+      background:rgba(3,23,39,.22);
+      border:1px solid rgba(255,255,255,.08);
+    }
+    .hero-chart-head{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:1rem;
+      margin-bottom:.75rem;
+    }
+    .hero-chart-title{ color:#fff; font-weight:800; margin:0; }
+    .hero-chart-copy{ color:rgba(226,244,255,.72); font-size:.85rem; margin:.2rem 0 0; }
+    .hero-chart-value{ color:#fef3c7; font-size:1.15rem; font-weight:800; white-space:nowrap; }
+    .hero-chart-wrap{ position:relative; height:180px; }
+    @media (max-width: 991.98px){
+      .hero-stats{ grid-template-columns:1fr; }
+    }
+    @media (max-width: 575.98px){
+      .wallet-hero-card{ padding:1.1rem; border-radius:22px; }
+      .hero-meta{ gap:.5rem; }
+    }
+
+    .page-head{
+      background:#fff;
+      border:1px solid #e9eef5;
+      border-radius:20px;
+      padding:1rem 1.1rem;
+      box-shadow:0 12px 26px rgba(15,23,42,.05);
+    }
+    .page-head h2{ margin:0; font-size:1.3rem; font-weight:800; color:#082f49; }
+    .page-head p{ margin:.3rem 0 0; color:#64748b; }
+    .service-grid{
+      display:grid;
+      gap:.85rem;
+      margin-top:1rem;
+      grid-template-columns:repeat(2, minmax(0, 1fr));
+    }
+    @media (min-width: 768px){
+      .service-grid{ grid-template-columns:repeat(4, minmax(0, 1fr)); }
+    }
+    .service-tile{
+      background:#fff;
+      border:1px solid #e8edf3;
+      border-radius:18px;
+      padding:.9rem .8rem;
+      text-align:center;
+      box-shadow:0 10px 24px rgba(15,23,42,.05);
+      transition:transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+    }
+    .service-tile:hover{
+      transform:translateY(-2px);
+      box-shadow:0 14px 30px rgba(15,23,42,.08);
+    }
+    .service-tile.active{
+      border-color:#0ea5e9;
+      box-shadow:0 16px 34px rgba(14,165,233,.18);
+    }
+    .tile-img{
+      width:56px;
+      height:56px;
+      margin:0 auto .6rem;
+      border-radius:16px;
+      background:#eff6ff;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      overflow:hidden;
+    }
+    .tile-img img{ width:100%; height:100%; object-fit:cover; }
+    .tile-name{ font-weight:800; color:#0f172a; font-size:.95rem; line-height:1.25; }
+    .tile-btn{
+      margin-top:.55rem;
+      width:100%;
+      border:none;
+      border-radius:12px;
+      background:#e0f2fe;
+      color:#075985;
+      font-weight:700;
+      font-size:.88rem;
+      padding:.55rem .7rem;
+    }
+    .tile-btn:disabled{
+      background:#f1f5f9;
+      color:#94a3b8;
+    }
+    .order-card,
+    .cart-panel{
+      background:#fff;
+      border:1px solid #e8edf3;
+      border-radius:20px;
+      padding:1rem;
+      box-shadow:0 12px 26px rgba(15,23,42,.05);
+      height:100%;
+    }
+    .order-title,
+    .cart-title{
+      font-weight:800;
+      color:#0f172a;
+    }
+    .order-label{
+      font-size:.84rem;
+      color:#64748b;
+      margin-bottom:.35rem;
+      font-weight:600;
+    }
+    .order-input,
+    .order-select{
+      width:100%;
+      border:1px solid #dbe4ee;
+      border-radius:12px;
+      padding:.72rem .8rem;
+      background:#fff;
+      font-size:.95rem;
+    }
+    .price-line{
+      margin:.8rem 0 .9rem;
+      color:#0369a1;
+      font-weight:800;
+    }
+    .order-btn,
+    .checkout-btn-inline{
+      width:100%;
+      border:none;
+      border-radius:14px;
+      padding:.8rem 1rem;
+      font-weight:800;
+    }
+    .order-btn{
+      background:linear-gradient(135deg, #0ea5e9, #0284c7);
+      color:#fff;
+    }
+    .checkout-btn-inline{
+      background:#f8c044;
+      color:#1f2937;
+    }
+    .cart-items{
+      display:flex;
+      flex-direction:column;
+      gap:.75rem;
+      margin-top:1rem;
+    }
+    .cart-line{
+      border:1px solid #e8edf3;
+      border-radius:14px;
+      padding:.8rem .9rem;
+      display:flex;
+      justify-content:space-between;
+      gap:.75rem;
+      align-items:flex-start;
+      background:#f8fbfd;
+    }
+    .cart-line-main{ min-width:0; }
+    .cart-line-title{ font-weight:700; color:#0f172a; }
+    .cart-line-meta{ color:#64748b; font-size:.88rem; }
+    .cart-line-amount{ font-weight:800; color:#082f49; white-space:nowrap; }
+    .cart-summary{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:1rem;
+      margin-top:1rem;
+      padding-top:1rem;
+      border-top:1px solid #e8edf3;
+    }
+    @media (max-width: 767.98px){
+      .cart-summary{
+        flex-direction:column;
+        align-items:stretch;
+      }
+    }
+
+    /* Pro ad modal polish */
+    .ad-hero {
+      border-radius: 14px;
+      overflow: hidden;
+      border: 1px solid rgba(13,110,253,.12);
+      box-shadow: 0 14px 36px rgba(2,8,23,.14);
+      background: #fff;
+    }
+    .ad-hero img {
+      width: 100%;
+      height: auto;
+      display: block;
+      object-fit: contain;
+      background: #f7f9fc;
+    }
+    .ad-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: .4rem;
+      font-size: .8rem;
+      padding: .35rem .6rem;
+      border-radius: 999px;
+      border: 1px solid rgba(14,165,233,.25);
+      background: rgba(14,165,233,.10);
+      color: #055b82;
+      font-weight: 600;
+    }
+    .howto-tile {
+      border-radius: 14px;
+      border: 1px solid rgba(0,0,0,.06);
+      background: linear-gradient(180deg, #ffffff, #fbfcfe);
+    }
+    .ratio-16x9 { border-radius: 14px; overflow: hidden; }
+  </style>
+</head>
+
+<body data-has-store="{{ '1' if has_store else '0' }}">
+  {% include 'customer_sidebar.html' %}
+
+  <main class="customer-content">
+    <section class="wallet-hero my-4">
+      <div class="container">
+        <div class="wallet-hero-card shadow-lg">
+          <div class="row g-4 align-items-stretch">
+            <div class="col-12 col-xl-7">
+              <div class="hero-eyebrow">
+                <i class="bi bi-stars"></i>
+                Customer Dashboard
+              </div>
+              <h2 class="hero-title">{{ customer_name or customer_username or username or 'Customer' }}</h2>
+              <p class="hero-subtitle">Track your wallet, agent pricing tier, and today’s performance from one clean dashboard.</p>
+
+              <div class="hero-balance-label">Wallet Balance</div>
+              <div class="hero-balance-amount">GHS {{ '%.2f'|format(balance) }}</div>
+
+              <div class="hero-meta">
+                <div class="hero-pill">
+                  <i class="bi bi-person-badge"></i>
+                  Agent Level: <strong>{{ (agent_level or 'normal')|title }}</strong>
+                </div>
+                <div class="hero-pill">
+                  <i class="bi bi-graph-up-arrow"></i>
+                  Today Sales: <strong>GHS {{ '%.2f'|format(today_sales or 0) }}</strong>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-12 col-xl-5">
+              <div class="hero-stats">
+                <div class="hero-stat">
+                  <div class="hero-stat-label">Today's Total Sales</div>
+                  <div class="hero-stat-value">GHS {{ '%.2f'|format(today_sales or 0) }}</div>
+                  <div class="hero-stat-note">{{ sales_statement or 'No sales update yet.' }}</div>
+                </div>
+                <div class="hero-stat">
+                  <div class="hero-stat-label">Placed Today</div>
+                  <div class="hero-stat-value">{{ placed_today or 0 }}</div>
+                  <div class="hero-stat-note">Orders created today</div>
+                </div>
+                <div class="hero-stat">
+                  <div class="hero-stat-label">Delivered Today</div>
+                  <div class="hero-stat-value">{{ delivered_today or 0 }}</div>
+                  <div class="hero-stat-note">Orders marked delivered/completed today</div>
+                </div>
+              </div>
+
+              <div class="hero-chart-card">
+                <div class="hero-chart-head">
+                  <div>
+                    <h3 class="hero-chart-title">6-Day Sales Trend</h3>
+                    <p class="hero-chart-copy">Recent purchase activity by day.</p>
+                  </div>
+                  <div class="hero-chart-value">
+                    {% if sales_trend == 'up' %}
+                      <i class="bi bi-arrow-up-right"></i>
+                    {% elif sales_trend == 'down' %}
+                      <i class="bi bi-arrow-down-right"></i>
+                    {% else %}
+                      <i class="bi bi-arrow-left-right"></i>
+                    {% endif %}
+                    {{ '%+.2f'|format(sales_change_pct or 0) }}%
+                  </div>
+                </div>
+                <div class="hero-chart-wrap">
+                  <canvas id="custDailySalesChart"></canvas>
+                </div>
+              </div>
+
+              <script id="cust-daily-sales-data" type="application/json">
+                {{ {'labels': daily_sales_labels or [], 'values': daily_sales_values or []} | tojson }}
+              </script>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="container py-4" id="services">
+      <div class="page-head">
+        <h2>Order Data</h2>
+        <p>Select a service, enter the number, choose the bundle, and proceed.</p>
+      </div>
+
+      {% set _services = services if services is defined else [] %}
+      {% set _express = express_services if express_services is defined else [] %}
+      {% set all_services = _services + _express %}
+      {% set desired_order = [
+        'MTN NORMAL',
+        'TELECEL',
+        'MTN EXPRESS',
+        'AT - iSHare',
+        'AT - BigTime',
+        'AFA TALKTIME'
+      ] %}
+      {% set ordered_services = [] %}
+      {% for nm in desired_order %}
+        {% set svc = (all_services | selectattr('name','equalto', nm) | list | first) %}
+        {% if svc %}{% set _ = ordered_services.append(svc) %}{% endif %}
+      {% endfor %}
+      {% for svc in all_services %}
+        {% if (ordered_services | selectattr('_id_str', 'equalto', svc._id_str) | list | length) == 0 %}
+          {% set _ = ordered_services.append(svc) %}
+        {% endif %}
+      {% endfor %}
+
+      <div class="service-grid">
+        {% if ordered_services and ordered_services|length > 0 %}
+          {% for svc in ordered_services %}
+            {% set status = (svc.status or 'OPEN')|upper %}
+            {% set availability = (svc.availability or 'AVAILABLE')|upper %}
+            {% set is_closed = status != 'OPEN' %}
+            {% set is_oos = availability != 'AVAILABLE' %}
+            {% set can_order = (not is_closed) and (not is_oos) %}
+            <div class="service-tile">
+              <div class="tile-img">
+                {% if svc.image_url %}
+                  <img src="{{ svc.image_url }}" alt="{{ svc.name }}">
+                {% endif %}
+              </div>
+              <div class="tile-name">{{ svc.display_name or svc.name }}</div>
+              {% if svc.name == 'MTN MASH UP DATA' %}
+                <div class="d-flex align-items-center justify-content-center gap-2 mt-2 mb-1 flex-wrap">
+                  <span class="badge text-bg-danger">Hot</span>
+                  <span class="badge text-bg-success">New</span>
+                  <button type="button"
+                          class="btn btn-sm btn-link p-0 text-primary special-service-info-btn"
+                          data-service='{{ {"_id_str": svc._id_str, "name": svc.name} | tojson }}'
+                          aria-label="Service information">
+                    <i class="bi bi-info-circle-fill"></i>
+                  </button>
+                </div>
+              {% endif %}
+              {% if is_closed or is_oos %}
+                <div class="small text-danger mt-1">{{ svc.disabled_reason or 'Unavailable' }}</div>
+              {% endif %}
+              <button
+                class="tile-btn dashboard-service-btn"
+                {% if not can_order %}disabled data-disabled="true"{% endif %}
+                data-service='{{ {
+                  "_id_str": svc._id_str,
+                  "name": svc.name,
+                  "display_name": svc.display_name or svc.name,
+                  "offers": svc.offers or [],
+                  "unit": svc.unit,
+                  "service_network": svc.service_network or "",
+                  "network": svc.network or ""
+                } | tojson }}'>
+                Select
+              </button>
+            </div>
+          {% endfor %}
+        {% else %}
+          <div class="text-center text-muted">No services available.</div>
+        {% endif %}
+      </div>
+
+      <div class="row g-4 mt-1">
+        <div class="col-12 col-lg-5">
+          <div class="order-card" id="orderCard">
+            <div class="btn-group w-100 mb-3" role="tablist" aria-label="Order mode">
+              <button type="button" class="btn btn-primary" id="modalSingleTab" role="tab" aria-selected="true">Single Order</button>
+              <button type="button" class="btn btn-outline-primary" id="modalBulkTab" role="tab" aria-selected="false">Bulk Order</button>
+            </div>
+            <div class="small text-muted mb-3">Selected service: <span id="selectedServiceName">None</span></div>
+
+            <div id="modalSinglePanel">
+              <div class="mb-3">
+                <div class="order-label">Phone Number</div>
+                <div class="input-group">
+                  <input id="orderPhone" class="order-input form-control phone-input" placeholder="0240000000" inputmode="numeric" maxlength="10">
+                  <button type="button" class="btn btn-outline-secondary d-none" id="orderPhoneClearBtn" aria-label="Clear phone field">&times;</button>
+                  <span class="input-group-text" id="orderPhoneVerifyBadge" title="Number verification status"></span>
+                </div>
+                <div class="small mt-1 text-muted" id="orderPhoneVerifyText"></div>
+              </div>
+
+              <div class="mb-2">
+                <div class="order-label">Bundle Size</div>
+                <select id="orderOffer" class="order-select">
+                  <option value="" selected disabled>Select size</option>
+                </select>
+              </div>
+
+              <div class="price-line">Price: GHS <span id="orderAmount">0.00</span></div>
+              <button type="button" class="order-btn" id="addToCartBtn" disabled>Add to Cart</button>
+            </div>
+
+            <div id="modalBulkPanel" class="d-none">
+              <label for="modalBulkPaste" class="order-label">Phone Number and GB (one per line)</label>
+              <textarea id="modalBulkPaste" class="form-control mb-2" rows="7" placeholder="0530393625 2&#10;0242915038 1"></textarea>
+              <div class="small text-muted mb-3">Format: <code>PHONE GB</code>. Example: <code>0530393625 2</code></div>
+              <button type="button" class="order-btn" id="modalBulkAddBtn" disabled>Add Bulk Orders to Cart</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-12 col-lg-7">
+          <div class="cart-panel">
+            <div class="d-flex justify-content-between align-items-center gap-3">
+              <div class="cart-title"><i class="bi bi-cart3 me-2"></i>Cart Items</div>
+              <div class="badge text-bg-light border" id="inlineCartCount">0 items</div>
+            </div>
+            <div id="inlineCartList" class="cart-items">
+              <div class="text-muted">Your cart is empty.</div>
+            </div>
+            <div class="cart-summary">
+              <div class="fw-semibold">Subtotal: GHS <span id="inlineCartTotal">0.00</span></div>
+              <button type="button" class="checkout-btn-inline" id="inlineCheckoutBtn">Proceed to Checkout</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row g-3 mt-4" id="afa-registration-block">
+        <div class="col-12 col-sm-8 col-md-6">
+          <div class="svc-card h-100 shadow-sm p-2 rounded bg-white">
+          <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSOEyqVS2uvAp3IbIJne8QmDwXurDtldBMy9w&s"
+               class="svc-img mb-2 w-100" alt="AFA Registration"
+               style="border-radius: 8px; object-fit: cover; max-height: 160px;">
+
+          <div class="d-flex justify-content-between align-items-start gap-2 mb-1">
+            <div class="fw-semibold text-truncate">AFA Registration</div>
+            <div class="d-flex svc-flags">
+              {% set is_open = afa.is_open if afa is defined else true %}
+              {% set in_stock = afa.in_stock if afa is defined else true %}
+              <span class="svc-flag {{ 'flag-open' if is_open else 'flag-closed' }}">{{ 'Open' if is_open else 'Closed' }}</span>
+              <span class="svc-flag {{ 'flag-available' if in_stock else 'flag-oos' }}">{{ 'Available' if in_stock else 'Out of Stock' }}</span>
+            </div>
+          </div>
+
+          {% if not is_open or not in_stock %}
+            <div class="small text-danger mb-2">
+              <i class="bi bi-exclamation-triangle me-1"></i>
+              {{ afa.disabled_reason or ('This service is currently unavailable.' if not is_open else 'This service is currently out of stock.') }}
+            </div>
+          {% endif %}
+
+          {% set show_price = (afa.price if afa is defined and afa.price is not none else 3.00) %}
+          <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+            <div class="text-muted small">
+              AFA Registration @ <strong>GHS {{ '%.2f'|format(show_price) }}</strong>
+              {% if is_open and in_stock and can_buy_afa is defined and not can_buy_afa %}
+                <span class="text-danger ms-2">(Insufficient funds)</span>
+              {% endif %}
+            </div>
+            <div class="d-flex gap-2">
+              <a href="{{ url_for('afa.afa_list_page') }}"
+                 class="btn btn-sm btn-outline-secondary">
+                View Registrations
+              </a>
+
+              {% set buy_disabled = (not is_open) or (not in_stock) or (can_buy_afa is defined and not can_buy_afa) %}
+              <button type="button"
+                      class="btn btn-sm {{ 'btn-outline-primary' if not buy_disabled else 'btn-outline-secondary' }}"
+                      data-bs-toggle="{{ '' if buy_disabled else 'modal' }}"
+                      data-bs-target="{{ '' if buy_disabled else '#afaModal' }}"
+                      {% if buy_disabled %}disabled{% endif %}>
+                Buy
+              </button>
+            </div>
+          </div>
+          </div>
+        </div>
+      </div>
+
+    <!-- Modal uses dynamic price in title -->
+    <div class="modal fade" id="afaModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <form id="afa-form" autocomplete="off" novalidate>
+            <div class="modal-header">
+              <h5 class="modal-title">
+                AFA Registration (GHS {{ '%.2f'|format((afa.price if afa is defined and afa.price is not none else 3.00)) }})
+              </h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <div class="modal-body">
+              <div class="mb-3">
+                <label class="form-label fw-semibold">Name <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="afa-name" required>
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label fw-semibold">Phone number <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="afa-phone" inputmode="numeric" maxlength="10" placeholder="e.g. 0530393625" required>
+                <div class="form-text">Format: 0xxxxxxxxx (10 digits, starts with 0)</div>
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label fw-semibold">Date of Birth (optional)</label>
+                <input type="date" class="form-control" id="afa-dob">
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label fw-semibold">Location (optional)</label>
+                <input type="text" class="form-control" id="afa-location">
+              </div>
+
+              <div class="mb-2">
+                <label class="form-label fw-semibold">Ghana Card Number (optional) GHA-XXXXXXXXX-X</label>
+                <input type="text" class="form-control" id="afa-ghana-card">
+              </div>
+            </div>
+
+            <div class="modal-footer">
+              <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+              <button type="submit" class="btn btn-primary" id="afa-submit">Submit</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <hr class="my-5">
+
+    <!-- Order mode is always visible; service selection activates its form. -->
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3" id="order-mode-toolbar">
+      <div class="btn-group" role="group" aria-label="Order entry mode">
+        <button type="button" id="single-order-mode-btn" class="btn btn-primary" aria-pressed="true">
+          <i class="bi bi-phone me-1"></i> Single Order
+        </button>
+        <button type="button" id="bulk-order-mode-btn" class="btn btn-outline-primary" aria-pressed="false">
+          <i class="bi bi-list-check me-1"></i> Bulk Order
+        </button>
+      </div>
+      <small id="order-mode-help" class="text-muted">Choose an order mode, then select a service to start.</small>
+    </div>
+
+    <!-- Work area -->
+    <div id="work-area" class="d-none">
+      <div class="card border-0 shadow-sm rounded-4 p-4 mb-5 bg-white">
+
+        <!-- Header -->
+        <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
+          <h4 class="mb-2 mb-md-0 fw-bold">
+            <i class="bi bi-gear-fill text-primary me-2"></i>
+            Service: <span id="chosen-service-name" class="text-primary"></span>
+          </h4>
+        </div>
+
+        <!-- Bulk Paste Area -->
+        <div id="bulk-card" class="card mb-4 d-none">
+          <div class="card-body">
+            <div class="d-flex flex-column flex-md-row gap-4">
+              <div class="flex-grow-1">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                  <label class="form-label fw-semibold mb-0">Bulk Paste (one per line)</label>
+                  <button type="button" id="hide-bulk-btn" class="btn btn-sm btn-outline-secondary">Single Order</button>
+                </div>
+                <textarea id="bulk-paste" class="form-control" rows="5"
+                          placeholder="Example:
+0241234567 1
+0559876543 5"></textarea>
+                <small class="text-muted">
+                  Format: <code>PHONE VALUE</code> (e.g. <code>0284039645 5</code> → 5 GB). We’ll match VALUE to an offer for the selected service.
+                </small>
+              </div>
+              <div class="align-self-end">
+                <button id="apply-bulk-btn" class="btn btn-outline-primary mt-3">
+                  <i class="bi bi-check2-square me-1"></i> Prepare Bulk Orders
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Entry Rows -->
+        <div id="form-rows-wrapper" class="mb-4">
+          <div class="row g-3 align-items-end mb-3" id="rows-body">
+            <!-- JS appends rows -->
+          </div>
+        </div>
+
+        <!-- Add to Cart -->
+        <div id="add-all-wrapper" class="text-end">
+          <button id="add-all-to-cart" class="btn btn-success btn-lg px-4">
+            <i class="bi bi-cart-plus me-1"></i> Add All to Cart
+          </button>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Recent Orders -->
+    <div class="container mb-5">
+      <div class="d-flex align-items-center mb-3">
+        <i class="bi bi-box-seam-fill me-2 fs-4 text-primary"></i>
+        <h4 class="mb-0">Recent Orders</h4>
+      </div>
+
+      {% if recent_orders %}
+        <div class="card shadow-sm">
+          <div class="card-body table-responsive">
+            <table class="table table-hover align-middle">
+              <thead class="table-light">
+                <tr>
+                  <th>Order ID</th>
+                  <th>Service</th>
+                  <th>Phone Number(s)</th>
+                  <th>Total (GHS)</th>
+                  <th>Status</th>
+                  <th>Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for order in recent_orders %}
+                  <tr>
+                    <td>
+                      <a href="/invoice/{{ order.order_id }}" class="text-decoration-none">
+                        <span class="badge bg-primary">{{ order.order_id or "N/A" }}</span>
+                      </a>
+                      {% if (order.channel or '') == 'arkesel_ussd' %}
+                        <span class="badge text-bg-info ms-1">USSD</span>
+                      {% endif %}
+                    </td>
+                    <td>
+                      {% if order["items"] and order["items"][0]["serviceName"] %}
+                        {{ order["items"][0]["serviceName"] }}
+                      {% else %}
+                        <span class="text-muted">N/A</span>
+                      {% endif %}
+                    </td>
+                      <td>
+                        {% set phones = order["items"]|map(attribute="phone")|select|list %}
+                        {% if phones %}
+                          {{ phones|join(", ") }}
+                        {% else %}
+                          <span class="text-muted">N/A</span>
+                        {% endif %}
+                      </td>
+                    <td>GHS {{ '%.2f'|format(order.total_amount or 0) }}</td>
+                    <td>
+                      {% if order.status == "pending" %}
+                        <span class="badge bg-warning text-dark">Pending</span>
+                      {% elif order.status == "completed" %}
+                        <span class="badge bg-success">Completed</span>
+                      {% else %}
+                        <span class="badge bg-secondary">{{ order.status|capitalize }}</span>
+                      {% endif %}
+                    </td>
+                    <td>{{ order.created_at.strftime('%d %b %Y, %I:%M %p') if order.created_at }}</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      {% else %}
+        <div class="text-muted">No recent orders yet.</div>
+      {% endif %}
+    </div>
+
+    {% include 'customer_footer.html' %}
+  </main>
+
+  <!-- ==========================
+       AD FLYER MODAL (AUTO SHOW)
+       - "Don't show again" is DAILY per device (localStorage with today's date)
+  =========================== -->
+  <div class="modal fade" id="flyerAdModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <div class="d-flex align-items-center gap-2">
+            <span class="ad-badge"><i class="bi bi-megaphone-fill"></i> Announcement</span>
+            <span class="text-muted small d-none d-sm-inline">Tap the flyer to open the store page</span>
+          </div>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+        <div class="modal-body">
+          <a href="/customer/store" class="text-decoration-none" aria-label="Open store page">
+            <div class="ad-hero mb-3">
+              <img
+                src="https://imagedelivery.net/h9fmMoa1o2c2P55TcWJGOg/fc0fb067-8522-4271-a1b1-c2a1d29dd400/public"
+                alt="Store Flyer"
+                loading="eager"
+              />
+            </div>
+          </a>
+
+          <!-- How-to video tile -->
+          <div class="howto-tile p-3">
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+              <div>
+                <div class="fw-semibold"><i class="bi bi-youtube me-1 text-danger"></i> How to create store</div>
+                <div class="text-muted small">Watch the quick guide video inside the app.</div>
+              </div>
+              <button type="button" id="openHowToVideoBtn" class="btn btn-outline-primary">
+                <i class="bi bi-play-circle me-1"></i> Play Video
+              </button>
+            </div>
+          </div>
+
+          <div class="text-muted small mt-3">
+            Tip: If you select “Don’t show again”, this popup will hide only for today and return tomorrow.
+          </div>
+        </div>
+
+        <div class="modal-footer d-flex flex-wrap justify-content-between gap-2">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" value="" id="dontShowAgainToday">
+            <label class="form-check-label" for="dontShowAgainToday">
+              Don’t show again 
+            </label>
+          </div>
+          <button type="button" class="btn btn-primary" data-bs-dismiss="modal">
+            <i class="bi bi-check2-circle me-1"></i> Continue
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================
+       VIDEO MODAL (YOUTUBE)
+  =========================== -->
+  <div class="modal fade" id="howToStoreModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-xl modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">
+            <i class="bi bi-shop me-2 text-primary"></i> How to create store
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="ratio ratio-16x9">
+            <iframe
+              id="howToStoreIframe"
+              src="https://www.youtube.com/embed/Gz9w8yZyP1U?rel=0"
+              title="How to create store"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              allowfullscreen>
+            </iframe>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-light" data-bs-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Floating Cart -->
+  <div class="floating-cart">
+    <button type="button" class="btn-cart" data-bs-toggle="modal" data-bs-target="#cartModal">
+      🛒 Cart <span class="badge bg-danger" id="cart-count">0</span>
+    </button>
+  </div>
+
+  <!-- Cart / Checkout Modal -->
+  <div class="modal fade" id="cartModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Your Cart</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+
+        <div class="modal-body">
+          <div id="cart-empty" class="text-muted">Your cart is empty.</div>
+
+          <div id="cart-list-wrapper" class="d-none">
+            <div class="table-responsive">
+              <table class="table align-middle">
+                <thead>
+                  <tr>
+                    <th>Service</th>
+                    <th>Phone</th>
+                    <th>Offer (Value)</th>
+                    <th>Total (GHS)</th>
+                    <th style="width:80px;"></th>
+                  </tr>
+                </thead>
+                <tbody id="cart-list"></tbody>
+              </table>
+            </div>
+
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <button id="clear-cart-btn" class="btn btn-outline-danger btn-sm">Clear Cart</button>
+              <div class="fs-5 fw-semibold">Total: GHS <span id="cart-total">0.00</span></div>
+            </div>
+
+            <div class="text-end mb-3">
+              <button id="checkout-btn" class="btn btn-primary">Proceed to Checkout</button>
+            </div>
+
+            <!-- Checkout Section (hidden until proceed) -->
+            <div id="checkout-section" class="border-top pt-3 d-none">
+              <h5 class="mb-3">Checkout</h5>
+              <div class="mb-3">
+                <label class="form-label fw-semibold">Payment Method</label>
+                <select class="form-select" id="payment-method" aria-label="Payment method">
+                  <option value="from_account" selected>From Account</option>
+                </select>
+              </div>
+              <div class="mb-3">
+                <label class="form-label fw-semibold">Total Payable</label>
+                <div class="fs-5 fw-bold text-success">GHS <span id="checkout-total">0.00</span></div>
+              </div>
+              <div class="text-end">
+                <button id="confirm-payment-btn" class="btn btn-success">
+                  <span class="btn-label">Confirm Payment</span>
+                  <span class="spinner-border spinner-border-sm ms-2 d-none" role="status" aria-hidden="true"></span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div> <!-- /modal-body -->
+      </div> <!-- /modal-content -->
+    </div> <!-- /modal-dialog -->
+  </div> <!-- /modal -->
+
+  <div class="modal fade" id="dupCartModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Duplicate Item</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div id="dupCartModalMsg">This number is already in your cart for the same bundle. Add anyway?</div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-primary" id="dupCartModalConfirm">Add Anyway</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="serviceNoticeModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Important Notice</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="fw-semibold mb-2" id="serviceNoticeTitle">MTN MASH UP DATA</div>
+          <div id="serviceNoticeBody">
+            <div class="mb-3">
+              <div class="fw-semibold mb-1">Before purchase</div>
+              <div>Suitable for regular MTN customer SIMs only.</div>
+              <div>Not recommended for MTN merchant or MTN agent SIMs.</div>
+              <div>Ported SIM compatibility has not been confirmed yet.</div>
+            </div>
+            <div>
+              <div class="fw-semibold mb-1">After delivery</div>
+              <div>Ask the customer to dial *124# to confirm the data balance.</div>
+              <div>The customer may also receive an SMS from Feeli once the bundle lands.</div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" id="serviceNoticeCancelBtn">Cancel</button>
+          <button type="button" class="btn btn-primary" id="serviceNoticeConfirmBtn">Okay</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Full-page loader -->
+    <div id="page-loader" class="loader-overlay d-none" aria-hidden="true">
+      <div class="loader-card">
+        <div class="spinner-border" role="status" aria-hidden="true"></div>
+        <div>
+          <div class="loader-text">Processing payment...</div>
+          <div class="loader-sub">Please don’t close this window</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Ported Number Modal -->
+  <div class="modal fade ported-modal" id="portedModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <div class="d-flex align-items-center gap-2">
+              <span class="warn-icon"><i class="bi bi-exclamation-triangle-fill"></i></span>
+              <h5 class="modal-title mb-0">Ported Number Detected</h5>
+  </div>
+
+  <div class="modal fade" id="knownNumberModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="knownNumberModalTitle">Verifying Number</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" id="knownNumberModalClose"></button>
+        </div>
+        <div class="modal-body">
+          <div class="d-flex align-items-center gap-3">
+            <div id="knownNumberModalSpinner" class="spinner-border text-primary" role="status" aria-hidden="true"></div>
+            <div id="knownNumberModalIcon" class="fs-4"></div>
+            <div id="knownNumberModalMsg" class="fw-semibold">Verifying number...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <div id="portedModalMsg" class="fw-semibold"></div>
+            <div id="portedModalPrefixes" class="prefix-badges"></div>
+            <div class="text-muted small mt-2">
+              If you are sure this number was ported, confirm to continue.
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-outline-secondary" id="portedCancelBtn">No, I’ll Correct It</button>
+            <button type="button" class="btn btn-warning text-dark" id="portedConfirmBtn">Yes, It’s Ported</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Scripts -->
+  {% include '_announcement_modal.html' %}
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+  <!-- ========= DAILY AD MODAL LOGIC + VIDEO MODAL HANDLING ========= -->
+  <script>
+  (function(){
+    var HIDE_KEY = "nndata_flyer_hide_date_v1";
+
+    function pad2(n){ return (n < 10 ? "0" : "") + String(n); }
+    function localTodayYYYYMMDD(){
+      // local date (per device timezone)
+      var d = new Date();
+      return d.getFullYear() + "-" + pad2(d.getMonth()+1) + "-" + pad2(d.getDate());
+    }
+
+    function shouldShowToday(){
+      try {
+        var saved = localStorage.getItem(HIDE_KEY) || "";
+        return saved !== localTodayYYYYMMDD();
+      } catch(e){
+        return true;
+      }
+    }
+
+    function markHiddenForToday(){
+      try { localStorage.setItem(HIDE_KEY, localTodayYYYYMMDD()); } catch(e){}
+    }
+
+    function clearHidden(){
+      try { localStorage.removeItem(HIDE_KEY); } catch(e){}
+    }
+
+    function initAdModal(){
+      if (!window.bootstrap) return;
+
+      var adEl = document.getElementById("flyerAdModal");
+      if (!adEl) return;
+
+      var hasStoreAttr = (document.body && document.body.getAttribute("data-has-store")) || "0";
+      if (hasStoreAttr === "1") return;
+
+      var chk = document.getElementById("dontShowAgainToday");
+      var openVideoBtn = document.getElementById("openHowToVideoBtn");
+
+      var adModal = bootstrap.Modal.getOrCreateInstance(adEl, { backdrop: "static", keyboard: false });
+
+      // show immediately after reload (if not hidden for today)
+      if (shouldShowToday()) {
+        // small delay to let layout settle
+        setTimeout(function(){ adModal.show(); }, 200);
+      }
+
+      // when closing the ad modal: store daily "don't show again" if checked
+      adEl.addEventListener("hidden.bs.modal", function(){
+        if (chk && chk.checked) markHiddenForToday();
+      });
+
+      // if user unchecks, allow showing again (same day) on refresh
+      if (chk) {
+        chk.addEventListener("change", function(){
+          if (!chk.checked) clearHidden();
+        });
+      }
+
+      // open video modal from inside ad modal (clean, no stacked modals)
+      var videoEl = document.getElementById("howToStoreModal");
+      var iframe = document.getElementById("howToStoreIframe");
+      var videoModal = videoEl ? bootstrap.Modal.getOrCreateInstance(videoEl) : null;
+
+      function resetVideo(){
+        if (!iframe) return;
+        var src = iframe.getAttribute("src") || "";
+        // reload iframe to stop playback
+        iframe.setAttribute("src", src);
+      }
+
+      if (videoEl) {
+        videoEl.addEventListener("hidden.bs.modal", resetVideo);
+      }
+
+      if (openVideoBtn && videoEl && videoModal) {
+        openVideoBtn.addEventListener("click", function(){
+          // close ad, then open video
+          var openAfter = function(){
+            try { videoModal.show(); } catch(e){}
+            adEl.removeEventListener("hidden.bs.modal", openAfter);
+          };
+          adEl.addEventListener("hidden.bs.modal", openAfter);
+          try { adModal.hide(); } catch(e){ openAfter(); }
+        });
+      }
+    }
+
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", initAdModal);
+    } else {
+      initAdModal();
+    }
+  })();
+  </script>
+
+  <script>
+  var chosenService = null;
+  var rowsBody = document.getElementById("rows-body");
+  var workArea = document.getElementById("work-area");
+  var chosenNameEl = document.getElementById("chosen-service-name");
+  var orderEntryMode = "single";
+
+  function setOrderEntryMode(mode) {
+    orderEntryMode = mode === "bulk" ? "bulk" : "single";
+    var isBulk = orderEntryMode === "bulk";
+    var singleBtn = document.getElementById("single-order-mode-btn");
+    var bulkBtn = document.getElementById("bulk-order-mode-btn");
+    var bulkCard = document.getElementById("bulk-card");
+    var rowsWrapper = document.getElementById("form-rows-wrapper");
+    var addAllWrapper = document.getElementById("add-all-wrapper");
+    var modeHelp = document.getElementById("order-mode-help");
+
+    if (singleBtn) {
+      singleBtn.classList.toggle("btn-primary", !isBulk);
+      singleBtn.classList.toggle("btn-outline-primary", isBulk);
+      singleBtn.setAttribute("aria-pressed", String(!isBulk));
+    }
+    if (bulkBtn) {
+      bulkBtn.classList.toggle("btn-primary", isBulk);
+      bulkBtn.classList.toggle("btn-outline-primary", !isBulk);
+      bulkBtn.setAttribute("aria-pressed", String(isBulk));
+    }
+    if (bulkCard) bulkCard.classList.toggle("d-none", !isBulk);
+    if (rowsWrapper) rowsWrapper.classList.toggle("d-none", isBulk);
+    if (addAllWrapper) addAllWrapper.classList.toggle("d-none", isBulk);
+    if (modeHelp) {
+      modeHelp.textContent = chosenService
+        ? (isBulk ? "Paste one PHONE GB order per line." : "Enter one phone number and select a bundle.")
+        : "Now select a service to start your " + (isBulk ? "bulk" : "single") + " order.";
+    }
+    if (isBulk) {
+      var paste = document.getElementById("bulk-paste");
+      if (paste) setTimeout(function(){ paste.focus(); }, 0);
+    }
+  }
+
+  // ---- Cart + persistence ----
+  var CART_KEY = "nndata_cart_v1";
+  var cart = [];
+
+  function cartKey(line){
+    return [line.serviceId || "", line.phone || "", line.value || "", Number(line.amount || 0)].join("|");
+  }
+  function isDuplicateLine(line, list){
+    var key = cartKey(line);
+    for (var i = 0; i < list.length; i++) {
+      if (cartKey(list[i]) === key) return true;
+    }
+    return false;
+  }
+
+  function money(n) { return Number(n || 0).toFixed(2); }
+
+  function loadCart() {
+    try {
+      var saved = JSON.parse(localStorage.getItem(CART_KEY) || "[]");
+      if (Object.prototype.toString.call(saved) === "[object Array]") cart = saved;
+    } catch (e) {}
+  }
+  function saveCart() {
+    try { localStorage.setItem(CART_KEY, JSON.stringify(cart)); } catch (e) {}
+  }
+
+  function formatVolumeLabel(value) {
+    if (value && typeof value === "string") return value;
+    if (value && typeof value === "object") {
+      var vol = Number(value.volume || 0);
+      return vol >= 1000 ? (String(vol / 1000).replace(/\.0+$/, "") + "GB") : (vol + "MB");
+    }
+    return "-";
+  }
+
+  function renderOfferOptions(offers) {
+    offers = offers || [];
+    var html = '<option value="">-- Choose Offer --</option>';
+    for (var i = 0; i < offers.length; i++) {
+      var o = offers[i];
+      var label = o.value_text ? o.value_text : formatVolumeLabel(o.value);
+      var disabled = (o.amount == null || o.total == null) ? ' disabled' : '';
+      var totalVal = (o.total != null ? o.total : '');
+      var baseVal = (o.amount != null ? o.amount : '');
+      var idxAttr = ' data-idx="' + i + '"';
+      html += '<option' + disabled +
+              ' value="' + totalVal + '"' +
+              ' data-base="' + baseVal + '"' +
+              ' data-total="' + totalVal + '"' +
+              idxAttr + '>' +
+              'GHS ' + money(totalVal || 0) + ' - ' + label +
+              '</option>';
+    }
+    return html;
+  }
+
+    // ---------- PHONE FORMAT ----------
+    var PHONE_RE = /^0\d{9}$/;
+
+    // ---------- Ported number helpers ----------
+    function normalizePhone(raw){
+      var d = String(raw || "").replace(/\D+/g, "");
+      if (d.startsWith("233") && d.length >= 12) d = "0" + d.slice(-9);
+      if (d.length === 9) d = "0" + d;
+      if (d.length > 10) d = d.slice(-10);
+      return d;
+    }
+    function sanitizePhoneInput(raw){
+      var d = String(raw || "").replace(/\D+/g, "");
+      if (d.startsWith("233") && d.length >= 12) d = "0" + d.slice(-9);
+      if (d.length > 10) d = d.slice(0, 10);
+      return d;
+    }
+    function bindClearInput(inputEl, clearBtn, onClear){
+      if (!inputEl || !clearBtn) return;
+      function sync(){
+        clearBtn.classList.toggle("d-none", !(inputEl.value || "").length);
+      }
+      inputEl._syncClearButton = sync;
+      clearBtn.addEventListener("click", function(){
+        inputEl.value = "";
+        if (typeof onClear === "function") onClear();
+        sync();
+        inputEl.focus();
+      });
+      inputEl.addEventListener("input", sync);
+      sync();
+    }
+    function getPrefix(phoneDigits){ return phoneDigits && phoneDigits.length >= 3 ? phoneDigits.slice(0,3) : ""; }
+    function networkFromService(svc){
+      var joined = [svc && svc.service_network, svc && svc.network, svc && svc.serviceName, svc && svc.name].filter(Boolean).join(" ").toLowerCase();
+      if (joined.indexOf("mtn") >= 0) return "MTN";
+      if (joined.indexOf("telecel") >= 0 || joined.indexOf("vodafone") >= 0) return "TELECEL";
+      if (joined.indexOf("airteltigo") >= 0 || joined.indexOf("tigo") >= 0 || joined.indexOf("ishare") >= 0 || joined.indexOf("at") === 0) return "TIGO";
+      return "";
+    }
+    var PREFIX_MAP = {
+      MTN: ["025","024","059","055","054","053"],
+      TELECEL: ["020","050"],
+      TIGO: ["057","056","027","026"]
+    };
+    function networkFromPrefix(prefix){
+      for (var k in PREFIX_MAP){
+        if (PREFIX_MAP[k].indexOf(prefix) >= 0) return k;
+      }
+      return "";
+    }
+    function needsPortedConfirm(expected, actual){ return expected && actual && expected !== actual; }
+    function portedKey(serviceKey, phoneDigits){ return "ported_ok:" + (serviceKey || "") + ":" + phoneDigits; }
+    function isPortedConfirmed(serviceKey, phoneDigits){
+      try { return sessionStorage.getItem(portedKey(serviceKey, phoneDigits)) === "1"; } catch(e){ return false; }
+    }
+    function setPortedConfirmed(serviceKey, phoneDigits){
+      try { sessionStorage.setItem(portedKey(serviceKey, phoneDigits), "1"); } catch(e){}
+    }
+    function applyPortedFields(line, expected, actual, prefix){
+      line.ported_confirmed = true;
+      line.ported_expected_network = expected;
+      line.ported_detected_network = actual;
+      line.ported_prefix = prefix;
+    }
+    function showDuplicateModal(message){
+      return new Promise(function(resolve){
+        var modalEl = document.getElementById("dupCartModal");
+        if (!modalEl || !window.bootstrap){ resolve(!!confirm(message || "This number is already in your cart for the same bundle. Add anyway?")); return; }
+        var msgEl = document.getElementById("dupCartModalMsg");
+        var yesBtn = document.getElementById("dupCartModalConfirm");
+        if (msgEl) msgEl.textContent = message || "This number is already in your cart for the same bundle. Add anyway?";
+        var inst = bootstrap.Modal.getOrCreateInstance(modalEl);
+        var done = false;
+        function cleanup(res){
+          if (done) return;
+          done = true;
+          modalEl.removeEventListener("hidden.bs.modal", onHidden);
+          if (yesBtn) yesBtn.removeEventListener("click", onYes);
+          resolve(res);
+        }
+        function onHidden(){ cleanup(false); }
+        function onYes(){ inst.hide(); cleanup(true); }
+        if (yesBtn) yesBtn.addEventListener("click", onYes);
+        modalEl.addEventListener("hidden.bs.modal", onHidden);
+        inst.show();
+      });
+    }
+
+    var SPECIAL_SERVICE_ID = "6a299f7472e6d9d109a67ad8";
+    var SPECIAL_SERVICE_NAME = "mtn mash up data";
+
+    function isSpecialWarningService(svc){
+      var id = String((svc && (svc._id_str || svc.serviceId || svc.service_id)) || "").trim();
+      var name = String((svc && (svc.name || svc.serviceName)) || "").trim().toLowerCase();
+      return id === SPECIAL_SERVICE_ID || name === SPECIAL_SERVICE_NAME;
+    }
+
+    function showSpecialServiceNotice(svc){
+      return new Promise(function(resolve){
+        if (!isSpecialWarningService(svc)) {
+          resolve(true);
+          return;
+        }
+        var modalEl = document.getElementById("serviceNoticeModal");
+        if (!modalEl || !window.bootstrap) {
+          resolve(window.confirm("Suitable for regular MTN customer SIMs only.\nNot recommended for MTN merchant or MTN agent SIMs.\nPorted SIM compatibility has not been confirmed yet."));
+          return;
+        }
+        var titleEl = document.getElementById("serviceNoticeTitle");
+        var bodyEl = document.getElementById("serviceNoticeBody");
+        var cancelBtn = document.getElementById("serviceNoticeCancelBtn");
+        var confirmBtn = document.getElementById("serviceNoticeConfirmBtn");
+        if (titleEl) titleEl.textContent = (svc && (svc.name || svc.serviceName)) || "MTN MASH UP DATA";
+        if (bodyEl) {
+          bodyEl.innerHTML =
+            '<div class="mb-3">' +
+            '  <div class="fw-semibold mb-1">Before purchase</div>' +
+            '  <div>Suitable for regular MTN customer SIMs only.</div>' +
+            '  <div>Not recommended for MTN merchant or MTN agent SIMs.</div>' +
+            '  <div>Ported SIM compatibility has not been confirmed yet.</div>' +
+            '</div>' +
+            '<div>' +
+            '  <div class="fw-semibold mb-1">After delivery</div>' +
+            '  <div>Ask the customer to dial *124# to confirm the data balance.</div>' +
+            '  <div>The customer may also receive an SMS from Feeli once the bundle lands.</div>' +
+            '</div>';
+        }
+        var inst = bootstrap.Modal.getOrCreateInstance(modalEl);
+        var done = false;
+        function cleanup(ok){
+          if (done) return;
+          done = true;
+          modalEl.removeEventListener("hidden.bs.modal", onHidden);
+          cancelBtn && cancelBtn.removeEventListener("click", onCancel);
+          confirmBtn && confirmBtn.removeEventListener("click", onConfirm);
+          resolve(ok);
+        }
+        function onHidden(){ cleanup(false); }
+        function onCancel(){ inst.hide(); cleanup(false); }
+        function onConfirm(){ inst.hide(); cleanup(true); }
+        modalEl.addEventListener("hidden.bs.modal", onHidden);
+        cancelBtn && cancelBtn.addEventListener("click", onCancel);
+        confirmBtn && confirmBtn.addEventListener("click", onConfirm);
+        inst.show();
+      });
+    }
+
+    function wireSpecialInfoButtons(){
+      var btns = document.querySelectorAll(".special-service-info-btn");
+      for (var i = 0; i < btns.length; i++) {
+        (function(btn){
+          btn.addEventListener("click", async function(ev){
+            ev.preventDefault();
+            ev.stopPropagation();
+            var svc = null;
+            try { svc = JSON.parse(btn.getAttribute("data-service") || "{}"); } catch(e){ svc = null; }
+            await showSpecialServiceNotice(svc || { name: "MTN MASH UP DATA" });
+          });
+        })(btns[i]);
+      }
+    }
+
+    function showPortedModal(opts){
+      return new Promise(function(resolve){
+        var modalEl = document.getElementById("portedModal");
+        if (!modalEl || !window.bootstrap){ resolve(true); return; }
+        var msgEl = document.getElementById("portedModalMsg");
+        var badgesEl = document.getElementById("portedModalPrefixes");
+        var btnCancel = document.getElementById("portedCancelBtn");
+        var btnConfirm = document.getElementById("portedConfirmBtn");
+        if (msgEl) msgEl.textContent = opts.message || "Ported number detected.";
+        if (badgesEl) {
+          badgesEl.innerHTML = "";
+          badgesEl.insertAdjacentHTML("beforeend", '<span class="badge text-bg-warning">Expected: ' + opts.expected + "</span>");
+          badgesEl.insertAdjacentHTML("beforeend", '<span class="badge text-bg-secondary">Detected: ' + opts.actual + " (" + opts.prefix + ")</span>");
+        }
+        var inst = bootstrap.Modal.getOrCreateInstance(modalEl);
+        var done = false;
+        function cleanup(ok){
+          if (done) return;
+          done = true;
+          modalEl.removeEventListener("hidden.bs.modal", onHidden);
+          btnCancel && btnCancel.removeEventListener("click", onCancel);
+          btnConfirm && btnConfirm.removeEventListener("click", onConfirm);
+          resolve(ok);
+        }
+        function onHidden(){ cleanup(false); }
+        function onCancel(){ inst.hide(); cleanup(false); }
+        function onConfirm(){ inst.hide(); cleanup(true); }
+        modalEl.addEventListener("hidden.bs.modal", onHidden);
+        btnCancel && btnCancel.addEventListener("click", onCancel);
+        btnConfirm && btnConfirm.addEventListener("click", onConfirm);
+        inst.show();
+      });
+    }
+    async function ensurePortedConfirmedForLine(line, focusEl){
+      var phoneDigits = normalizePhone(line.phone || "");
+      var prefix = getPrefix(phoneDigits);
+      var expected = networkFromService(line);
+      var actual = networkFromPrefix(prefix);
+      if (!needsPortedConfirm(expected, actual)) return true;
+      var key = line.serviceId || line.serviceName || expected;
+      if (isPortedConfirmed(key, phoneDigits)) {
+        applyPortedFields(line, expected, actual, prefix);
+        return true;
+      }
+      var ok = await showPortedModal({
+        expected: expected, actual: actual, prefix: prefix,
+        message: "The phone prefix does not match the selected network."
+      });
+      if (ok){
+        setPortedConfirmed(key, phoneDigits);
+        applyPortedFields(line, expected, actual, prefix);
+        return true;
+      }
+      if (focusEl){
+        focusEl.classList.add("is-invalid");
+        focusEl.focus();
+        setTimeout(function(){ focusEl.classList.remove("is-invalid"); }, 1200);
+      }
+      return false;
+    }
+    async function ensurePortedConfirmedForCart(lines){
+      var items = Array.isArray(lines) ? lines : [];
+      for (var i = 0; i < items.length; i++){
+        var ok = await ensurePortedConfirmedForLine(items[i]);
+        if (!ok) return false;
+      }
+      return true;
+    }
+
+  var KNOWN_NUMBER_VERIFY_URL = "/api/verify-known-number";
+  var knownNumberCache = {};
+
+  function needsKnownNumberVerification(svc){
+    var joined = [svc && svc.service_network, svc && svc.network, svc && svc.serviceName, svc && svc.name].filter(Boolean).join(" ").toLowerCase();
+    return joined.indexOf("mtn") >= 0;
+  }
+
+  function setKnownNumberUi(inputEl, badgeEl, textEl, state, message){
+    if (inputEl) {
+      inputEl.classList.remove("is-valid", "is-invalid", "border-warning");
+      if (state === "ok") inputEl.classList.add("is-valid");
+      if (state === "fail") inputEl.classList.add("is-invalid");
+      if (state === "warn") inputEl.classList.add("border-warning");
+    }
+    if (badgeEl) {
+      badgeEl.innerHTML = state === "ok" ? "&#10003;" : state === "pending" ? "..." : (state === "fail" || state === "warn") ? "!" : "";
+      badgeEl.className = "input-group-text";
+      if (state === "ok") badgeEl.classList.add("text-success");
+      else if (state === "fail") badgeEl.classList.add("text-danger");
+      else if (state === "warn") badgeEl.classList.add("text-warning");
+      else if (state === "pending") badgeEl.classList.add("text-primary");
+      else badgeEl.classList.add("text-muted");
+    }
+    if (textEl) {
+      textEl.textContent = message || "";
+      textEl.className = "small mt-1";
+      if (state === "ok") textEl.classList.add("text-success");
+      else if (state === "fail") textEl.classList.add("text-danger");
+      else if (state === "warn") textEl.classList.add("text-warning");
+      else textEl.classList.add("text-muted");
+    }
+  }
+
+  function showKnownNumberModal(state, message){
+    var modalEl = document.getElementById("knownNumberModal");
+    if (!modalEl || !window.bootstrap) return null;
+    var titleEl = document.getElementById("knownNumberModalTitle");
+    var msgEl = document.getElementById("knownNumberModalMsg");
+    var spinnerEl = document.getElementById("knownNumberModalSpinner");
+    var iconEl = document.getElementById("knownNumberModalIcon");
+    var closeEl = document.getElementById("knownNumberModalClose");
+    var inst = bootstrap.Modal.getOrCreateInstance(modalEl);
+    if (titleEl) titleEl.textContent = state === "pending" ? "Verifying Number" : (state === "ok" || state === "warn") ? "Number Verified" : "Verification Failed";
+    if (msgEl) msgEl.textContent = message || "";
+    if (spinnerEl) spinnerEl.classList.toggle("d-none", state !== "pending");
+    if (iconEl) iconEl.innerHTML = state === "ok" ? "&#10003;" : (state === "fail" || state === "warn") ? "!" : "";
+    if (iconEl) iconEl.className = state === "ok" ? "fs-4 text-success" : state === "warn" ? "fs-4 text-warning" : state === "fail" ? "fs-4 text-danger" : "fs-4";
+    if (closeEl) closeEl.classList.toggle("d-none", state === "pending");
+    inst.show();
+    return inst;
+  }
+
+  async function verifyKnownNumber(line, inputEl, badgeEl, textEl, showModal){
+    if (!needsKnownNumberVerification(line)) {
+      setKnownNumberUi(inputEl, badgeEl, textEl, "idle", "");
+      return true;
+    }
+    var phone = normalizePhone(line.phone || "");
+    if (!PHONE_RE.test(phone)) {
+      setKnownNumberUi(inputEl, badgeEl, textEl, "idle", "");
+      return false;
+    }
+    if (knownNumberCache[phone]) {
+      setKnownNumberUi(inputEl, badgeEl, textEl, knownNumberCache[phone].state, knownNumberCache[phone].message);
+      return !!knownNumberCache[phone].ok;
+    }
+    setKnownNumberUi(inputEl, badgeEl, textEl, "pending", "Verifying number...");
+    var inst = showModal ? showKnownNumberModal("pending", "Verifying number...") : null;
+    try {
+      var res = await fetch(KNOWN_NUMBER_VERIFY_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "same-origin",
+        body: JSON.stringify({
+          phone: phone,
+          serviceId: line.serviceId,
+          serviceName: line.serviceName,
+          service_network: line.service_network,
+          network: line.network,
+          source: "customer_dashboard"
+        })
+      });
+      var data = {};
+      try { data = await res.json(); } catch(e) { data = {}; }
+      var ok = !!(res.ok && data && data.allowed !== false);
+      var isWarningOnly = !!(data && data.warning_only);
+      var state = (isWarningOnly && ok) ? "ok" : ok ? "ok" : "fail";
+      var message = ok ? "Number verified." : "Number not in our database so you cant place order.";
+      knownNumberCache[phone] = { ok: ok, state: state, message: message };
+      setKnownNumberUi(inputEl, badgeEl, textEl, state, message);
+      if (inst) {
+        showKnownNumberModal(state, message);
+        if (ok) setTimeout(function(){ inst.hide(); }, state === "warn" ? 2200 : 700);
+      }
+      if (ok && state === "ok") line.known_number_verified = true;
+      if (ok && state === "warn") line.known_number_warning = true;
+      return ok;
+    } catch(err) {
+      var failMessage = "Could not verify number right now. Try again.";
+      setKnownNumberUi(inputEl, badgeEl, textEl, "fail", failMessage);
+      if (inst) showKnownNumberModal("fail", failMessage);
+      return false;
+    }
+  }
+
+  async function ensureKnownNumberVerifiedForLine(line, inputEl, badgeEl, textEl){
+    return verifyKnownNumber(line, inputEl, badgeEl, textEl, true);
+  }
+
+  async function ensureKnownNumberVerifiedForCart(lines){
+    var items = Array.isArray(lines) ? lines : [];
+    for (var i = 0; i < items.length; i++){
+      var ok = await verifyKnownNumber(items[i], null, null, null, false);
+      if (!ok) {
+        showKnownNumberModal("fail", "Number not in our database so you cant place order.");
+        return false;
+      }
+    }
+    return true;
+  }
+
+  function attachPhoneMask(container) {
+    var inputs = container.querySelectorAll(".phone-input");
+    for (var i = 0; i < inputs.length; i++) {
+      (function(inp){
+        inp.setAttribute("inputmode", "numeric");
+        inp.setAttribute("maxlength", "10");
+        inp.placeholder = "e.g. 0530393625";
+        function handle() {
+          var digits = sanitizePhoneInput(inp.value || "");
+          inp.value = digits;
+          var badge = inp.parentNode ? inp.parentNode.querySelector(".phone-verify-badge") : null;
+          var text = inp.parentNode && inp.parentNode.parentNode ? inp.parentNode.parentNode.querySelector(".phone-verify-text") : null;
+          if (!PHONE_RE.test(digits)) inp.classList.add("is-invalid");
+          else inp.classList.remove("is-invalid");
+          setKnownNumberUi(inp, badge, text, "idle", "");
+          clearTimeout(inp._verifyTimer);
+          if (!chosenService || !needsKnownNumberVerification(chosenService)) return;
+          if (!PHONE_RE.test(digits)) return;
+          inp._verifyTimer = setTimeout(function(){
+            verifyKnownNumber({
+              serviceId: chosenService && chosenService._id_str,
+              serviceName: chosenService && (chosenService.display_name || chosenService.name),
+              service_network: chosenService && chosenService.service_network,
+              network: chosenService && chosenService.network,
+              phone: digits
+            }, inp, badge, text, true);
+          }, 180);
+        }
+        inp.addEventListener("input", handle);
+        handle();
+      })(inputs[i]);
+    }
+  }
+
+  function addRow(phone, selectedIdx) {
+    phone = phone || "";
+
+    var col = document.createElement("div");
+    col.className = "col-12";
+
+    var card = document.createElement("div");
+    card.className = "card border rounded-3 p-3 shadow-sm mb-2";
+    col.appendChild(card);
+
+    var row = document.createElement("div");
+    row.className = "row g-3 align-items-center";
+    card.appendChild(row);
+
+    // phone
+    var c1 = document.createElement("div");
+    c1.className = "col-12 col-md-5";
+    var phoneWrap = document.createElement("div");
+    phoneWrap.className = "input-group";
+    var phoneInput = document.createElement("input");
+    phoneInput.type = "text";
+    phoneInput.className = "form-control phone-input";
+    phoneInput.placeholder = "e.g. 0530393625";
+    phoneInput.value = (phone.replace(/\D+/g,"").slice(0,10));
+    var phoneClear = document.createElement("button");
+    phoneClear.type = "button";
+    phoneClear.className = "btn btn-outline-secondary d-none";
+    phoneClear.setAttribute("aria-label", "Clear phone field");
+    phoneClear.innerHTML = "&times;";
+    var phoneBadge = document.createElement("span");
+    phoneBadge.className = "input-group-text phone-verify-badge";
+    phoneWrap.appendChild(phoneInput);
+    phoneWrap.appendChild(phoneClear);
+    phoneWrap.appendChild(phoneBadge);
+    c1.appendChild(phoneWrap);
+    var phoneText = document.createElement("div");
+    phoneText.className = "small mt-1 text-muted phone-verify-text";
+    c1.appendChild(phoneText);
+    row.appendChild(c1);
+
+    // offer select
+    var c2 = document.createElement("div");
+    c2.className = "col-12 col-md-5";
+    var sel = document.createElement("select");
+    sel.className = "form-select offer-select";
+    sel.innerHTML = chosenService ? renderOfferOptions(chosenService.offers) : '<option>-- Choose Offer --</option>';
+    c2.appendChild(sel);
+    row.appendChild(c2);
+
+    // right side
+    var c3 = document.createElement("div");
+    c3.className = "col-12 col-md-2 d-flex justify-content-between align-items-center";
+    var amt = document.createElement("div");
+    amt.className = "amount-cell fw-semibold text-primary";
+    amt.textContent = "-";
+    var rm = document.createElement("button");
+    rm.className = "btn btn-sm btn-outline-danger remove-row-btn";
+    rm.innerHTML = '<i class="bi bi-x-lg"></i>';
+    c3.appendChild(amt);
+    c3.appendChild(rm);
+    row.appendChild(c3);
+
+    rowsBody.appendChild(col);
+
+    attachPhoneMask(col);
+    bindClearInput(phoneInput, phoneClear, function(){
+      setKnownNumberUi(phoneInput, phoneBadge, phoneText, "idle", "");
+      clearTimeout(phoneInput._verifyTimer);
+    });
+
+    sel.addEventListener("change", function(){ amt.textContent = ""; });
+
+    if (typeof selectedIdx === "number") {
+      var opt = sel.querySelector('option[data-idx="' + selectedIdx + '"]');
+      if (opt) {
+        sel.value = opt.value;
+        var evt = document.createEvent("HTMLEvents");
+        evt.initEvent("change", true, false);
+        sel.dispatchEvent(evt);
+      }
+    }
+  }
+
+  function clearRows() { rowsBody.innerHTML = ""; }
+
+  function updateCartUI() {
+    var list = document.getElementById("cart-list");
+    var count = document.getElementById("cart-count");
+    var empty = document.getElementById("cart-empty");
+    var wrap = document.getElementById("cart-list-wrapper");
+    var totalEl = document.getElementById("cart-total");
+
+    list.innerHTML = "";
+    var total = 0;
+    for (var i = 0; i < cart.length; i++) {
+      var item = cart[i];
+      total += Number(item.amount || 0);
+      var tr = document.createElement("tr");
+      var valueText = item.value_text || formatVolumeLabel(item.value_obj || item.value);
+      tr.innerHTML =
+        "<td>" + item.serviceName + "</td>" +
+        "<td>" + item.phone + "</td>" +
+        "<td>" + valueText + "</td>" +
+        "<td>GHS " + money(item.amount) + "</td>" +
+        '<td><button class="btn btn-sm btn-outline-danger" data-remove="' + i + '">Remove</button></td>';
+      list.appendChild(tr);
+    }
+
+    count.textContent = String(cart.length);
+    totalEl.textContent = money(total);
+    empty.classList.toggle("d-none", cart.length !== 0);
+    wrap.classList.toggle("d-none", cart.length === 0);
+
+    saveCart();
+  }
+
+    async function addAllRowsToCart() {
+      var rowCards = rowsBody.querySelectorAll(".card");
+      if (!rowCards.length) { alert("Add at least one row."); return; }
+
+      var bad = [];
+      var toAdd = [];
+      for (var i = 0; i < rowCards.length; i++) {
+        var row = rowCards[i];
+        var phoneRawInp = row.querySelector(".phone-input");
+        var sel = row.querySelector(".offer-select");
+        var phoneRaw = phoneRawInp ? (phoneRawInp.value || "") : "";
+        var phone = phoneRaw.replace(/\D+/g, "");
+        var opt = null;
+        if (sel && typeof sel.selectedIndex === "number" && sel.selectedIndex >= 0) {
+          opt = sel.options[sel.selectedIndex];
+        }
+
+        if (!PHONE_RE.test(phone) || !opt || !sel.value) { bad.push(i + 1); continue; }
+
+        var valueText = (opt.textContent || "").replace(/^.*-\s*/, "") || "-";
+        var total = Number(opt.getAttribute("data-total") || sel.value || 0);
+        var base  = Number(opt.getAttribute("data-base") || 0);
+
+        var idxAttr = opt.getAttribute("data-idx");
+        var offerIdx = typeof idxAttr === "string" ? Number(idxAttr) : null;
+        var offer = (chosenService && chosenService.offers && typeof offerIdx === "number") ? chosenService.offers[offerIdx] : null;
+        var valueObj = (offer && offer.value) ? offer.value : null;
+
+        toAdd.push({
+          serviceId: chosenService._id_str,
+          serviceName: chosenService.display_name || chosenService.name,
+          service_network: chosenService.service_network,
+          network: chosenService.network,
+          phone: phone,
+          value: valueText,
+          value_obj: valueObj,
+          base_amount: base,
+          amount: total,
+          total: total
+        });
+      }
+
+      if (bad.length) {
+        alert("Some rows were incomplete or invalid (phone must be 0xxxxxxxxx): " + bad.join(", "));
+        return;
+      }
+      var okNotice = await showSpecialServiceNotice(chosenService);
+      if (!okNotice) return;
+      for (var j = 0; j < toAdd.length; j++) {
+        var line = toAdd[j];
+        var sourceRow = rowCards[j];
+        var sourceInput = sourceRow ? sourceRow.querySelector(".phone-input") : null;
+        var sourceBadge = sourceRow ? sourceRow.querySelector(".phone-verify-badge") : null;
+        var sourceText = sourceRow ? sourceRow.querySelector(".phone-verify-text") : null;
+        var dupInCart = isDuplicateLine(line, cart);
+        var dupInBatch = isDuplicateLine(line, toAdd.slice(0, j));
+        if (dupInCart || dupInBatch) {
+          var msg = "This number is already in your cart for the same bundle. Add anyway?";
+          var okDup = await showDuplicateModal(msg);
+          if (!okDup) {
+            continue;
+          }
+        }
+        var knownOk = await ensureKnownNumberVerifiedForLine(line, sourceInput, sourceBadge, sourceText);
+        if (!knownOk) return;
+        var ok = await ensurePortedConfirmedForLine(line, sourceInput);
+        if (!ok) return;
+        cart.push(line);
+      }
+      updateCartUI();
+      clearRows();
+      addRow();
+    }
+
+  function parseGBFromValue(value) {
+    if (value && typeof value === "object" && value.volume != null) {
+      var vol = Number(value.volume);
+      return vol / 1000;
+    }
+    var m = String(value || "").match(/(\d+(?:\.\d+)?)/);
+    return m ? Number(m[1]) : null;
+  }
+
+  function parseGBFromOffer(offer) {
+    if (!offer) return null;
+    var gb = parseGBFromValue(offer.value_text);
+    return gb !== null ? gb : parseGBFromValue(offer.value);
+  }
+
+  function findOfferIndexByGB(offers, gbNumber) {
+    offers = offers || [];
+    var candidates = [];
+    for (var i = 0; i < offers.length; i++) {
+      var gb = parseGBFromOffer(offers[i]);
+      if (gb !== null && Number(gb) === Number(gbNumber)) {
+        candidates.push({ idx: i, price: (offers[i].total != null ? offers[i].total : (offers[i].amount || 0)) });
+      }
+    }
+    if (!candidates.length) return null;
+    candidates.sort(function(a,b){ return a.price - b.price; });
+    return candidates[0].idx;
+  }
+
+  // ---- Overlay/Backdrop safety cleanup ----
+  function cleanupOverlays() {
+    var pl = document.getElementById("page-loader");
+    if (pl && !pl.classList.contains("d-none")) pl.classList.add("d-none");
+    document.querySelectorAll(".modal-backdrop").forEach(function(el){ el.remove(); });
+    document.body.classList.remove("modal-open");
+    document.body.style.removeProperty("overflow");
+    document.body.style.removeProperty("paddingRight");
+  }
+
+  // Service selection (uses display_name if provided)
+  function wireSelectButtons() {
+    var btns = document.querySelectorAll(".select-service-btn");
+    for (var i = 0; i < btns.length; i++) {
+      (function(btn){
+        btn.addEventListener("click", function () {
+          if (btn.hasAttribute("disabled")) return;
+          var svcDataStr = btn.getAttribute("data-service") || "{}";
+          try { chosenService = JSON.parse(svcDataStr); } catch(e){ chosenService = null; }
+          if (!chosenService) return;
+
+          chosenNameEl.textContent = (chosenService.display_name || chosenService.name || "");
+
+          var cardCol = btn.closest(".col-12");
+          if (cardCol && workArea) {
+            cardCol.parentNode.insertBefore(workArea, cardCol.nextSibling);
+          }
+
+          workArea.classList.remove("d-none");
+          clearRows();
+          addRow();
+          setOrderEntryMode(orderEntryMode);
+
+          var firstPhone = rowsBody.querySelector(".phone-input");
+          if (firstPhone && typeof firstPhone.focus === "function") {
+            setTimeout(function(){ firstPhone.focus(); }, 50);
+          }
+          if (typeof workArea.scrollIntoView === "function") {
+            workArea.scrollIntoView({ behavior: "smooth", block: "start" });
+          }
+        });
+      })(btns[i]);
+    }
+  }
+
+  // Row actions
+  rowsBody.addEventListener("click", function(e){
+    var rm = e.target.closest ? e.target.closest(".remove-row-btn") : null;
+    if (rm) {
+      var col = rm.closest(".col-12");
+      if (col && col.parentNode) col.parentNode.removeChild(col);
+    }
+  });
+
+  // Bulk paste
+  (function wireBulk(){
+    var singleModeBtn = document.getElementById("single-order-mode-btn");
+    var bulkModeBtn = document.getElementById("bulk-order-mode-btn");
+    var hideBulkBtn = document.getElementById("hide-bulk-btn");
+    if (singleModeBtn) singleModeBtn.addEventListener("click", function(){ setOrderEntryMode("single"); });
+    if (bulkModeBtn) bulkModeBtn.addEventListener("click", function(){ setOrderEntryMode("bulk"); });
+    if (hideBulkBtn) hideBulkBtn.addEventListener("click", function(){ setOrderEntryMode("single"); });
+
+    var applyBtn = document.getElementById("apply-bulk-btn");
+    if (applyBtn) applyBtn.addEventListener("click", function(){
+      if (!chosenService) { alert("Choose a service first."); return; }
+      var ta = document.getElementById("bulk-paste");
+      var text = ta ? ta.value : "";
+      var tokens = text.trim().split(/[\s,;]+/).filter(function(x){ return !!x; });
+      if (!tokens.length) { alert("Nothing to paste."); return; }
+      if (tokens.length % 2 !== 0) {
+        alert("Each bulk order must contain a phone number and GB size (for example: 0530393625 2).");
+        return;
+      }
+
+      var entries = [];
+      var errors = [];
+      for (var t = 0; t < tokens.length; t += 2) {
+        var phoneDigits = String(tokens[t] || "").replace(/\D+/g, "");
+        var gbText = String(tokens[t + 1] || "").replace(/gb$/i, "");
+        var gbNum = Number(gbText);
+        var orderNo = (t / 2) + 1;
+        if (!PHONE_RE.test(phoneDigits)) {
+          errors.push("Order " + orderNo + ": phone must be 0xxxxxxxxx");
+          continue;
+        }
+        if (!gbText || !isFinite(gbNum) || gbNum <= 0) {
+          errors.push("Order " + orderNo + ": invalid GB size");
+          continue;
+        }
+        var offerIdx = findOfferIndexByGB(chosenService.offers, gbNum);
+        if (offerIdx === null) {
+          errors.push("Order " + orderNo + ": " + gbText + " GB is not available");
+          continue;
+        }
+        entries.push({ phone: phoneDigits, offerIdx: offerIdx });
+      }
+      if (errors.length) {
+        alert("Please fix these bulk orders:\n" + errors.join("\n"));
+        return;
+      }
+
+      // Applying a paste replaces the entry rows, so stale blank rows cannot
+      // prevent the complete bulk batch from being added to the cart.
+      clearRows();
+      for (var a = 0; a < entries.length; a++) addRow();
+
+      var rows = rowsBody.querySelectorAll(".card");
+      for (var i = 0; i < entries.length; i++) {
+        var entry = entries[i];
+        var phoneDigits = entry.phone;
+
+        var row = rows[i];
+        if (!row) continue;
+        var phoneInput = row.querySelector(".phone-input");
+        var sel = row.querySelector(".offer-select");
+
+        if (phoneInput) {
+          phoneInput.value = phoneDigits;
+          var ev = document.createEvent("HTMLEvents");
+          ev.initEvent("input", true, false);
+          phoneInput.dispatchEvent(ev);
+        }
+
+        if (sel) {
+          var opt = sel.querySelector('option[data-idx="' + entry.offerIdx + '"]');
+          if (opt) sel.value = opt.value;
+          var ev2 = document.createEvent("HTMLEvents");
+          ev2.initEvent("change", true, false);
+          sel.dispatchEvent(ev2);
+        }
+      }
+      if (ta) ta.value = "";
+      setOrderEntryMode("single");
+      if (rowsBody && typeof rowsBody.scrollIntoView === "function") {
+        rowsBody.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+      alert(entries.length + " bulk order" + (entries.length === 1 ? " is" : "s are") + " ready. Review them, then click Add All to Cart.");
+    });
+  })();
+
+  // Add all rows to cart
+  var addAllBtn = document.getElementById("add-all-to-cart");
+  if (addAllBtn) addAllBtn.addEventListener("click", addAllRowsToCart);
+
+  // Cart interactions
+  var cartModal = document.getElementById("cartModal");
+  if (cartModal) {
+    cartModal.addEventListener("click", function(e){
+      var btn = e.target.closest ? e.target.closest("button[data-remove]") : null;
+      if (!btn) return;
+      var idx = Number(btn.getAttribute("data-remove"));
+      if (!isNaN(idx)) { cart.splice(idx, 1); updateCartUI(); }
+    });
+    cartModal.addEventListener("hidden.bs.modal", cleanupOverlays);
+  }
+
+  // Clear cart
+  var clearBtn = document.getElementById("clear-cart-btn");
+  if (clearBtn) clearBtn.addEventListener("click", function(){
+    if (!cart.length) return;
+    if (confirm("Clear all items in the cart?")) { cart = []; updateCartUI(); }
+  });
+
+  // Proceed to checkout
+  var checkoutBtn = document.getElementById("checkout-btn");
+  if (checkoutBtn) checkoutBtn.addEventListener("click", function(){
+    if (!cart.length) { alert("Your cart is empty."); return; }
+    var section = document.getElementById("checkout-section");
+    var total = document.getElementById("cart-total").textContent;
+    document.getElementById("checkout-total").textContent = total;
+    if (section) section.classList.remove("d-none");
+    setTimeout(function(){ if (section && section.scrollIntoView) section.scrollIntoView({ behavior: "smooth" }); }, 100);
+  });
+
+  // --- Loading helpers ---
+  var pageLoader = document.getElementById("page-loader");
+  var confirmBtn = document.getElementById("confirm-payment-btn");
+  function setProcessing(on) {
+    if (pageLoader) pageLoader.classList.toggle("d-none", !on);
+    if (confirmBtn) {
+      var spinner = confirmBtn.querySelector(".spinner-border");
+      var label = confirmBtn.querySelector(".btn-label");
+      confirmBtn.disabled = !!on;
+      if (spinner) spinner.classList.toggle("d-none", !on);
+      if (label) label.textContent = on ? "Processing..." : "Confirm Payment";
+    }
+    var dis = document.querySelectorAll("#checkout-section input, #checkout-section select, #checkout-section button");
+    for (var i = 0; i < dis.length; i++) { if (dis[i] !== confirmBtn) dis[i].disabled = !!on; }
+  }
+
+  // Confirm payment (with loader) + overlay safety ordering
+    if (confirmBtn) confirmBtn.addEventListener("click", async function(){
+      var methodSel = document.getElementById("payment-method");
+      var method = methodSel ? methodSel.value : "from_account";
+      var total = document.getElementById("checkout-total").textContent;
+
+      var knownOk = await ensureKnownNumberVerifiedForCart(cart);
+      if (!knownOk) return;
+      var portedOk = await ensurePortedConfirmedForCart(cart);
+      if (!portedOk) return;
+
+      Swal.fire({
+        title: "Confirm payment?",
+      html: "You're about to pay <b>GHS " + total + "</b> from your wallet.",
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonText: "Yes, Pay",
+      cancelButtonText: "Cancel",
+      confirmButtonColor: "#0ea5e9"
+    }).then(function(res){
+      if (!res.isConfirmed) return;
+
+      setProcessing(true);
+      var controller = new AbortController();
+      var aborted = false;
+      var timer = setTimeout(function(){ aborted = true; if (controller && controller.abort) controller.abort(); }, 60000);
+
+      fetch("/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ cart: cart, method: method }),
+        signal: controller.signal
+      }).then(function(response){
+        clearTimeout(timer);
+        return response.json().then(function(json){ return { ok: response.ok, json: json }; })
+          .catch(function(){ return { ok: response.ok, json: {} }; });
+      }).then(function(result){
+        if (result.ok && result.json && result.json.success) {
+          // ✅ Auto-clear cart & auto-redirect, no "OK" click needed
+          try {
+            cart = [];
+            localStorage.removeItem(CART_KEY);
+          } catch(e){}
+          if (typeof updateCartUI === "function") updateCartUI();
+
+          setProcessing(false);
+          cleanupOverlays();
+
+          var redirectUrl = (result.json.redirect_url || ("/invoice/" + (result.json.order_id || "")));
+          if (redirectUrl) {
+            window.location.href = redirectUrl;
+          }
+
+        } else {
+          setProcessing(false);
+          cleanupOverlays();
+
+          Swal.fire({
+            title: "Failed",
+            text: (result.json && (result.json.message || result.json.error)) || "Payment failed. Please try again.",
+            icon: "error"
+          }).then(cleanupOverlays);
+        }
+      }).catch(function(err){
+        setProcessing(false);
+        cleanupOverlays();
+
+        var msg = aborted
+          ? "The request took too long and was cancelled. Please check your network and try again."
+          : "Something went wrong while processing payment.";
+        Swal.fire({ title: "Error", text: msg, icon: "error" }).then(cleanupOverlays);
+      }).finally(function(){
+        setProcessing(false);
+        cleanupOverlays();
+      });
+    });
+  });
+
+  // ---- Init ----
+  loadCart();
+  updateCartUI();
+  wireSelectButtons();
+  wireSpecialInfoButtons();
+
+  var addRowBtn = document.getElementById("add-row-btn");
+  if (addRowBtn) addRowBtn.addEventListener("click", function(){ addRow(); });
+
+  window.addEventListener("load", cleanupOverlays);
+  </script>
+
+  <script>
+  (function(){
+    var selectedService = null;
+    var orderCardEl = document.getElementById("orderCard");
+    var selectedServiceNameEl = document.getElementById("selectedServiceName");
+    var orderPhoneEl = document.getElementById("orderPhone");
+    var orderOfferEl = document.getElementById("orderOffer");
+    var orderAmountEl = document.getElementById("orderAmount");
+    var addToCartBtn = document.getElementById("addToCartBtn");
+    var verifyBadgeEl = document.getElementById("orderPhoneVerifyBadge");
+    var verifyTextEl = document.getElementById("orderPhoneVerifyText");
+    var orderPhoneClearBtn = document.getElementById("orderPhoneClearBtn");
+    var inlineCartListEl = document.getElementById("inlineCartList");
+    var inlineCartCountEl = document.getElementById("inlineCartCount");
+    var inlineCartTotalEl = document.getElementById("inlineCartTotal");
+    var inlineCheckoutBtn = document.getElementById("inlineCheckoutBtn");
+    var modalSingleTab = document.getElementById("modalSingleTab");
+    var modalBulkTab = document.getElementById("modalBulkTab");
+    var modalSinglePanel = document.getElementById("modalSinglePanel");
+    var modalBulkPanel = document.getElementById("modalBulkPanel");
+    var modalBulkPaste = document.getElementById("modalBulkPaste");
+    var modalBulkAddBtn = document.getElementById("modalBulkAddBtn");
+
+    function setModalOrderMode(mode){
+      var bulk = mode === "bulk";
+      if (modalSinglePanel) modalSinglePanel.classList.toggle("d-none", bulk);
+      if (modalBulkPanel) modalBulkPanel.classList.toggle("d-none", !bulk);
+      if (modalSingleTab) {
+        modalSingleTab.classList.toggle("btn-primary", !bulk);
+        modalSingleTab.classList.toggle("btn-outline-primary", bulk);
+        modalSingleTab.setAttribute("aria-selected", String(!bulk));
+      }
+      if (modalBulkTab) {
+        modalBulkTab.classList.toggle("btn-primary", bulk);
+        modalBulkTab.classList.toggle("btn-outline-primary", !bulk);
+        modalBulkTab.setAttribute("aria-selected", String(bulk));
+      }
+      if (bulk && modalBulkPaste) modalBulkPaste.focus();
+    }
+
+    if (modalSingleTab) modalSingleTab.addEventListener("click", function(){ setModalOrderMode("single"); });
+    if (modalBulkTab) modalBulkTab.addEventListener("click", function(){ setModalOrderMode("bulk"); });
+
+    function offerDisplay(value){
+      if (value && typeof value === "object") {
+        var explicitLabel = value.value_text || value.label || value.name;
+        if (explicitLabel) return String(explicitLabel);
+        if (value.volume != null) {
+          var vol = Number(value.volume || 0);
+          if (!isNaN(vol)) return vol >= 1000 ? (String(vol / 1000).replace(/\.0+$/, "") + "GB") : (vol + "MB");
+        }
+        if (value.value != null && value.value !== value) return offerDisplay(value.value);
+        return "-";
+      }
+      return value != null && value !== "" ? String(value) : "-";
+    }
+
+    function cartOfferText(item){
+      item = item || {};
+      if (item.value_text != null && typeof item.value_text !== "object") return String(item.value_text);
+      if (item.value != null && typeof item.value !== "object") return String(item.value);
+      return offerDisplay(item.value_obj || item.value);
+    }
+
+    function offerLabel(offer, unit){
+      if (!offer) return "-";
+      if (offer.value_text) return offer.value_text;
+      return offerDisplay(offer.value, unit);
+    }
+
+    function buildOfferOptions(offers, unit){
+      offers = Array.isArray(offers) ? offers : [];
+      var html = '<option value="" selected disabled>Select size</option>';
+      for (var i = 0; i < offers.length; i++) {
+        var offer = offers[i] || {};
+        var total = offer.total != null ? offer.total : offer.amount;
+        if (total == null) continue;
+        html += '<option value="' + i + '">GHS ' + money(total) + ' - ' + offerLabel(offer, unit) + '</option>';
+      }
+      return html;
+    }
+
+    function currentOffer(){
+      if (!selectedService || !orderOfferEl) return null;
+      var idx = Number(orderOfferEl.value);
+      if (isNaN(idx)) return null;
+      return (selectedService.offers || [])[idx] || null;
+    }
+
+    function updateInlineCheckoutState(total){
+      if (!inlineCheckoutBtn) return;
+      inlineCheckoutBtn.disabled = !cart.length;
+      inlineCheckoutBtn.textContent = cart.length ? ("Proceed to Checkout ( GHS " + money(total) + " )") : "Proceed to Checkout";
+    }
+
+    function renderInlineCart(total){
+      if (!inlineCartListEl || !inlineCartCountEl || !inlineCartTotalEl) return;
+      if (!cart.length) {
+        inlineCartListEl.innerHTML = '<div class="text-muted">Your cart is empty.</div>';
+      } else {
+        inlineCartListEl.innerHTML = cart.map(function(item, idx){
+          var valueText = cartOfferText(item);
+          return '' +
+            '<div class="cart-line">' +
+              '<div class="cart-line-main">' +
+                '<div class="cart-line-title">' + (item.serviceName || 'Service') + '</div>' +
+                '<div class="cart-line-meta">' + (item.phone || '') + ' - ' + valueText + '</div>' +
+              '</div>' +
+              '<div class="text-end">' +
+                '<div class="cart-line-amount">GHS ' + money(item.amount) + '</div>' +
+                '<button type="button" class="btn btn-sm btn-link text-danger p-0 mt-1" data-inline-remove="' + idx + '">Remove</button>' +
+              '</div>' +
+            '</div>';
+        }).join("");
+      }
+      inlineCartCountEl.textContent = cart.length + (cart.length === 1 ? " item" : " items");
+      inlineCartTotalEl.textContent = money(total);
+      updateInlineCheckoutState(total);
+    }
+
+    updateCartUI = function(){
+      var list = document.getElementById("cart-list");
+      var count = document.getElementById("cart-count");
+      var empty = document.getElementById("cart-empty");
+      var wrap = document.getElementById("cart-list-wrapper");
+      var totalEl = document.getElementById("cart-total");
+      var total = 0;
+
+      if (list) list.innerHTML = "";
+      for (var i = 0; i < cart.length; i++) {
+        var item = cart[i];
+        total += Number(item.amount || 0);
+        if (list) {
+          var tr = document.createElement("tr");
+          tr.innerHTML =
+            "<td>" + (item.serviceName || "") + "</td>" +
+            "<td>" + (item.phone || "") + "</td>" +
+            "<td>" + cartOfferText(item) + "</td>" +
+            "<td>GHS " + money(item.amount) + "</td>" +
+            '<td><button class="btn btn-sm btn-outline-danger" data-remove="' + i + '">Remove</button></td>';
+          list.appendChild(tr);
+        }
+      }
+
+      if (count) count.textContent = String(cart.length);
+      if (totalEl) totalEl.textContent = money(total);
+      if (empty) empty.classList.toggle("d-none", cart.length !== 0);
+      if (wrap) wrap.classList.toggle("d-none", cart.length === 0);
+      var checkoutTotalEl = document.getElementById("checkout-total");
+      if (checkoutTotalEl) checkoutTotalEl.textContent = money(total);
+      var checkoutSectionEl = document.getElementById("checkout-section");
+      if (checkoutSectionEl && !cart.length) checkoutSectionEl.classList.add("d-none");
+      if (typeof saveCart === "function") saveCart();
+
+      renderInlineCart(total);
+      return total;
+    };
+
+    function setSelectedService(svc, btn){
+      selectedService = svc || null;
+      if (selectedServiceNameEl) selectedServiceNameEl.textContent = selectedService ? (selectedService.display_name || selectedService.name || "Service") : "None";
+      if (orderOfferEl) orderOfferEl.innerHTML = selectedService ? buildOfferOptions(selectedService.offers || [], selectedService.unit) : '<option value="" selected disabled>Select size</option>';
+      if (orderAmountEl) orderAmountEl.textContent = "0.00";
+      if (addToCartBtn) addToCartBtn.disabled = !selectedService;
+      if (modalBulkAddBtn) modalBulkAddBtn.disabled = !selectedService;
+      setKnownNumberUi(orderPhoneEl, verifyBadgeEl, verifyTextEl, "idle", "");
+      document.querySelectorAll(".service-tile.active").forEach(function(tile){ tile.classList.remove("active"); });
+      if (btn) {
+        var tile = btn.closest(".service-tile");
+        if (tile) tile.classList.add("active");
+      }
+      if (orderCardEl && typeof orderCardEl.scrollIntoView === "function") {
+        orderCardEl.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    }
+
+    document.querySelectorAll(".dashboard-service-btn").forEach(function(btn){
+      var svc = null;
+      try { svc = JSON.parse(btn.getAttribute("data-service") || "{}"); } catch(e){ svc = null; }
+      btn.addEventListener("click", function(){
+        if (!svc) return;
+        setSelectedService(svc, btn);
+      });
+    });
+
+    if (orderOfferEl) {
+      orderOfferEl.addEventListener("change", function(){
+        var offer = currentOffer();
+        var amount = offer ? (offer.total != null ? offer.total : offer.amount) : 0;
+        if (orderAmountEl) orderAmountEl.textContent = money(amount);
+      });
+    }
+
+    if (orderPhoneEl) {
+      orderPhoneEl.addEventListener("input", function(){
+        orderPhoneEl.value = sanitizePhoneInput(orderPhoneEl.value || "");
+        setKnownNumberUi(orderPhoneEl, verifyBadgeEl, verifyTextEl, "idle", "");
+        clearTimeout(orderPhoneEl._verifyTimer);
+        if (!selectedService || !needsKnownNumberVerification(selectedService)) return;
+        if (!PHONE_RE.test(orderPhoneEl.value || "")) return;
+        orderPhoneEl._verifyTimer = setTimeout(function(){
+          verifyKnownNumber(
+            {
+              serviceId: selectedService && selectedService._id_str,
+              serviceName: selectedService && (selectedService.display_name || selectedService.name),
+              service_network: selectedService && selectedService.service_network,
+              network: selectedService && selectedService.network,
+              phone: orderPhoneEl.value
+            },
+            orderPhoneEl,
+            verifyBadgeEl,
+            verifyTextEl,
+            true
+          );
+        }, 180);
+      });
+    }
+    bindClearInput(orderPhoneEl, orderPhoneClearBtn, function(){
+      setKnownNumberUi(orderPhoneEl, verifyBadgeEl, verifyTextEl, "idle", "");
+      clearTimeout(orderPhoneEl && orderPhoneEl._verifyTimer);
+    });
+
+    if (addToCartBtn) {
+      addToCartBtn.addEventListener("click", async function(){
+        var phone = normalizePhone(orderPhoneEl ? orderPhoneEl.value : "");
+        var offer = currentOffer();
+        if (!selectedService) return alert("Select a service first.");
+        if (!PHONE_RE.test(phone) || !offer) return alert("Enter phone number and choose an offer.");
+
+        var amount = offer.total != null ? offer.total : offer.amount;
+        var line = {
+          serviceId: selectedService._id_str,
+          serviceName: selectedService.display_name || selectedService.name,
+          service_network: selectedService.service_network,
+          network: selectedService.network,
+          phone: phone,
+          value: offer.value,
+          value_obj: offer.value,
+          value_text: offerLabel(offer, selectedService.unit),
+          unit: selectedService.unit || "",
+          amount: Number(amount || 0)
+        };
+
+        var okNotice = await showSpecialServiceNotice(selectedService);
+        if (!okNotice) return;
+        var knownOk = await ensureKnownNumberVerifiedForLine(line, orderPhoneEl, verifyBadgeEl, verifyTextEl);
+        if (!knownOk) return;
+        var portedOk = await ensurePortedConfirmedForLine(line, orderPhoneEl);
+        if (!portedOk) return;
+        if (typeof isDuplicateLine === "function" && isDuplicateLine(line, cart)) {
+          var okDup = await showDuplicateModal("This number is already in your cart for the same bundle. Add anyway?");
+          if (!okDup) return;
+        }
+
+        cart.push(line);
+        updateCartUI();
+        if (orderPhoneEl) orderPhoneEl.value = "";
+        if (orderPhoneEl && typeof orderPhoneEl._syncClearButton === "function") orderPhoneEl._syncClearButton();
+        if (orderOfferEl) orderOfferEl.value = "";
+        if (orderAmountEl) orderAmountEl.textContent = "0.00";
+        setKnownNumberUi(orderPhoneEl, verifyBadgeEl, verifyTextEl, "idle", "");
+      });
+    }
+
+    if (modalBulkAddBtn) {
+      modalBulkAddBtn.addEventListener("click", async function(){
+        if (!selectedService) return alert("Select a service first.");
+        var tokens = String(modalBulkPaste ? modalBulkPaste.value : "").trim().split(/[\s,;]+/).filter(Boolean);
+        if (!tokens.length) return alert("Paste at least one PHONE GB order.");
+        if (tokens.length % 2) return alert("Every phone number must be followed by its GB size.");
+
+        var lines = [];
+        var errors = [];
+        for (var i = 0; i < tokens.length; i += 2) {
+          var phone = normalizePhone(tokens[i]);
+          var gbText = String(tokens[i + 1]).replace(/gb$/i, "");
+          var gb = Number(gbText);
+          var offerIdx = isFinite(gb) && gb > 0 ? findOfferIndexByGB(selectedService.offers || [], gb) : null;
+          var rowNo = (i / 2) + 1;
+          if (!PHONE_RE.test(phone)) errors.push("Order " + rowNo + ": invalid phone number");
+          else if (offerIdx === null) errors.push("Order " + rowNo + ": " + gbText + " GB is unavailable");
+          else {
+            var offer = (selectedService.offers || [])[offerIdx];
+            lines.push({
+              serviceId: selectedService._id_str,
+              serviceName: selectedService.display_name || selectedService.name,
+              service_network: selectedService.service_network,
+              network: selectedService.network,
+              phone: phone,
+              value: offer.value,
+              value_obj: offer.value,
+              value_text: offerLabel(offer, selectedService.unit),
+              unit: selectedService.unit || "",
+              amount: Number(offer.total != null ? offer.total : offer.amount || 0)
+            });
+          }
+        }
+        if (errors.length) return alert("Please fix these bulk orders:\n" + errors.join("\n"));
+
+        var okNotice = await showSpecialServiceNotice(selectedService);
+        if (!okNotice) return;
+        for (var j = 0; j < lines.length; j++) {
+          var line = lines[j];
+          var knownOk = await ensureKnownNumberVerifiedForLine(line, null, null, null);
+          if (!knownOk) return;
+          var portedOk = await ensurePortedConfirmedForLine(line, null);
+          if (!portedOk) return;
+          if (isDuplicateLine(line, cart)) {
+            var addDuplicate = await showDuplicateModal("Order " + (j + 1) + " is already in your cart. Add anyway?");
+            if (!addDuplicate) continue;
+          }
+          cart.push(line);
+        }
+        updateCartUI();
+        if (modalBulkPaste) modalBulkPaste.value = "";
+      });
+    }
+
+    if (inlineCartListEl) {
+      inlineCartListEl.addEventListener("click", function(e){
+        var btn = e.target.closest ? e.target.closest("[data-inline-remove]") : null;
+        if (!btn) return;
+        var idx = Number(btn.getAttribute("data-inline-remove"));
+        if (isNaN(idx)) return;
+        cart.splice(idx, 1);
+        updateCartUI();
+      });
+    }
+
+    if (inlineCheckoutBtn) {
+      inlineCheckoutBtn.addEventListener("click", function(){
+        if (!cart.length) return alert("Your cart is empty.");
+        var modalEl = document.getElementById("cartModal");
+        if (modalEl && window.bootstrap) {
+          bootstrap.Modal.getOrCreateInstance(modalEl).show();
+        }
+        var section = document.getElementById("checkout-section");
+        var total = document.getElementById("cart-total");
+        var checkoutTotal = document.getElementById("checkout-total");
+        if (checkoutTotal && total) checkoutTotal.textContent = total.textContent;
+        if (section) section.classList.remove("d-none");
+      });
+    }
+
+    updateCartUI();
+  })();
+  </script>
+
+  <!-- AFA modal script (submits to /api/afa/register and deducts wallet) -->
+  <script>
+  (function(){
+    if (typeof PHONE_RE === "undefined") {
+      window.PHONE_RE = /^0\d{9}$/;
+    }
+
+    var afaPhone = document.getElementById("afa-phone");
+    if (afaPhone) {
+      afaPhone.addEventListener("input", function(){
+        var digits = (afaPhone.value || "").replace(/\D+/g, "");
+        if (digits.length > 10) digits = digits.slice(0, 10);
+        afaPhone.value = digits;
+        if (!PHONE_RE.test(digits)) {
+          afaPhone.classList.add("is-invalid");
+        } else {
+          afaPhone.classList.remove("is-invalid");
+        }
+      });
+    }
+
+    var form = document.getElementById("afa-form");
+    if (!form) return;
+
+    form.addEventListener("submit", function(e){
+      e.preventDefault();
+
+      var name = (document.getElementById("afa-name").value || "").trim();
+      var phone = (document.getElementById("afa-phone").value || "").trim();
+      var dob = (document.getElementById("afa-dob").value || "").trim();
+      var location = (document.getElementById("afa-location").value || "").trim();
+      var ghanaCard = (document.getElementById("afa-ghana-card").value || "").trim();
+
+      var phoneDigits = phone.replace(/\D+/g, "");
+      if (!name) {
+        if (window.Swal) Swal.fire("Missing", "Name is required", "warning"); else alert("Name is required");
+        return;
+      }
+      if (!PHONE_RE.test(phoneDigits)) {
+        if (window.Swal) Swal.fire("Invalid phone", "Phone must be 0xxxxxxxxx (10 digits, starts with 0).", "warning");
+        else alert("Phone must be 0xxxxxxxxx (10 digits, starts with 0).");
+        return;
+      }
+
+      var payload = {
+        name: name,
+        phone: phoneDigits,
+        dob: dob || null,
+        location: location || null,
+        ghana_card: ghanaCard || null
+      };
+
+      var submitBtn = document.getElementById("afa-submit");
+      if (submitBtn) submitBtn.disabled = true;
+
+      fetch("/api/afa/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      })
+      .then(function(r){
+        return r.json().then(function(j){ return { ok: r.ok, json: j }; })
+                 .catch(function(){ return { ok: r.ok, json: {} }; });
+      })
+      .then(function(res){
+        if (res.ok && res.json && res.json.success) {
+          if (window.Swal) Swal.fire("Submitted", "AFA registration submitted. Status: pending.", "success");
+          else alert("AFA registration submitted. Status: pending.");
+
+          // reset form
+          form.reset();
+          if (afaPhone) afaPhone.classList.remove("is-invalid");
+
+          // close modal
+          var modalEl = document.getElementById("afaModal");
+          if (modalEl && window.bootstrap) {
+            var inst = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+            if (inst && inst.hide) inst.hide();
+          }
+
+          // If server returned new balance, reflect it (optional)
+          try {
+            if (res.json.balance != null) {
+              var balEls = document.querySelectorAll(".balance-amount");
+              for (var i=0;i<balEls.length;i++){
+                balEls[i].textContent = "GHS " + Number(res.json.balance).toFixed(2);
+              }
+            }
+          } catch(e){}
+        } else {
+          var msg = (res.json && (res.json.error || res.json.message)) || "Could not submit registration.";
+          if (window.Swal) Swal.fire("Error", msg, "error"); else alert(msg);
+        }
+      })
+      .catch(function(){
+        if (window.Swal) Swal.fire("Error", "Network error. Please try again.", "error");
+        else alert("Network error. Please try again.");
+      })
+      .finally(function(){
+        if (submitBtn) submitBtn.disabled = false;
+      });
+    });
+  })();
+  </script>
+
+  <!-- Chart init (single source) -->
+  <script>
+  (function () {
+    const fmt = (n) => {
+      const v = Number(n || 0);
+      return 'GHS ' + v.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+    };
+    document.querySelectorAll('.ghs[data-amt]').forEach(el => {
+      el.textContent = fmt(el.getAttribute('data-amt'));
+    });
+
+    const blob = document.getElementById('cust-daily-sales-data');
+    if (!blob) return;
+    let parsed = {};
+    try { parsed = JSON.parse(blob.textContent || '{}'); } catch (e) {}
+    const labels = Array.isArray(parsed.labels) ? parsed.labels : [];
+    const values = Array.isArray(parsed.values) ? parsed.values : [];
+    if (!values.length) return;
+
+    const ctx = document.getElementById('custDailySalesChart');
+    if (!ctx || !window.Chart) return;
+
+    new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [{
+          data: values,
+          borderWidth: 2,
+          tension: 0.35,
+          pointRadius: 0,
+          fill: true,
+          backgroundColor: 'rgba(255,255,255,0.12)',
+          borderColor: 'rgba(255,255,255,0.9)',
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false }, tooltip: { enabled: true, callbacks: {
+          label: (c) => fmt(c.parsed.y)
+        } } },
+        scales: {
+          x: { display: true, grid: { display: false }, ticks: { color: 'rgba(226,244,255,.72)' } },
+          y: { display: false, beginAtZero: true }
+        },
+        elements: { line: { capBezierPoints: true } }
+      }
+    });
+  })();
+  </script>
+
+  <!-- Server cart sync layer (kept exactly as you provided, with fixes) -->
+  <script>
+  /* --- Server Cart Sync (fixed to keep cart visible after "Proceed") ---------------- */
+  (function(){
+    if (!window.fetch) return;
+
+    let CART_SYNCING = false;
+    let CART_MUTE    = false;
+    let CART_LOCKED  = false;
+    let lockedCart   = null;
+
+    async function pullServerCart() {
+      try {
+        const r = await fetch("/api/cart", { credentials: "same-origin" });
+        const j = await r.json();
+        if (!j.success || !Array.isArray(j.items)) return;
+
+        const serverHas = j.items.length > 0;
+        const localHas  = Array.isArray(window.cart) && window.cart.length > 0;
+
+        if (!serverHas && localHas) {
+          await fetch("/api/cart/replace", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            credentials: "same-origin",
+            body: JSON.stringify({ items: window.cart })
+          });
+
+          const r2 = await fetch("/api/cart", { credentials: "same-origin" });
+          const j2 = await r2.json();
+          if (j2.success && Array.isArray(j2.items)) {
+            CART_MUTE = true;
+            window.cart = j2.items.map(stripServerItemForClient);
+            if (typeof updateCartUI === "function") updateCartUI();
+            CART_MUTE = false;
+          }
+          return;
+        }
+
+        CART_MUTE = true;
+        window.cart = j.items.map(stripServerItemForClient);
+        if (typeof updateCartUI === "function") updateCartUI();
+        CART_MUTE = false;
+      } catch (e) {
+        // ignore
+      }
+    }
+
+    async function pushCurrentCartToServer() {
+      if (!Array.isArray(window.cart)) return false;
+      try {
+        CART_SYNCING = true;
+        const r = await fetch("/api/cart/replace", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "same-origin",
+          body: JSON.stringify({ items: window.cart })
+        });
+        const j = await r.json();
+        if (j.success && Array.isArray(j.items)) {
+          CART_MUTE = true;
+          window.cart = j.items.map(stripServerItemForClient);
+          if (typeof updateCartUI === "function") updateCartUI();
+          CART_MUTE = false;
+          return true;
+        }
+      } catch (e) {
+      } finally {
+        CART_SYNCING = false;
+      }
+      return false;
+    }
+
+    function stripServerItemForClient(it){
+      return {
+        _id: it._id,
+        serviceId: it.serviceId,
+        serviceName: it.serviceName,
+        phone: it.phone,
+        value: it.value,
+        value_obj: it.value_obj,
+        value_text: it.value_text,
+        base_amount: Number(it.base_amount || 0),
+        amount: Number(it.amount || it.total || 0),
+        total: Number(it.total || it.amount || 0)
+      };
+    }
+
+    if (typeof saveCart === "function") {
+      const _saveCartOrig = saveCart;
+      window.saveCart = async function(){
+        try { _saveCartOrig(); } catch(e) {}
+
+        if (CART_MUTE || CART_SYNCING || CART_LOCKED) return;
+
+        await pushCurrentCartToServer();
+      };
+    }
+
+    const cartModalEl = document.getElementById("cartModal");
+    if (cartModalEl) {
+      cartModalEl.addEventListener("click", async function(e){
+        const btn = e.target.closest ? e.target.closest("button[data-remove]") : null;
+        if (!btn || CART_LOCKED) return;
+
+        const idx  = Number(btn.getAttribute("data-remove"));
+        const item = (Array.isArray(window.cart) && !isNaN(idx)) ? window.cart[idx] : null;
+
+        try {
+          if (item && item._id) {
+            await fetch("/api/cart/remove", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              credentials: "same-origin",
+              body: JSON.stringify({ item_id: item._id })
+            });
+          }
+        } catch(e) {}
+      });
+    }
+
+    const clearBtn = document.getElementById("clear-cart-btn");
+    if (clearBtn) {
+      clearBtn.addEventListener("click", async function(e){
+        if (CART_LOCKED) { e.preventDefault(); e.stopPropagation(); return; }
+        try { await fetch("/api/cart/clear", { method: "POST", credentials: "same-origin" }); } catch(e){}
+      });
+    }
+
+    function freezeCartUI() {
+      CART_LOCKED = true;
+      const clearBtn = document.getElementById("clear-cart-btn");
+      if (clearBtn) {
+        clearBtn.disabled = true;
+        clearBtn.classList.add("disabled");
+      }
+      document.querySelectorAll('#cart-list button[data-remove]').forEach(btn => {
+        btn.disabled = true;
+        btn.classList.add("disabled");
+      });
+    }
+
+    const checkoutBtn = document.getElementById("checkout-btn");
+    if (checkoutBtn) {
+      const _oldClick = checkoutBtn.onclick;
+      checkoutBtn.addEventListener("click", async function(evt){
+        if (typeof _oldClick === "function") {
+          try { _oldClick.call(this, evt); } catch(e){}
+        }
+
+        if (!Array.isArray(window.cart) || window.cart.length === 0) return;
+
+        try {
+          await pushCurrentCartToServer();
+          const r = await fetch("/api/cart/checkout_start", { method: "POST", credentials: "same-origin" });
+          const j = await r.json();
+          if (j.success) {
+            lockedCart = Array.isArray(j.locked) ? j.locked : [];
+            freezeCartUI();
+            const totalEl = document.getElementById("checkout-total");
+            if (totalEl) totalEl.textContent = Number(j.total || 0).toFixed(2);
+          }
+        } catch (e) {
+          // fallback: client-only
+        }
+      });
+    }
+
+    const confirmBtn = document.getElementById("confirm-payment-btn");
+    if (confirmBtn) {
+      confirmBtn.addEventListener("click", function(){
+        if (!lockedCart || !lockedCart.length) return;
+
+        const _fetch = window.fetch;
+        let injectedOnce = false;
+
+        window.fetch = function(input, init) {
+          try {
+            if (!injectedOnce && typeof input === "string" && input.indexOf("/checkout") === 0 && init && init.body) {
+              const orig = JSON.parse(init.body);
+                orig.cart = lockedCart.map(function(it){
+                  return {
+                    serviceId: it.serviceId,
+                    serviceName: it.serviceName,
+                    phone: it.phone,
+                    value: it.value,
+                    value_obj: it.value_obj,
+                    base_amount: Number(it.base_amount || 0),
+                    amount: Number(it.amount || it.total || 0),
+                    total: Number(it.total || it.amount || 0),
+                    ported_confirmed: it.ported_confirmed,
+                    ported_expected_network: it.ported_expected_network,
+                    ported_detected_network: it.ported_detected_network,
+                    ported_prefix: it.ported_prefix
+                  };
+                });
+              init.body = JSON.stringify(orig);
+              injectedOnce = true;
+            }
+          } catch(e) {}
+          return _fetch(input, init);
+        };
+      });
+    }
+
+    pullServerCart();
+  })();
+  </script>
+
+</body>
+</html>

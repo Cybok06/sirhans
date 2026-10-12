@@ -1,0 +1,138 @@
+{% set receipt_choices = receipt_catalog(services or [], receipt_source, store.slug if receipt_source == 'store' else '') %}
+<style>
+  .failed-receipt-button{background:#dc2626;color:#fff;border:1px solid #dc2626;border-radius:14px;padding:.85rem 1.2rem;font-weight:800;font-size:1rem;white-space:normal;}
+  .failed-receipt-button:hover,.failed-receipt-button:focus{background:#b91c1c;color:#fff;border-color:#b91c1c;}
+  #failedReceiptModal .modal-content{background:#fff;color:#172033;border-radius:18px;}
+  #failedReceiptModal .receipt-entry{background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:1rem;}
+  #failedReceiptModal label{color:#172033;font-weight:600;}
+  #failedReceiptModal .receipt-service-trigger{background:#fff;color:#172033;border:1px solid #dee2e6;text-align:left;white-space:normal;min-height:42px;}
+  #failedReceiptModal .receipt-service-menu{max-height:240px;overflow-y:auto;width:100%;}
+  #failedReceiptModal .receipt-service-menu .dropdown-item{display:flex;align-items:center;gap:.6rem;white-space:normal;color:#172033;}
+  #failedReceiptModal .receipt-service-image{width:28px;height:28px;object-fit:contain;border-radius:6px;flex-shrink:0;}
+  @media(max-width:575px){.failed-receipt-button{width:100%;}#failedReceiptModal .modal-footer>*{flex:1 1 auto;}}
+</style>
+<div class="modal fade" id="failedReceiptModal" tabindex="-1" aria-labelledby="failedReceiptTitle" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable"><div class="modal-content">
+    <div class="modal-header"><h5 class="modal-title fw-bold" id="failedReceiptTitle">Failed Receipt / No Receipt</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div>
+    <div class="px-3 pt-3">
+      <button type="button" class="btn btn-outline-primary" data-bs-toggle="collapse" data-bs-target="#receiptStatusSearch" aria-expanded="false" aria-controls="receiptStatusSearch">Check Status</button>
+      <form id="receiptStatusSearch" class="collapse mt-3" method="get" action="{{ url_for('failed_receipts.public_status') }}">
+        <label for="receiptStatusPhone" class="form-label">Recipient phone number</label>
+        <div class="d-flex gap-2">
+          <input id="receiptStatusPhone" name="phone" class="form-control" type="tel" inputmode="tel" placeholder="0240000000" maxlength="20" pattern="(0[0-9]{9}|\+?233[0-9]{9})" required>
+          <button type="submit" class="btn btn-primary text-nowrap">View reports</button>
+        </div>
+      </form>
+    </div>
+    <form id="failedReceiptForm" class="d-flex flex-column overflow-hidden">
+      <div class="modal-body">
+        <p>Enter the recipient phone number, then select the service and offer purchased. Add another entry to report multiple purchases together.</p>
+        <div id="receiptFeedback" class="alert d-none" role="status" aria-live="polite"></div>
+        <div id="receiptEntries" class="d-grid gap-3"></div>
+        <button type="button" class="btn btn-outline-secondary mt-3" id="addReceiptEntry"><i class="bi bi-plus-lg me-1"></i> Add another</button>
+        <p class="small text-muted mt-2 mb-0">Up to 50 entries per submission.</p>
+      </div>
+      <div class="modal-footer"><button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button><button type="submit" class="btn btn-danger px-4" id="submitReceiptEntries">Submit</button></div>
+    </form>
+  </div></div>
+</div>
+<template id="receiptEntryTemplate">
+  <div class="receipt-entry">
+    <div class="d-flex justify-content-between align-items-center mb-2"><strong class="receipt-entry-title"></strong><button type="button" class="btn btn-sm btn-outline-secondary receipt-remove">Remove</button></div>
+    <div class="row g-3">
+      <div class="col-md-4"><label class="form-label receipt-phone-label">Phone number</label><input class="form-control receipt-phone" type="tel" inputmode="tel" placeholder="0240000000" maxlength="20" pattern="(0[0-9]{9}|\+?233[0-9]{9})" required></div>
+      <div class="col-md-4"><label class="form-label receipt-service-label">Service</label>
+        <div class="dropdown">
+          <button type="button" class="btn dropdown-toggle w-100 receipt-service-trigger" data-bs-toggle="dropdown" aria-expanded="false"><span class="receipt-service-caption d-inline-flex align-items-center gap-2">Select service</span></button>
+          <ul class="dropdown-menu receipt-service-menu"></ul>
+          <input type="hidden" class="receipt-service">
+        </div>
+      </div>
+      <div class="col-md-4"><label class="form-label receipt-offer-label">GB/Offer purchased</label><select class="form-select receipt-offer" required disabled><option value="">Select service first</option></select></div>
+    </div>
+  </div>
+</template>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const services = {{ receipt_choices.services|tojson }};
+  const form = document.getElementById('failedReceiptForm'), entries = document.getElementById('receiptEntries');
+  const add = document.getElementById('addReceiptEntry'), submit = document.getElementById('submitReceiptEntries'), feedback = document.getElementById('receiptFeedback');
+  let sequence = 0, busy = false, submissionId = null;
+  const newId = () => crypto.randomUUID ? crypto.randomUUID() : '10000000-1000-4000-8000-100000000000'.replace(/[018]/g, c => (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16));
+  function refresh(){
+    [...entries.children].forEach((row, i) => {
+      row.querySelector('.receipt-entry-title').textContent = `Purchase ${i + 1}`;
+      row.querySelector('.receipt-remove').disabled = busy || entries.children.length === 1;
+      row.querySelector('.receipt-phone').disabled = busy;
+      row.querySelector('.receipt-service-trigger').disabled = busy || !services.length;
+      row.querySelector('.receipt-offer').disabled = busy || !row.querySelector('.receipt-service').value;
+    });
+    add.disabled = busy || entries.children.length >= 50;
+  }
+  function addRow(){
+    if (busy || entries.children.length >= 50) return;
+    const row = document.getElementById('receiptEntryTemplate').content.cloneNode(true);
+    const id = ++sequence;
+    ['phone','offer'].forEach(name => {
+      row.querySelector(`.receipt-${name}`).id = `receipt-${name}-${id}`;
+      row.querySelector(`.receipt-${name}-label`).htmlFor = `receipt-${name}-${id}`;
+    });
+    const trigger = row.querySelector('.receipt-service-trigger'), menu = row.querySelector('.receipt-service-menu');
+    const caption = row.querySelector('.receipt-service-caption'), serviceInput = row.querySelector('.receipt-service'), offerSelect = row.querySelector('.receipt-offer');
+    trigger.id = `receipt-service-${id}`;
+    row.querySelector('.receipt-service-label').htmlFor = trigger.id;
+    if (!services.length) caption.textContent = 'No services available';
+    function serviceCaption(service){
+      const content = document.createDocumentFragment();
+      if (service.image_url) {
+        const img = document.createElement('img'); img.className='receipt-service-image'; img.src=service.image_url; img.alt='';
+        img.addEventListener('error', () => img.remove(), {once:true}); content.appendChild(img);
+      } else {
+        const icon=document.createElement('i'); icon.className='bi bi-grid receipt-service-image'; icon.setAttribute('aria-hidden','true'); content.appendChild(icon);
+      }
+      const name=document.createElement('span'); name.textContent=service.name; content.appendChild(name); return content;
+    }
+    services.forEach(service => {
+      const li=document.createElement('li'), option=document.createElement('button');
+      option.type='button'; option.className='dropdown-item'; option.appendChild(serviceCaption(service));
+      option.addEventListener('click', () => {
+        if (busy) return;
+        serviceInput.value=service.id; caption.replaceChildren(serviceCaption(service));
+        trigger.setAttribute('aria-label', `Service: ${service.name}`);
+        offerSelect.replaceChildren(new Option('Select offer', ''));
+        service.offers.forEach((offer, index) => {
+          const amount = offer.amount == null ? '' : ` - GHS ${Number(offer.amount).toFixed(2)}`;
+          offerSelect.add(new Option(offer.label + amount, String(index)));
+        });
+        submissionId=null; feedback.classList.add('d-none'); refresh(); offerSelect.focus();
+      });
+      li.appendChild(option); menu.appendChild(li);
+    });
+    row.querySelector('.receipt-remove').addEventListener('click', event => {
+      event.target.closest('.receipt-entry').remove(); submissionId = null; refresh();
+    });
+    entries.appendChild(row); submissionId = null; refresh();
+  }
+  add.addEventListener('click', addRow); addRow();
+  entries.addEventListener('input', () => { submissionId = null; feedback.classList.add('d-none'); });
+  form.addEventListener('submit', async event => {
+    event.preventDefault(); if (busy || !form.reportValidity()) return;
+    const values = [...entries.children].map(row => ({phone:row.querySelector('.receipt-phone').value.trim(),service_id:row.querySelector('.receipt-service').value,offer_index:row.querySelector('.receipt-offer').value === '' ? null : Number(row.querySelector('.receipt-offer').value)}));
+    if (values.some(value => !value.service_id || value.offer_index === null)) { feedback.className='alert alert-danger'; feedback.textContent='Select a service and offer for every purchase.'; return; }
+    busy = true; submit.disabled = true; submit.textContent = 'Submitting…'; refresh();
+    submissionId = submissionId || newId();
+    try {
+      const response = await fetch({{ url_for('failed_receipts.submit')|tojson }}, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+        csrf_token:{{ receipt_csrf|tojson }}, source:{{ receipt_source|tojson }},
+        catalog_token:{{ receipt_choices.token|tojson }},
+        store_slug:{{ (store.slug if receipt_source == 'store' else '')|tojson }}, submission_id:submissionId, entries:values
+      })});
+      const result = await response.json();
+      if (!response.ok || !result.success) throw new Error(result.message || 'Unable to submit. Please try again.');
+      feedback.className='alert alert-success'; feedback.textContent=result.message;
+      entries.replaceChildren(); busy = false; addRow();
+    } catch(error){ feedback.className='alert alert-danger'; feedback.textContent=error.message || 'Unable to submit. Please try again.'; }
+    finally { busy = false; submit.disabled = false; submit.textContent='Submit'; refresh(); }
+  });
+});
+</script>

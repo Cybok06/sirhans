@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Failed/No receipt - Admin</title>
+<style>body{background:#f6f8fb}.receipt-report{border:1px solid #e2e8f0;border-radius:16px;background:#fff;padding:1.2rem;margin-bottom:1rem}.receipt-meta{display:flex;flex-wrap:wrap;gap:.7rem 1.5rem;color:#475569}.receipt-purchase{display:flex;flex-wrap:wrap;align-items:center;gap:1rem;padding:.8rem 0;border-top:1px solid #e2e8f0}.receipt-purchase .offer{flex:1;min-width:120px;overflow-wrap:anywhere}.receipt-report h2{overflow-wrap:anywhere}</style></head>
+<body>{% include 'admin_sidebar.html' %}
+<main class="customer-content">
+  <h1 class="h3 fw-bold">Failed/No receipt</h1>
+  <p class="text-muted">Buyer reports from the index page and stores.</p>
+  {% with messages = get_flashed_messages(with_categories=true) %}{% for category, message in messages %}<div class="alert alert-{{ category }}" role="status">{{ message }}</div>{% endfor %}{% endwith %}
+  <div class="d-flex flex-wrap gap-3 mb-4"><div class="receipt-report mb-0"><span>Total sent (purchases)</span><strong class="d-block fs-2">{{ total }}</strong></div><div class="receipt-report mb-0"><span>Total submissions</span><strong class="d-block fs-2">{{ total_batches }}</strong></div></div>
+  <div id="copyFeedback" class="small text-success mb-2" role="status" aria-live="polite"></div>
+  <div class="d-flex flex-wrap gap-2 mb-3">
+    <a class="btn btn-outline-secondary {% if not status_filter %}active{% endif %}" href="{{ url_for('failed_receipts.admin_page') }}">All ({{ total }})</a>
+    <a class="btn btn-outline-warning {% if status_filter == 'unresolved' %}active{% endif %}" href="{{ url_for('failed_receipts.admin_page', status='unresolved') }}">Unresolved ({{ unresolved }})</a>
+    <a class="btn btn-outline-success {% if status_filter == 'resolved' %}active{% endif %}" href="{{ url_for('failed_receipts.admin_page', status='resolved') }}">Resolved ({{ resolved }})</a>
+  </div>
+  {% for report in reports %}
+  <article class="receipt-report">
+    <h2 class="h5 fw-bold">{% if report.source == 'store' %}{{ report.store_name }} <span class="badge bg-primary">Store page</span>{% else %}Index page <span class="badge bg-secondary">Index</span>{% endif %}</h2>
+    <div class="receipt-meta mb-3">
+      {% if report.source == 'store' %}<span>Store owner: <strong>{{ report.store_owner_name }}</strong></span>{% endif %}
+      <span>Customer: <strong>{{ report.customer_name }}</strong></span>
+      <span>{{ report.submitted_at.strftime('%d %b %Y, %H:%M') }} UTC</span><span>{{ report.entry_count }} purchase(s)</span>
+    </div>
+    {% for entry in report.entries if entry.visible %}
+    <div class="receipt-purchase">
+      <div><span class="small text-muted d-block">Phone number</span><strong>{{ entry.phone }}</strong> <button class="btn btn-sm btn-outline-primary receipt-copy" type="button" data-phone="{{ entry.phone }}" aria-label="Copy phone number {{ entry.phone }}"><i class="bi bi-copy"></i> Copy</button></div>
+      <div class="offer"><span class="small text-muted d-block">Service / GB/Offer purchased</span>{% if entry.service_name %}<strong>{{ entry.service_name }}</strong> · {% endif %}{{ entry.offer }}</div>
+      <div class="d-flex flex-wrap gap-2 align-items-center">
+        <span class="badge {% if entry.status == 'resolved' %}bg-success{% else %}bg-warning text-dark{% endif %}">{{ entry.status|capitalize }}</span>
+        <form method="post" action="{{ url_for('failed_receipts.update_status', report_id=report._id, entry_index=entry.entry_index) }}">
+          <input type="hidden" name="csrf_token" value="{{ receipt_csrf }}">
+          <input type="hidden" name="status" value="{{ 'unresolved' if entry.status == 'resolved' else 'resolved' }}">
+          <button class="btn btn-sm btn-outline-secondary" {% if entry.placement_state == 'placing' %}disabled{% endif %}>Mark {{ 'Unresolved' if entry.status == 'resolved' else 'Resolved' }}</button>
+        </form>
+        {% if entry.status != 'resolved' and not entry.order_id %}
+        <form method="post" action="{{ url_for('failed_receipts.start_placement', report_id=report._id, entry_index=entry.entry_index) }}">
+          <input type="hidden" name="csrf_token" value="{{ receipt_csrf }}">
+          <button class="btn btn-primary btn-sm">{% if entry.placement_state in ['placing', 'attention', 'placed'] %}Check placement{% else %}Place Order{% endif %}</button>
+        </form>
+        {% endif %}
+      </div>
+      {% if entry.order_id %}<div class="w-100 small"><strong>Order ID:</strong> {% if can_access_page('orders') %}<a href="/admin/orders?order_id={{ entry.order_id|urlencode }}">{{ entry.order_id }}</a>{% else %}{{ entry.order_id }}{% endif %}
+        {% if entry.status != 'resolved' %}<form class="d-inline" method="post" action="{{ url_for('failed_receipts.start_placement', report_id=report._id, entry_index=entry.entry_index) }}"><input type="hidden" name="csrf_token" value="{{ receipt_csrf }}"><button class="btn btn-sm btn-outline-secondary ms-2">Check placement</button></form>{% endif %}
+      </div>{% endif %}
+      {% if entry.placement_message %}<p class="small text-muted w-100 mb-0">{{ entry.placement_message }}</p>{% endif %}
+    </div>
+    {% endfor %}
+  </article>
+  {% else %}<div class="alert alert-info">No receipt reports have been submitted yet.</div>{% endfor %}
+  <nav aria-label="Receipt report pages" class="d-flex gap-3 align-items-center my-3">{% if page > 1 %}<a class="btn btn-outline-primary" href="{{ url_for('failed_receipts.admin_page', page=page-1, status=status_filter) }}">Previous</a>{% endif %}<span>Page {{ page }} of {{ pages }}</span>{% if page < pages %}<a class="btn btn-outline-primary" href="{{ url_for('failed_receipts.admin_page', page=page+1, status=status_filter) }}">Next</a>{% endif %}</nav>
+</main>
+<script>
+document.querySelectorAll('.receipt-copy').forEach(button => button.addEventListener('click', async () => {
+  const phone = button.dataset.phone;
+  try {
+    if (navigator.clipboard && window.isSecureContext) await navigator.clipboard.writeText(phone);
+    else { const input=document.createElement('textarea'); input.value=phone; input.style.position='fixed'; input.style.opacity='0'; document.body.appendChild(input); input.select(); const copied=document.execCommand('copy'); input.remove(); if(!copied) throw new Error('copy'); }
+    document.getElementById('copyFeedback').textContent=`Copied ${phone}`;
+  } catch(error){ document.getElementById('copyFeedback').textContent=`Select and copy this number: ${phone}`; }
+}));
+</script></body></html>

@@ -1,0 +1,1934 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <!-- Primary SEO -->
+  <meta name="description" content="SIR HANS Data Services - affordable, reliable data bundles for MTN, AirtelTigo, and Telecel. Track your activity in your dashboard." />
+  <meta name="keywords" content="SIR HANS, data bundles Ghana, MTN data, AirtelTigo data, Telecel data, AFA registration, WASSCE checker, BECE checker" />
+  <meta name="author" content="SIR HANS Data Services" />
+  <link rel="canonical" href="{{ request.url_root | trim('/') if request else '/' }}" />
+  <meta name="robots" content="index,follow" />
+  <meta name="theme-color" content="#0EA5E9" />
+  <link rel="sitemap" type="application/xml" href="/sitemap.xml" />
+  <link rel="icon" type="image/png" href="https://imagedelivery.net/h9fmMoa1o2c2P55TcWJGOg/305ddb8b-8208-411f-4c44-8aa45d343300/public">
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="SIR HANS Data Services" />
+  <meta property="og:description" content="Affordable, reliable data for MTN, AirtelTigo & Telecel." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="{{ request.url_root | trim('/') if request else '/' }}" />
+  <meta property="og:site_name" content="SIR HANS Data Services" />
+  <meta property="og:image" content="https://imagedelivery.net/h9fmMoa1o2c2P55TcWJGOg/29d9af76-b72e-4070-954e-184224478100/public" />
+  <meta property="og:locale" content="en_GH" />
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="SIR HANS Data Services" />
+  <meta name="twitter:description" content="Affordable, reliable data bundles." />
+  <meta name="twitter:image" content="https://imagedelivery.net/h9fmMoa1o2c2P55TcWJGOg/29d9af76-b72e-4070-954e-184224478100/public" />
+
+  <!-- JSON-LD -->
+  <script type="application/ld+json">
+  {
+    "@context":"https://schema.org",
+    "@type":"Organization",
+    "name":"SIR HANS Data Services",
+    "url":"{{ request.url_root | trim('/') if request else '/' }}",
+    "logo":"https://imagedelivery.net/h9fmMoa1o2c2P55TcWJGOg/29d9af76-b72e-4070-954e-184224478100/public",
+    "sameAs":[]
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context":"https://schema.org",
+    "@type":"WebSite",
+    "name":"SIR HANS Data Services",
+    "url":"{{ request.url_root | trim('/') if request else '/' }}",
+    "potentialAction":{
+      "@type":"SearchAction",
+      "target":"{{ request.url_root | trim('/') if request else '' }}/search?q={query}",
+      "query-input":"required name=query"
+    }
+  }
+  </script>
+
+  <!-- Preloads -->
+  <link rel="preload" as="image" href="https://imagedelivery.net/h9fmMoa1o2c2P55TcWJGOg/2a0f6cdd-ca0a-4ac8-2230-041907b6a600/public" />
+  <link rel="preload" as="image" href="https://res.cloudinary.com/dcmewvlyx/image/upload/v1754393415/two_people_tewigi.webp" />
+
+  <!-- Bootstrap + Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <script src="https://js.paystack.co/v1/inline.js"></script>
+
+  <style>
+    :root{ --sea:#0EA5E9; --sea-deep:#0A1A2F; --bs-primary:#0EA5E9; --bs-secondary:#0A1A2F; }
+
+    /* Navbar */
+    .navbar{ background: linear-gradient(90deg, var(--sea-deep), var(--sea)); }
+    .navbar-brand img{ height:52px; width:52px; border-radius:12px; object-fit:cover; border:2px solid #fff3; }
+    .nav-link{ color:#eaf7ff !important; font-weight:500; }
+    .nav-link:hover{ opacity:.9; }
+    .btn-cta{ border-radius:999px; }
+    .btn-report{ border-radius:999px; background:#25D366; border-color:#25D366; color:#073b1b; font-weight:700; }
+    .btn-report:hover, .btn-report:focus{ background:#20bd5a; border-color:#20bd5a; color:#052e16; }
+
+    .report-modal .modal-content{ border:0; border-radius:20px; overflow:hidden; box-shadow:0 24px 70px rgba(10,26,47,.24); }
+    .report-modal .modal-header{ padding:1.25rem 1.5rem; background:linear-gradient(135deg,#eafff1,#f7fffa); border-bottom:1px solid #dff7e7; }
+    .report-modal .report-icon{ width:44px; height:44px; border-radius:14px; display:inline-flex; align-items:center; justify-content:center; background:#25D366; color:#fff; font-size:1.35rem; }
+    .report-modal .form-label{ font-size:.84rem; font-weight:700; color:#334155; }
+    .report-modal .form-control, .report-modal .form-select{ border-radius:11px; border-color:#dbe3ea; padding:.68rem .8rem; }
+    .report-modal .form-control:focus, .report-modal .form-select:focus{ border-color:#25D366; box-shadow:0 0 0 .2rem rgba(37,211,102,.14); }
+    .report-submit{ border:0; border-radius:11px; padding:.72rem 1rem; background:#25D366; color:#073b1b; font-weight:800; }
+    .report-submit:hover{ background:#20bd5a; }
+
+    /* Sections */
+    .services-section{ background:#f7fbfe; scroll-margin-top: 90px; }
+    .section-title{ font-weight:800; letter-spacing:.2px; color:var(--sea-deep); }
+    .service-card{ border:none; border-radius:16px; overflow:hidden; box-shadow:0 8px 20px rgba(0,0,0,.06); transition:transform .25s, box-shadow .25s; background:#fff; }
+    .service-card:hover{ transform:translateY(-6px); box-shadow:0 12px 28px rgba(0,0,0,.10); }
+    .service-thumb{ height:160px; display:flex; align-items:center; justify-content:center; background:linear-gradient(90deg,#e9f7ff,#f3fbff); }
+    .service-thumb img{ width:100%; height:100%; object-fit:cover; }
+    .service-body{ padding:14px 16px 18px; }
+    .service-title{ font-size:1.05rem; font-weight:700; color:#06354a; margin:0 0 6px; }
+    .service-desc{ font-size:.95rem; color:#5b6b76; }
+
+    .reveal-up{ opacity:0; transform:translateY(22px) scale(.98); transition:opacity .6s, transform .6s; }
+    .reveal-in{ opacity:1 !important; transform:none !important; }
+
+    /* Footer */
+    .site-footer{ background:#0A1A2F; color:#dff2ff; }
+    .site-footer a{ color:#bfe8ff; text-decoration:none; }
+    .site-footer a:hover{ text-decoration:underline; }
+
+    /* Modals */
+    .modal-body p{ margin-bottom:.75rem; }
+    .modal-body ol{ padding-left:1rem; }
+    .modal-body li{ margin: .35rem 0; }
+    .modal-header{ border-bottom: none; }
+    .modal-footer{ border-top: none; }
+
+    /* Public order cards */
+    .svc-card{ border:1px solid #e9ecef; border-radius:14px; padding:1rem; height:100%; background:#fff; }
+    .svc-img{ width:100%; height:150px; object-fit:cover; border-radius:10px; background:#f3f6f9; }
+    .svc-flags{ gap:.35rem; }
+    .svc-flag{ font-size:.75rem; padding:.35rem .55rem; border-radius:999px; border:1px solid transparent; }
+    .flag-open{ background:rgba(25,135,84,.12); color:#198754; border-color:rgba(25,135,84,.30); }
+    .flag-closed{ background:rgba(220,53,69,.12); color:#dc3545; border-color:rgba(220,53,69,.30); }
+    .flag-available{ background:rgba(13,110,253,.08); color:#0d6efd; border-color:rgba(13,110,253,.20); }
+    .flag-oos{ background:rgba(108,117,125,.15); color:#6c757d; border-color:rgba(108,117,125,.25); }
+
+    .floating-cart{ position:fixed; right:16px; bottom:16px; z-index:1055; }
+    .btn-cart{ position:relative; border-radius:999px; padding:.75rem 1rem; font-weight:600;
+               background:var(--sea); color:#fff; border:none;
+               box-shadow:0 8px 24px rgba(14,165,233,.35); }
+    .btn-cart .badge{ position:absolute; top:-6px; right:-6px; }
+
+    .whatsapp-bubble{
+      position:fixed; left:16px; bottom:16px; z-index:1055;
+      width:56px; height:56px; border-radius:50%;
+      background:#25D366; color:#fff; border:none;
+      display:flex; align-items:center; justify-content:center;
+      box-shadow:0 10px 26px rgba(37,211,102,.35);
+      text-decoration:none;
+    }
+    .whatsapp-bubble i{ font-size:1.5rem; }
+
+    .bulk-trigger{ cursor:text; }
+    .amount-cell{ min-width:110px; text-align:right; }
+
+    .redirect-overlay{
+      position:fixed; inset:0; background:rgba(10,26,47,.6);
+      display:flex; align-items:center; justify-content:center;
+      z-index:2000; backdrop-filter:blur(2px);
+    }
+    .redirect-card{
+      background:#fff; border-radius:16px; padding:18px 20px;
+      box-shadow:0 18px 40px rgba(0,0,0,.2);
+      display:flex; align-items:center; gap:.75rem;
+    }
+
+    body{ background:#f6f7f9; font-family:"Manrope","Segoe UI",Tahoma,sans-serif; }
+    .page-head{ background:#fff; border-bottom:1px solid #e9ecef; }
+    .page-head h1{ font-size:1.4rem; font-weight:800; color:var(--sea-deep); margin:0; }
+    .page-head p{ margin:.25rem 0 0; color:#6c757d; font-size:.95rem; }
+
+    .service-grid{
+      display:grid; gap:.75rem; margin-top:1rem;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    @media (min-width: 768px){
+      .service-grid{ grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    }
+    .service-tile{
+      background:#fff; border:1px solid #eef0f3; border-radius:14px;
+      padding:.75rem; text-align:center; box-shadow:0 6px 14px rgba(0,0,0,.04);
+    }
+    .service-tile.active{ border-color:#f2d17a; box-shadow:0 10px 22px rgba(242,209,122,.35); }
+    .service-tile.results-checker-tile{
+      position:relative; overflow:hidden; text-align:left; padding:0;
+      border:1px solid rgba(14,165,233,.22);
+      background:linear-gradient(145deg,#071b31 0%,#0b3155 52%,#0ea5e9 145%);
+      box-shadow:0 14px 34px rgba(7,27,49,.2);
+    }
+    .results-checker-tile .tile-img{width:100%;height:160px;margin:0;border-radius:0;background:#071b31;}
+    .results-checker-tile .tile-img img{object-fit:contain;object-position:center;}
+    .results-checker-tile .tile-name{color:#fff;font-size:1.04rem;padding:.8rem .85rem .1rem;}
+    .results-checker-tile .tile-btn{width:calc(100% - 1.7rem);margin:.1rem .85rem .85rem;background:#f8c044;color:#172033;}
+    .tile-img{
+      height:48px; width:48px; margin:0 auto .4rem;
+      border-radius:12px; background:#f2f4f7; display:flex; align-items:center; justify-content:center;
+      overflow:hidden;
+    }
+    .tile-img img{ width:100%; height:100%; object-fit:cover; }
+    .tile-name{ font-weight:700; color:#0f172a; font-size:.95rem; }
+    .tile-btn{
+      margin-top:.4rem; width:100%; border:none; border-radius:10px;
+      background:#f1f5f9; color:#0f172a; font-weight:600; font-size:.85rem; padding:.4rem 0;
+    }
+
+    .order-card{
+      background:#fff; border:1px solid #eef0f3; border-radius:14px;
+      padding:1rem; margin-top:1rem; box-shadow:0 8px 18px rgba(0,0,0,.04);
+    }
+    .order-title{ font-weight:700; color:#0f172a; margin-bottom:.5rem; }
+    .order-label{ font-size:.85rem; color:#6c757d; margin-bottom:.35rem; }
+    .order-input, .order-select{
+      width:100%; border:1px solid #e5e7eb; border-radius:8px; padding:.55rem .65rem;
+      font-size:.95rem; background:#fff;
+    }
+    .price-line{ margin:.5rem 0; color:#c47a00; font-weight:700; }
+    .order-btn{
+      width:100%; border:none; border-radius:10px; padding:.65rem 1rem;
+      background:#f8c044; color:#1f2937; font-weight:700;
+    }
+    .order-mode-switch{
+      display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:.35rem;
+      padding:.3rem; margin-bottom:1rem; border-radius:12px; background:#f1f5f9;
+    }
+    .order-mode-btn{
+      border:0; border-radius:9px; padding:.6rem .75rem; background:transparent;
+      color:#64748b; font-weight:700; transition:background .2s,color .2s,box-shadow .2s;
+    }
+    .order-mode-btn.active{ background:#fff; color:#0f172a; box-shadow:0 3px 10px rgba(15,23,42,.09); }
+    .bulk-order-box{
+      border:1px solid #e2e8f0; border-radius:12px; padding:1rem; background:#f8fafc;
+    }
+    .bulk-order-box textarea{
+      min-height:150px; resize:vertical; border-color:#cbd5e1; border-radius:10px;
+      font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    }
+    .bulk-summary{ min-height:1.25rem; font-size:.84rem; }
+
+    .cart-panel{
+      background:#fff; border:1px solid #eef0f3; border-radius:14px;
+      padding:1rem; margin-top:1rem; box-shadow:0 8px 18px rgba(0,0,0,.04);
+    }
+    .cart-head{
+      display:flex; align-items:center; justify-content:space-between; gap:.75rem;
+      border-bottom:1px solid #eef0f3; padding-bottom:.5rem; margin-bottom:.5rem;
+    }
+    .cart-title{ font-weight:700; color:#0f172a; display:flex; align-items:center; gap:.4rem; }
+    .cart-count{ background:#fff1cc; color:#c47a00; padding:.1rem .5rem; border-radius:999px; font-size:.8rem; }
+    .cart-foot{
+      display:flex; align-items:center; justify-content:space-between; gap:.75rem; margin-top:.75rem;
+    }
+    .checkout-btn{
+      border:none; border-radius:10px; padding:.55rem 1rem; background:#f2d17a; color:#1f2937; font-weight:700;
+    }
+    .payment-status-card{
+      background:#fff; border:1px solid #eef0f3; border-radius:14px;
+      padding:1rem; margin-top:1rem; box-shadow:0 8px 18px rgba(0,0,0,.04);
+    }
+    .payment-status-card.processing{ border-color:#bfdbfe; background:#eff6ff; }
+    .payment-status-card.success{ border-color:#bbf7d0; background:#f0fdf4; }
+    .payment-status-card.warning{ border-color:#fde68a; background:#fffbeb; }
+    .payment-status-card.error{ border-color:#fecaca; background:#fef2f2; }
+    .receipt-list{ margin:0; padding-left:1rem; }
+    .receipt-actions{
+      display:flex;
+      flex-wrap:nowrap;
+      gap:.5rem;
+      margin-top:.85rem;
+      overflow-x:auto;
+      -webkit-overflow-scrolling:touch;
+    }
+    .receipt-actions .btn,
+    .receipt-actions a{
+      flex:0 0 auto;
+      white-space:nowrap;
+    }
+
+    /* Ported number modal */
+    .ported-modal .modal-header{background:#fff7ed;border-bottom:1px solid #fed7aa}
+    .ported-modal .warn-icon{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:999px;background:#ffedd5;color:#b45309}
+    .ported-modal .prefix-badges{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:.75rem}
+    .ported-modal .prefix-badges .badge{font-size:.78rem}
+  </style>
+</head>
+<body>
+
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg navbar-dark px-3">
+    <a class="navbar-brand d-flex align-items-center" href="/">
+      <img src="https://imagedelivery.net/h9fmMoa1o2c2P55TcWJGOg/29d9af76-b72e-4070-954e-184224478100/public" alt="SIR HANS Logo" loading="eager">
+      <span class="ms-2 fw-semibold text-white">SIR HANS</span>
+    </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMain" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div id="navMain" class="collapse navbar-collapse">
+      <ul class="navbar-nav ms-auto align-items-lg-center">
+        <li class="nav-item"><a class="nav-link" href="#services">Services</a></li>
+        <li class="nav-item ms-lg-3 my-2 my-lg-0">
+          <a href="/login" class="btn btn-outline-light btn-cta">Login</a>
+        </li>
+        <li class="nav-item ms-lg-2 me-lg-2">
+          <a href="/signup" class="btn btn-light btn-cta text-primary">Get Started</a>
+        </li>
+        <li class="nav-item ms-lg-2">
+          <a href="/signup" class="btn btn-outline-light btn-cta">Become an Agent</a>
+        </li>
+      </ul>
+    </div>
+  </nav>
+
+  <section class="page-head py-3">
+    <div class="container">
+      <div class="d-flex align-items-center justify-content-between gap-3">
+        <div>
+          <h1>Order Data</h1>
+          <p>Choose a service, enter your number, and add to cart.</p>
+        </div>
+        <button type="button" class="btn btn-report btn-cta flex-shrink-0" data-bs-toggle="modal" data-bs-target="#reportIssueModal">
+          <i class="bi bi-flag-fill me-1"></i> Report
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Services -->
+  <section id="services" class="services-section py-4">
+    <div class="container">
+      <div class="service-grid">
+        {% if services and services|length > 0 %}
+          {% for svc in services %}
+          {% set status = (svc.status or 'OPEN')|upper %}
+          {% set availability = (svc.availability or 'AVAILABLE')|upper %}
+          {% set is_closed = status != 'OPEN' %}
+          {% set is_oos = availability != 'AVAILABLE' %}
+          {% set can_order = (not is_closed) and (not is_oos) %}
+          <div class="service-tile {% if (svc.service_category or '') == 'results_checker' %}results-checker-tile{% endif %}">
+            <div class="tile-img">
+              {% if svc.image_url %}
+                <img src="{{ svc.image_url }}" alt="{{ svc.name }}">
+              {% endif %}
+            </div>
+            <div class="tile-name">{{ svc.name }}</div>
+            {% if svc.name == 'MTN MASH UP DATA' %}
+              <div class="d-flex align-items-center justify-content-center gap-2 mt-2 mb-1 flex-wrap">
+                <span class="badge text-bg-danger">Hot</span>
+                <span class="badge text-bg-success">New</span>
+                <button type="button"
+                        class="btn btn-sm btn-link p-0 text-primary special-service-info-btn"
+                        data-service='{{ {
+                          "_id_str": svc._id_str,
+                          "name": svc.name
+                        } | tojson }}'
+                        aria-label="Service information">
+                  <i class="bi bi-info-circle-fill"></i>
+                </button>
+              </div>
+            {% endif %}
+            {% if is_closed or is_oos %}
+              <div class="small text-danger mt-1">{{ svc.disabled_reason or 'Unavailable' }}</div>
+            {% endif %}
+            <button
+              class="tile-btn select-service-btn"
+              {% if not can_order %}disabled data-disabled="true"{% endif %}
+              data-service='{{ {
+                "_id_str": svc._id_str,
+                "name": svc.name,
+                "offers": svc.offers or [],
+                "unit": svc.unit,
+                "service_category": svc.service_category or "",
+                "service_network": svc.service_network or "",
+                "network": svc.network or ""
+              } | tojson }}'>
+              Select
+            </button>
+          </div>
+          {% endfor %}
+        {% else %}
+          <div class="text-center text-muted">No services available.</div>
+        {% endif %}
+      </div>
+
+      <div class="order-card" id="orderCard">
+        <div class="order-title">Add Order to Cart</div>
+        <div class="small text-muted mb-2">Selected service: <span id="selectedServiceName">None</span></div>
+
+        <div class="order-mode-switch" role="tablist" aria-label="Order type">
+          <button type="button" class="order-mode-btn active" id="singleOrderModeBtn" aria-selected="true">
+            <i class="bi bi-person me-1"></i> Single Order
+          </button>
+          <button type="button" class="order-mode-btn" id="bulkOrderModeBtn" aria-selected="false">
+            <i class="bi bi-people me-1"></i> Bulk Order
+          </button>
+        </div>
+
+        <div id="singleOrderPanel">
+        <div class="mb-3">
+          <div class="order-label">Phone Number</div>
+          <div class="input-group">
+            <input id="orderPhone" class="order-input form-control" placeholder="0240000000" inputmode="numeric">
+            <button type="button" class="btn btn-outline-secondary d-none" id="orderPhoneClearBtn" aria-label="Clear phone field">&times;</button>
+            <span class="input-group-text" id="orderPhoneVerifyBadge" title="Number verification status"></span>
+          </div>
+          <div class="small mt-1 text-muted" id="orderPhoneVerifyText"></div>
+        </div>
+
+        <div class="mb-2">
+          <div class="order-label" id="orderOfferLabel">Bundle Size (GB)</div>
+          <select id="orderOffer" class="order-select">
+            <option value="" selected disabled>Select size</option>
+          </select>
+        </div>
+
+        <div class="price-line">Price: GHS <span id="orderAmount">0.00</span></div>
+        <button type="button" class="order-btn" id="addToCartBtn">Add to Cart</button>
+        </div>
+
+        <div id="bulkOrderPanel" class="d-none">
+          <div class="bulk-order-box">
+            <label for="bulkOrderPaste" class="order-label fw-bold text-dark">Paste phone numbers and bundle sizes</label>
+            <textarea id="bulkOrderPaste" class="form-control" placeholder="0530393625 2&#10;0241234567 5&#10;0559876543 10"></textarea>
+            <div class="small text-muted mt-2">
+              One order per line: <code>PHONE SIZE</code>. You may separate values with a space, comma, semicolon, or tab.
+            </div>
+            <div class="bulk-summary mt-2 text-muted" id="bulkOrderSummary">No orders pasted yet.</div>
+          </div>
+          <button type="button" class="order-btn mt-3" id="addBulkToCartBtn">
+            <i class="bi bi-cart-plus me-1"></i> Add Bulk Orders to Cart
+          </button>
+        </div>
+      </div>
+
+      <div class="cart-panel">
+        <div class="cart-head">
+          <div class="cart-title"><i class="bi bi-cart3"></i> Cart Items</div>
+          <div class="cart-count" id="cartCount">0 items</div>
+        </div>
+        <div id="cart-list" class="vstack gap-3"></div>
+        <div class="cart-foot">
+          <div>
+            <div class="fw-semibold">Subtotal: GHS <span id="cart-total">0.00</span></div>
+          </div>
+          <button class="checkout-btn" id="checkout-btn">Make Payment ( GHS 0.00 )</button>
+        </div>
+      </div>
+
+      <div class="payment-status-card d-none" id="paymentStatusCard">
+        <div class="fw-bold mb-2" id="paymentStatusTitle">Payment Update</div>
+        <div class="text-muted mb-2" id="paymentStatusMessage"></div>
+        <div id="paymentStatusBody"></div>
+        <div class="receipt-actions" id="paymentStatusActions"></div>
+      </div>
+    </div>
+  </section>
+
+    <a class="whatsapp-bubble" href="https://wa.me/233208165203" target="_blank" rel="noopener" aria-label="Chat on WhatsApp">
+      <i class="bi bi-whatsapp"></i>
+    </a>
+
+    <!-- Service Report Modal -->
+    <div class="modal fade report-modal" id="reportIssueModal" tabindex="-1" aria-labelledby="reportIssueModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <div class="d-flex align-items-center gap-3">
+              <span class="report-icon"><i class="bi bi-whatsapp"></i></span>
+              <div>
+                <h5 class="modal-title fw-bold mb-1" id="reportIssueModalLabel">Report a Service Issue</h5>
+                <div class="small text-muted">Provide the order details for faster assistance.</div>
+              </div>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <form id="serviceReportForm">
+            <div class="modal-body p-4">
+              <div class="mb-3">
+                <label class="form-label" for="reportService">Service</label>
+                <select class="form-select" id="reportService" required>
+                  <option value="" selected disabled>Select the service</option>
+                  {% for svc in services or [] %}
+                    <option value="{{ svc.name }}">{{ svc.name }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+              <div class="row g-3">
+                <div class="col-sm-6">
+                  <label class="form-label" for="reportGb">Bundle Size (GB)</label>
+                  <input class="form-control" id="reportGb" type="text" inputmode="decimal" placeholder="e.g. 5GB" maxlength="20" required>
+                </div>
+                <div class="col-sm-6">
+                  <label class="form-label" for="reportPhone">Recipient Phone Number</label>
+                  <input class="form-control" id="reportPhone" type="tel" inputmode="numeric" placeholder="0240000000" pattern="0[0-9]{9}" maxlength="10" required>
+                </div>
+                <div class="col-sm-6">
+                  <label class="form-label" for="reportDate">Order Date</label>
+                  <input class="form-control" id="reportDate" type="date" required>
+                </div>
+                <div class="col-sm-6">
+                  <label class="form-label" for="reportTime">Order Time</label>
+                  <input class="form-control" id="reportTime" type="time" required>
+                </div>
+              </div>
+            </div>
+            <div class="modal-footer px-4 pb-4 pt-0">
+              <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+              <button type="submit" class="report-submit"><i class="bi bi-whatsapp me-1"></i> Send On Whatsapp</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Ported Number Modal -->
+    <div class="modal fade ported-modal" id="portedModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <div class="d-flex align-items-center gap-2">
+              <span class="warn-icon"><i class="bi bi-exclamation-triangle-fill"></i></span>
+              <h5 class="modal-title mb-0">Ported Number Detected</h5>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <div id="portedModalMsg" class="fw-semibold"></div>
+            <div id="portedModalPrefixes" class="prefix-badges"></div>
+            <div class="text-muted small mt-2">
+              If you are sure this number was ported, confirm to continue.
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-outline-secondary" id="portedCancelBtn">No, I’ll Correct It</button>
+            <button type="button" class="btn btn-warning text-dark" id="portedConfirmBtn">Yes, It’s Ported</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Duplicate Cart Modal -->
+    <div class="modal fade" id="dupCartModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Duplicate Item</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <div id="dupCartModalMsg">This number is already in your cart for the same bundle. Add anyway?</div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+            <button type="button" class="btn btn-primary" id="dupCartModalConfirm">Add Anyway</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal fade" id="knownNumberModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="knownNumberModalTitle">Verifying Number</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" id="knownNumberModalClose"></button>
+          </div>
+          <div class="modal-body">
+            <div class="d-flex align-items-center gap-3">
+              <div id="knownNumberModalSpinner" class="spinner-border text-primary" role="status" aria-hidden="true"></div>
+              <div id="knownNumberModalIcon" class="fs-4"></div>
+              <div id="knownNumberModalMsg" class="fw-semibold">Verifying number...</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal fade" id="serviceNoticeModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Important Notice</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <div class="fw-semibold mb-2" id="serviceNoticeTitle">MTN MASH UP DATA</div>
+            <div id="serviceNoticeBody">
+              <div class="mb-3">
+                <div class="fw-semibold mb-1">Before purchase</div>
+                <div>Suitable for regular MTN customer SIMs only.</div>
+                <div>Not recommended for MTN merchant or MTN agent SIMs.</div>
+                <div>Ported SIM compatibility has not been confirmed yet.</div>
+              </div>
+              <div>
+                <div class="fw-semibold mb-1">After delivery</div>
+                <div>Ask the customer to dial *124# to confirm the data balance.</div>
+                <div>The customer may also receive an SMS from Feeli once the bundle lands.</div>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-outline-secondary" id="serviceNoticeCancelBtn">Cancel</button>
+            <button type="button" class="btn btn-primary" id="serviceNoticeConfirmBtn">Okay</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="container pb-5">
+    <div class="d-flex justify-content-center">
+      <a href="/check-status" class="btn btn-outline-primary btn-cta">Check Order Status</a>
+    </div>
+  </div>
+
+  <!-- Redirect overlay -->
+  <div class="redirect-overlay d-none" id="redirectOverlay">
+    <div class="redirect-card">
+      <div class="spinner-border text-primary" role="status" aria-hidden="true"></div>
+      <div class="fw-semibold">Processing your order...</div>
+    </div>
+  </div>
+
+  
+
+  <!-- Footer -->
+  <footer class="site-footer py-4">
+    <div class="container d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-2">
+      <div class="small">
+        © <span id="yearNow"></span> SIR HANS Data Services. All rights reserved.
+      </div>
+      <div class="small d-flex gap-3">
+        <a href="/">Home</a>
+        <a href="#services">Services</a>
+        <a href="#" data-bs-toggle="modal" data-bs-target="#aboutModal">About</a>
+        <a href="#" data-bs-toggle="modal" data-bs-target="#tosModal">Terms of Service</a>
+        <a href="#" data-bs-toggle="modal" data-bs-target="#privacyModal">Privacy Policy</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ===== Modals ===== -->
+
+  <!-- About Us Modal -->
+  <div class="modal fade" id="aboutModal" tabindex="-1" aria-labelledby="aboutModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="aboutModalLabel">About SIR HANS Data Services</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p><strong>SIR HANS Data Services</strong> provides affordable, reliable data bundles across MTN, AirtelTigo, and Telecel. We focus on speed, transparency, and a smooth purchase experience—so you can fund once and manage everything from your dashboard.</p>
+          <p>Our promise is simple: fair pricing, clear status updates, and responsive support. Whether you’re topping up for personal use or managing multiple lines, SIR HANS helps you stay connected—with ease.</p>
+          <p class="mb-0"><em>Team SIR HANS.</em></p>
+        </div>
+        <div class="modal-footer">
+          <a href="/signup" class="btn btn-primary">Create Account</a>
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Terms of Service Modal -->
+  <div class="modal fade" id="tosModal" tabindex="-1" aria-labelledby="tosModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="tosModalLabel">Terms of Service</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <ol>
+            <li>By placing an order with our website, you acknowledge that you have read and agree to these Terms of Service.</li>
+            <li>We reserve the right to change these Terms of Service without notice. Please regularly check this page for updates.</li>
+            <li>You agree to use our website in compliance with the qualifications and agreements outlined in sections 7 and 8 of these Terms of Service.</li>
+            <li>Our rates are subject to change at any time in accordance with our Telcos Policy or Supplier Agreement. We will notify you of any rate changes through our website or other means.</li>
+            <li>We strive to deliver services promptly, but delivery times are estimates only and not guaranteed. Estimated delivery times are 0–24 hours. After 24 hours, you may be eligible for a refund, excluding cases of network difficulties.</li>
+            <li>Refunds will not be issued for orders that do not meet our qualification requirements.</li>
+            <li>To avoid issues, please:
+              <ol type="i">
+                <li>Place orders for services in the correct category (e.g., MTN in the MTN column, not in Airtel/Tigo column, and vice versa).</li>
+                <li>Ensure the phone number is correct and complete.</li>
+              </ol>
+            </li>
+            <li>Meet the 3 core qualifications for Afa minutes orders as outlined on our WhatsApp page before placing; otherwise, refunds for unqualified orders will be handled on merit.</li>
+          </ol>
+          <p class="mb-0"><em>Best Regards,<br/>Team SIR HANS.</em></p>
+        </div>
+        <div class="modal-footer">
+          <a href="/signup" class="btn btn-primary">Agree &amp; Sign Up</a>
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Privacy Policy Modal -->
+  <div class="modal fade" id="privacyModal" tabindex="-1" aria-labelledby="privacyModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="privacyModalLabel">Privacy Policy</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p>Welcome to our website. This Privacy Policy describes how we collect, use, disclose, and protect your personal information. By using our services, you agree to the terms outlined in this policy.</p>
+
+          <h6>Information We Collect</h6>
+          <p><strong>Personal Information:</strong> We may collect personal information, such as your name, email address, and payment details, when you use our services.</p>
+          <p><strong>Usage Data:</strong> We automatically collect information about how you interact with our website and services, including your IP address, browser type, and pages visited.</p>
+
+          <h6>How We Use Your Information</h6>
+          <p><strong>Service Delivery:</strong> We use your personal information to deliver the services you've requested, including processing orders and providing customer support.</p>
+          <p><strong>Communications:</strong> We may contact you with important service-related announcements, newsletters, and promotional offers based on your preferences.</p>
+
+          <h6>Data Security</h6>
+          <p>We implement industry-standard security measures to protect your personal information from unauthorized access, disclosure, alteration, and destruction.</p>
+
+          <h6>Information Sharing</h6>
+          <p>We do not sell, trade, or otherwise transfer your personal information to third parties without your consent, except as required by law.</p>
+
+          <h6>Cookies and Tracking Technologies</h6>
+          <p>We use cookies and similar tracking technologies to enhance your experience, gather usage information, and improve our services.</p>
+
+          <h6>Updates</h6>
+          <p>We reserve the right to update this Privacy Policy at any time. We'll notify you of any significant changes through the contact information you provide.</p>
+
+          <h6>Contact Us</h6>
+          <p>If you have any questions or concerns about this Privacy Policy, please contact us at our panel support.</p>
+
+          <p class="mb-0"><em>Team SIR HANS.</em></p>
+        </div>
+        <div class="modal-footer">
+          <a href="/signup" class="btn btn-primary">Create Account</a>
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  {% include '_announcement_modal.html' %}
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    (function(){
+      const form = document.getElementById("serviceReportForm");
+      if (!form) return;
+
+      const dateInput = document.getElementById("reportDate");
+      const timeInput = document.getElementById("reportTime");
+      const phoneInput = document.getElementById("reportPhone");
+
+      function pad(value){ return String(value).padStart(2, "0"); }
+      const now = new Date();
+      dateInput.value = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+      timeInput.value = `${pad(now.getHours())}:${pad(now.getMinutes())}`;
+
+      phoneInput.addEventListener("input", function(){
+        this.value = this.value.replace(/\D/g, "").slice(0, 10);
+      });
+
+      form.addEventListener("submit", function(event){
+        event.preventDefault();
+        if (!form.checkValidity()) {
+          form.classList.add("was-validated");
+          form.reportValidity();
+          return;
+        }
+
+        const service = document.getElementById("reportService").value.trim();
+        const gb = document.getElementById("reportGb").value.trim();
+        const phone = phoneInput.value.trim();
+        const dateValue = dateInput.value;
+        const timeValue = timeInput.value;
+        const reportDate = new Date(`${dateValue}T00:00:00`);
+        const formattedDate = Number.isNaN(reportDate.getTime())
+          ? dateValue
+          : reportDate.toLocaleDateString("en-GB", { day:"2-digit", month:"long", year:"numeric" });
+        const formattedTime = new Date(`${dateValue}T${timeValue}`).toLocaleTimeString("en-GB", {
+          hour:"2-digit", minute:"2-digit", hour12:true
+        });
+
+        const message = [
+          "*SERVICE ISSUE REPORT*",
+          "",
+          "Hello SIR HANS Support, I would like to report an issue with the following order:",
+          "",
+          `*Service:* ${service}`,
+          `*Bundle Size:* ${gb}`,
+          `*Recipient Number:* ${phone}`,
+          `*Order Date:* ${formattedDate}`,
+          `*Order Time:* ${formattedTime}`,
+          "",
+          "Please assist me with this order. Thank you."
+        ].join("\n");
+
+        window.location.href = `https://wa.me/233208165203?text=${encodeURIComponent(message)}`;
+      });
+    })();
+  </script>
+  <script>
+    (function(){
+      const PAYSTACK_PK = "{{ (paystack_pk or '')|e }}";
+      let cart = [];
+
+      const cartCount = document.getElementById("cartCount");
+      const cartList = document.getElementById("cart-list");
+      const cartTotalEl = document.getElementById("cart-total");
+      const paystackTotalEl = document.getElementById("paystack-total");
+      const checkoutBtn = document.getElementById("checkout-btn");
+      const PAYSTACK_FEE_RATE = 0.02;
+      const CART_STORAGE_KEY = "public_cart";
+      const DUPLICATE_MSG = "This number is already in your cart for the same bundle. Add anyway?";
+      const PAYMENT_SESSION_URL = "/public-payment-session";
+      const PUBLIC_CHECKOUT_URL = "/public-checkout";
+      const PUBLIC_REPROCESS_URL = "/public-reprocess-order";
+      const PUBLIC_STATUS_URL = "/public-order-status-by-ref";
+      const paymentStatusCard = document.getElementById("paymentStatusCard");
+      const paymentStatusTitle = document.getElementById("paymentStatusTitle");
+      const paymentStatusMessage = document.getElementById("paymentStatusMessage");
+      const paymentStatusBody = document.getElementById("paymentStatusBody");
+      const paymentStatusActions = document.getElementById("paymentStatusActions");
+      let activePaymentReference = "";
+      let checkoutBusy = false;
+      const SPECIAL_SERVICE_NAME = "mtn mash up data";
+
+      function randomToken(len){
+        const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
+        let out = "";
+        if (window.crypto && window.crypto.getRandomValues) {
+          const values = new Uint8Array(len);
+          window.crypto.getRandomValues(values);
+          for (let i = 0; i < values.length; i++){
+            out += chars[values[i] % chars.length];
+          }
+          return out;
+        }
+        while (out.length < len){
+          out += Math.random().toString(36).slice(2);
+        }
+        return out.slice(0, len);
+      }
+
+      function normalizePhoneForEmail(phone){
+        if (!phone) return "";
+        const digits = String(phone).replace(/\D+/g, "");
+        if (digits.startsWith("233") && digits.length >= 12) return "0" + digits.slice(-9);
+        if (digits.length === 9) return "0" + digits;
+        return digits;
+      }
+
+      const PHONE_RE = /^0\d{9}$/;
+
+      function generatePaystackEmail(phone){
+        const digits = normalizePhoneForEmail(phone);
+        if (digits) return `${digits}hansmart@gmail.com`;
+        return "hansmart@gmail.com";
+      }
+
+
+      function money(v){
+        const n = Number(v || 0);
+        return n.toFixed(2);
+      }
+
+      function calcPaystackTotals(baseTotal){
+        const base = Number(baseTotal || 0);
+        const fee = Math.round(base * PAYSTACK_FEE_RATE * 100) / 100;
+        const total = Math.round((base + fee) * 100) / 100;
+        return { fee: fee, total: total };
+      }
+
+      function cartKey(line){
+        return [
+          line && (line.serviceId || line.service_id || ""),
+          line && (line.phone || ""),
+          line && (line.value_text || line.value || ""),
+          Number(line && line.amount || 0)
+        ].join("|");
+      }
+      function hasDuplicate(line){
+        const key = cartKey(line);
+        for (let i = 0; i < cart.length; i++){
+          if (cartKey(cart[i]) === key) return true;
+        }
+        return false;
+      }
+
+      function showDuplicateModal(message){
+        return new Promise((resolve) => {
+          const modalEl = document.getElementById("dupCartModal");
+          if (!modalEl || !window.bootstrap) {
+            resolve(!!confirm(message || DUPLICATE_MSG));
+            return;
+          }
+          const msgEl = document.getElementById("dupCartModalMsg");
+          const yesBtn = document.getElementById("dupCartModalConfirm");
+          if (msgEl) msgEl.textContent = message || DUPLICATE_MSG;
+          const inst = bootstrap.Modal.getOrCreateInstance(modalEl);
+          let done = false;
+          function cleanup(ok){
+            if (done) return;
+            done = true;
+            modalEl.removeEventListener("hidden.bs.modal", onHidden);
+            yesBtn?.removeEventListener("click", onYes);
+            resolve(ok);
+          }
+          function onHidden(){ cleanup(false); }
+          function onYes(){ inst.hide(); cleanup(true); }
+          modalEl.addEventListener("hidden.bs.modal", onHidden);
+          yesBtn?.addEventListener("click", onYes);
+          inst.show();
+        });
+      }
+
+      const SPECIAL_SERVICE_ID = "6a299f7472e6d9d109a67ad8";
+
+      function isSpecialWarningService(svc){
+        const id = String((svc && (svc._id_str || svc.serviceId || svc.service_id)) || "").trim();
+        const name = String((svc && (svc.name || svc.serviceName)) || "").trim().toLowerCase();
+        return id === SPECIAL_SERVICE_ID || name === SPECIAL_SERVICE_NAME;
+      }
+
+      function showSpecialServiceNotice(svc){
+        return new Promise((resolve) => {
+          if (!isSpecialWarningService(svc)) {
+            resolve(true);
+            return;
+          }
+          const modalEl = document.getElementById("serviceNoticeModal");
+          if (!modalEl || !window.bootstrap) {
+            resolve(window.confirm("Suitable for regular MTN customer SIMs only.\nNot recommended for MTN merchant or MTN agent SIMs.\nPorted SIM compatibility has not been confirmed yet."));
+            return;
+          }
+          const titleEl = document.getElementById("serviceNoticeTitle");
+          const bodyEl = document.getElementById("serviceNoticeBody");
+          const cancelBtn = document.getElementById("serviceNoticeCancelBtn");
+          const confirmBtn = document.getElementById("serviceNoticeConfirmBtn");
+          if (titleEl) titleEl.textContent = (svc && (svc.name || svc.serviceName)) || "MTN MASH UP DATA";
+          if (bodyEl) {
+            bodyEl.innerHTML =
+              '<div class="mb-3">' +
+              '  <div class="fw-semibold mb-1">Before purchase</div>' +
+              '  <div>Suitable for regular MTN customer SIMs only.</div>' +
+              '  <div>Not recommended for MTN merchant or MTN agent SIMs.</div>' +
+              '  <div>Ported SIM compatibility has not been confirmed yet.</div>' +
+              '</div>' +
+              '<div>' +
+              '  <div class="fw-semibold mb-1">After delivery</div>' +
+              '  <div>Ask the customer to dial *124# to confirm the data balance.</div>' +
+              '  <div>The customer may also receive an SMS from Feeli once the bundle lands.</div>' +
+              '</div>';
+          }
+          const inst = bootstrap.Modal.getOrCreateInstance(modalEl);
+          let done = false;
+          function cleanup(ok){
+            if (done) return;
+            done = true;
+            modalEl.removeEventListener("hidden.bs.modal", onHidden);
+            cancelBtn?.removeEventListener("click", onCancel);
+            confirmBtn?.removeEventListener("click", onConfirm);
+            resolve(ok);
+          }
+          function onHidden(){ cleanup(false); }
+          function onCancel(){ inst.hide(); cleanup(false); }
+          function onConfirm(){ inst.hide(); cleanup(true); }
+          modalEl.addEventListener("hidden.bs.modal", onHidden);
+          cancelBtn?.addEventListener("click", onCancel);
+          confirmBtn?.addEventListener("click", onConfirm);
+          inst.show();
+        });
+      }
+
+      function wireSpecialInfoButtons(){
+        document.querySelectorAll(".special-service-info-btn").forEach((btn) => {
+          btn.addEventListener("click", async function(ev){
+            ev.preventDefault();
+            ev.stopPropagation();
+            let svc = null;
+            try { svc = JSON.parse(btn.getAttribute("data-service") || "{}"); } catch(e){ svc = null; }
+            await showSpecialServiceNotice(svc || { name: "MTN MASH UP DATA" });
+          });
+        });
+      }
+
+      function formatDataVolume(mb){
+        const num = Number(mb);
+        if (!isFinite(num)) return null;
+        if (num >= 1000) {
+          const gb = num / 1000;
+          const gbStr = (Math.abs(gb - Math.round(gb)) < 1e-9) ? String(Math.round(gb)) : gb.toFixed(2);
+          return gbStr + "GB";
+        }
+        return String(Math.round(num)) + "MB";
+      }
+
+      function parseLooseObject(str){
+        if (typeof str !== "string") return null;
+        const s = str.trim();
+        if (!s.startsWith("{") || !s.endsWith("}")) return null;
+        try { return JSON.parse(s); } catch (e) {}
+        try {
+          const fixed = s.replace(/'/g, '"');
+          return JSON.parse(fixed);
+        } catch (e) {}
+        return null;
+      }
+
+      function offerLabel(of, unit){
+        if (!of) return "Offer";
+        if (of.value_text) return of.value_text;
+        const v = of.value;
+        if (v && typeof v === "object"){
+          const vol = v.volume;
+          if (vol != null){
+            const num = Number(vol);
+            if (isFinite(num)){
+              if (unit === "minutes") return String(Math.round(num)) + " mins";
+              const dataLabel = formatDataVolume(num);
+              if (dataLabel) return dataLabel;
+            }
+          }
+        }
+        if (typeof v === "string"){
+          const parsed = parseLooseObject(v);
+          if (parsed && typeof parsed === "object" && parsed.volume != null){
+            const num = Number(parsed.volume);
+            if (isFinite(num)){
+              if (unit === "minutes") return String(Math.round(num)) + " mins";
+              const dataLabel = formatDataVolume(num);
+              if (dataLabel) return dataLabel;
+            }
+          }
+          return v;
+        }
+        return "Offer";
+      }
+
+      function buildOfferOptions(offers, unit){
+        if (!Array.isArray(offers)) return "";
+        return offers.map((of, idx) => {
+          const label = offerLabel(of, unit);
+          const amt = (of.total != null ? of.total : of.amount);
+          return `<option value="${idx}">${label} - GHS ${money(amt)}</option>`;
+        }).join("");
+      }
+
+      function updateCartUI(){
+        const total = cart.reduce((sum, it) => sum + Number(it.amount || 0), 0);
+        const paystackTotals = calcPaystackTotals(total);
+        if (cartCount) cartCount.textContent = cart.length + " items";
+        if (cartTotalEl) cartTotalEl.textContent = money(total);
+        if (paystackTotalEl) paystackTotalEl.textContent = money(paystackTotals.total);
+        if (checkoutBtn) checkoutBtn.textContent = "Make Payment ( GHS " + money(paystackTotals.total) + " )";
+        try { sessionStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart)); } catch (e) {}
+        if (!cartList) return;
+        cartList.innerHTML = "";
+        if (!cart.length){
+          cartList.innerHTML = "<div class='text-muted'>Your cart is empty.</div>";
+          return;
+        }
+        cart.forEach((it, idx) => {
+          const row = document.createElement("div");
+          row.className = "d-flex justify-content-between align-items-start border-bottom pb-2";
+          row.innerHTML = `
+            <div>
+              <div class="fw-semibold">${it.serviceName || "Service"}</div>
+              <div class="small text-muted">${it.phone || ""} - ${it.value_text || offerLabel({ value: it.value }, it.unit) || ""}</div>
+            </div>
+            <div class="text-end">
+              <div class="fw-semibold">GHS ${money(it.amount)}</div>
+              <button class="btn btn-sm btn-outline-danger mt-1" data-remove="${idx}">Remove</button>
+            </div>
+          `;
+          cartList.appendChild(row);
+        });
+      }
+
+      function clearCartState(){
+        cart = [];
+        try { sessionStorage.removeItem(CART_STORAGE_KEY); } catch (e) {}
+        // Remove carts saved by older versions of the index page as well.
+        try { localStorage.removeItem(CART_STORAGE_KEY); } catch (e) {}
+        updateCartUI();
+      }
+
+      function makePublicReference(){
+        return "SIRHANS_" + Date.now() + "_" + randomToken(8).toUpperCase();
+      }
+
+      function hasMashupService(items){
+        const rows = Array.isArray(items) ? items : [];
+        return rows.some(it => String((it && (it.service || it.serviceName || it.name)) || "").trim().toLowerCase() === SPECIAL_SERVICE_NAME);
+      }
+
+      function mashupInfoHtml(items){
+        if (!hasMashupService(items)) return "";
+        return `
+          <div class="mt-3 p-3 rounded" style="background:#eff6ff;border:1px solid #bfdbfe;color:#1e3a8a;">
+            <div class="fw-semibold mb-1">Confirm balance</div>
+            <div>Once it's delivered, ask the customer to dial *124# to confirm their data balance. They might also get an SMS from Feeli when it lands.</div>
+          </div>
+        `;
+      }
+
+      function receiptHtml(receipt){
+        const items = Array.isArray(receipt && receipt.service_summary) ? receipt.service_summary : [];
+        const rows = items.map(it => `<li>${it.service || "Service"} ${it.offer || ""} ${it.phone ? "- " + it.phone : ""}</li>`).join("");
+        return `
+          <div><strong>Order ID:</strong> ${receipt.order_id || "-"}</div>
+          <div><strong>Payment Reference:</strong> ${receipt.payment_reference || "-"}</div>
+          <div><strong>Amount:</strong> GHS ${money(receipt.amount || 0)}</div>
+          <div><strong>Status:</strong> ${receipt.current_order_status || "-"}</div>
+          <div><strong>Created:</strong> ${receipt.created_at || "-"}</div>
+          <div class="mt-2"><strong>Items:</strong></div>
+          <ul class="receipt-list">${rows || "<li>No items found.</li>"}</ul>
+          ${mashupInfoHtml(items)}
+        `;
+      }
+
+      function setPaymentCard(kind, title, message, bodyHtml, actionsHtml){
+        if (!paymentStatusCard) return;
+        paymentStatusCard.classList.remove("d-none", "processing", "success", "warning", "error");
+        paymentStatusCard.classList.add(kind || "warning");
+        if (paymentStatusTitle) paymentStatusTitle.textContent = title || "Payment Update";
+        if (paymentStatusMessage) paymentStatusMessage.textContent = message || "";
+        if (paymentStatusBody) paymentStatusBody.innerHTML = bodyHtml || "";
+        if (paymentStatusActions) paymentStatusActions.innerHTML = actionsHtml || "";
+        paymentStatusCard.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+
+      function buildRecoveryActions(reference, orderId, receipt){
+        const invoiceBtn = orderId ? `<a class="btn btn-sm btn-outline-primary" href="/invoice/${encodeURIComponent(orderId)}">View Receipt</a>` : "";
+        const statusBtn = `<button type="button" class="btn btn-sm btn-outline-secondary" id="checkStatusBtn">Check Status</button>`;
+        const retryBtn = `<button type="button" class="btn btn-sm btn-warning" id="reprocessOrderBtn">Click here to reprocess order</button>`;
+        const note = `<div class="small text-muted">Reference: ${reference || "-"}<br>Do not pay again.</div>`;
+        return { html: `${retryBtn}${statusBtn}${invoiceBtn}`, note: note };
+      }
+
+      async function createPaymentSession(reference){
+        const total = cart.reduce((sum, it) => sum + Number(it.amount || 0), 0);
+        const paystackTotals = calcPaystackTotals(total);
+        const res = await fetch(PAYMENT_SESSION_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            reference: reference,
+            cart: cart,
+            total_expected: total,
+            paystack_total_expected: paystackTotals.total
+          })
+        });
+        const json = await res.json().catch(() => ({}));
+        if (!res.ok || !json.success) {
+          throw new Error((json && json.message) || "Could not start payment session.");
+        }
+        return json;
+      }
+
+      async function fetchOrderStatus(reference){
+        const res = await fetch(PUBLIC_STATUS_URL + "?reference=" + encodeURIComponent(reference));
+        return res.json().catch(() => ({}));
+      }
+
+      async function reprocessOrder(reference){
+        setPaymentCard("processing", "Reprocessing Order", "Payment received. Confirming your order...", "", "");
+        const res = await fetch(PUBLIC_REPROCESS_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ reference: reference })
+        });
+        const json = await res.json().catch(() => ({}));
+        handleFinalizeResponse(json, reference);
+      }
+
+      async function checkOrderStatus(reference){
+        const json = await fetchOrderStatus(reference);
+        handleFinalizeResponse(json, reference, true);
+      }
+
+      function wirePaymentCardActions(reference){
+        document.getElementById("reprocessOrderBtn")?.addEventListener("click", () => reprocessOrder(reference));
+        document.getElementById("checkStatusBtn")?.addEventListener("click", () => checkOrderStatus(reference));
+      }
+
+      function handleFinalizeResponse(result, reference, fromStatusCheck){
+        const receipt = result && result.receipt ? result.receipt : null;
+        const orderId = (result && result.order_id) || (receipt && receipt.order_id) || "";
+
+        if (result && (result.status === "completed" || result.status === "processing") && receipt) {
+          clearCartState();
+          const actions = `
+            <a class="btn btn-sm btn-primary" href="${receipt.receipt_url || ("/invoice/" + encodeURIComponent(orderId))}">View Receipt</a>
+            <button type="button" class="btn btn-sm btn-outline-secondary" id="checkStatusBtn">Check Status</button>
+          `;
+          setPaymentCard(
+            "success",
+            result.status === "completed" ? "Order Confirmed" : "Order Processing",
+            result.message || "Your order has been received successfully.",
+            receiptHtml(receipt),
+            actions
+          );
+          wirePaymentCardActions(reference);
+          setRedirecting(false);
+          return;
+        }
+
+        if (result && result.status === "already_created") {
+          clearCartState();
+          const actions = `
+            <a class="btn btn-sm btn-primary" href="${receipt && receipt.receipt_url ? receipt.receipt_url : ("/invoice/" + encodeURIComponent(orderId))}">View Receipt</a>
+            <button type="button" class="btn btn-sm btn-outline-secondary" id="checkStatusBtn">Check Status</button>
+          `;
+          setPaymentCard(
+            "success",
+            "Order Already Placed",
+            result.message || "Order already placed.",
+            receipt ? receiptHtml(receipt) : `<div><strong>Order ID:</strong> ${orderId || "-"}</div>`,
+            actions
+          );
+          wirePaymentCardActions(reference);
+          setRedirecting(false);
+          return;
+        }
+
+        if (result && ["verification_failed_recoverable", "recoverable_failure", "pending"].includes(result.status)) {
+          const recovery = buildRecoveryActions(reference, orderId, receipt);
+          setPaymentCard(
+            "warning",
+            fromStatusCheck ? "Order Status" : "Payment Received",
+            result.message || "Payment was received, but the website could not finish processing your order yet.",
+            recovery.note,
+            recovery.html
+          );
+          wirePaymentCardActions(reference);
+          setRedirecting(false);
+          return;
+        }
+
+        setPaymentCard(
+          "error",
+          "Payment Verification Failed",
+          (result && result.message) || "We could not confirm this payment.",
+          "",
+          `<button type="button" class="btn btn-sm btn-outline-secondary" id="checkStatusBtn">Check Status</button>`
+        );
+        wirePaymentCardActions(reference);
+        setRedirecting(false);
+      }
+
+      function setRedirecting(on){
+        const overlay = document.getElementById("redirectOverlay");
+        if (overlay) overlay.classList.toggle("d-none", !on);
+        if (checkoutBtn) checkoutBtn.disabled = !!on || checkoutBusy;
+      }
+
+      const selectedServiceNameEl = document.getElementById("selectedServiceName");
+      const orderPhoneEl = document.getElementById("orderPhone");
+      const orderOfferEl = document.getElementById("orderOffer");
+      const orderOfferLabelEl = document.getElementById("orderOfferLabel");
+      const orderAmountEl = document.getElementById("orderAmount");
+      const addToCartBtn = document.getElementById("addToCartBtn");
+      const singleOrderModeBtn = document.getElementById("singleOrderModeBtn");
+      const bulkOrderModeBtn = document.getElementById("bulkOrderModeBtn");
+      const singleOrderPanel = document.getElementById("singleOrderPanel");
+      const bulkOrderPanel = document.getElementById("bulkOrderPanel");
+      const bulkOrderPaste = document.getElementById("bulkOrderPaste");
+      const bulkOrderSummary = document.getElementById("bulkOrderSummary");
+      const addBulkToCartBtn = document.getElementById("addBulkToCartBtn");
+      let selectedService = null;
+
+      // ---------- Ported number helpers ----------
+      function normalizePhone(raw){
+        let d = String(raw || "").replace(/\D+/g, "");
+        if (d.startsWith("233") && d.length >= 12) d = "0" + d.slice(-9);
+        if (d.length === 9) d = "0" + d;
+        if (d.length > 10) d = d.slice(-10);
+        return d;
+      }
+      function sanitizePhoneInput(raw){
+        let d = String(raw || "").replace(/\D+/g, "");
+        if (d.startsWith("233") && d.length >= 12) d = "0" + d.slice(-9);
+        if (d.length > 10) d = d.slice(0, 10);
+        return d;
+      }
+      function bindClearInput(inputEl, clearBtn, onClear){
+        if (!inputEl || !clearBtn) return;
+        function sync(){
+          clearBtn.classList.toggle("d-none", !(inputEl.value || "").length);
+        }
+        inputEl._syncClearButton = sync;
+        clearBtn.addEventListener("click", () => {
+          inputEl.value = "";
+          if (typeof onClear === "function") onClear();
+          sync();
+          inputEl.focus();
+        });
+        inputEl.addEventListener("input", sync);
+        sync();
+      }
+      function getPrefix(phoneDigits){ return phoneDigits && phoneDigits.length >= 3 ? phoneDigits.slice(0,3) : ""; }
+      function networkFromService(svc){
+        const joined = [svc?.service_network, svc?.network, svc?.serviceName, svc?.name].filter(Boolean).join(" ").toLowerCase();
+        if (joined.includes("mtn")) return "MTN";
+        if (joined.includes("telecel") || joined.includes("vodafone")) return "TELECEL";
+        if (joined.includes("airteltigo") || joined.includes("tigo") || joined.includes("ishare") || joined.startsWith("at")) return "TIGO";
+        return "";
+      }
+      const PREFIX_MAP = {
+        MTN: ["025","024","059","055","054","053"],
+        TELECEL: ["020","050"],
+        TIGO: ["057","056","027","026"]
+      };
+      function networkFromPrefix(prefix){
+        for (const k in PREFIX_MAP){
+          if (PREFIX_MAP[k].includes(prefix)) return k;
+        }
+        return "";
+      }
+      function needsPortedConfirm(expected, actual){ return expected && actual && expected !== actual; }
+      function portedKey(serviceKey, phoneDigits){ return "ported_ok:" + (serviceKey || "") + ":" + phoneDigits; }
+      function isPortedConfirmed(serviceKey, phoneDigits){
+        try { return sessionStorage.getItem(portedKey(serviceKey, phoneDigits)) === "1"; } catch(e){ return false; }
+      }
+      function setPortedConfirmed(serviceKey, phoneDigits){
+        try { sessionStorage.setItem(portedKey(serviceKey, phoneDigits), "1"); } catch(e){}
+      }
+      function applyPortedFields(line, expected, actual, prefix){
+        line.ported_confirmed = true;
+        line.ported_expected_network = expected;
+        line.ported_detected_network = actual;
+        line.ported_prefix = prefix;
+      }
+      function showPortedModal(opts){
+        return new Promise((resolve) => {
+          const modalEl = document.getElementById("portedModal");
+          if (!modalEl || !window.bootstrap) { resolve(true); return; }
+          const msgEl = document.getElementById("portedModalMsg");
+          const badgesEl = document.getElementById("portedModalPrefixes");
+          const btnCancel = document.getElementById("portedCancelBtn");
+          const btnConfirm = document.getElementById("portedConfirmBtn");
+          if (msgEl) msgEl.textContent = opts.message || "Ported number detected.";
+          if (badgesEl) {
+            badgesEl.innerHTML = "";
+            badgesEl.insertAdjacentHTML("beforeend", `<span class="badge text-bg-warning">Expected: ${opts.expected}</span>`);
+            badgesEl.insertAdjacentHTML("beforeend", `<span class="badge text-bg-secondary">Detected: ${opts.actual} (${opts.prefix})</span>`);
+          }
+          const inst = bootstrap.Modal.getOrCreateInstance(modalEl);
+          let done = false;
+          function cleanup(ok){
+            if (done) return;
+            done = true;
+            modalEl.removeEventListener("hidden.bs.modal", onHidden);
+            btnCancel?.removeEventListener("click", onCancel);
+            btnConfirm?.removeEventListener("click", onConfirm);
+            resolve(ok);
+          }
+          function onHidden(){ cleanup(false); }
+          function onCancel(){ inst.hide(); cleanup(false); }
+          function onConfirm(){ inst.hide(); cleanup(true); }
+          modalEl.addEventListener("hidden.bs.modal", onHidden);
+          btnCancel?.addEventListener("click", onCancel);
+          btnConfirm?.addEventListener("click", onConfirm);
+          inst.show();
+        });
+      }
+      async function ensurePortedConfirmedForLine(line, focusEl){
+        const phoneDigits = normalizePhone(line.phone || "");
+        const prefix = getPrefix(phoneDigits);
+        const expected = networkFromService(line);
+        const actual = networkFromPrefix(prefix);
+        if (!needsPortedConfirm(expected, actual)) return true;
+        const key = line.serviceId || line.serviceName || expected;
+        if (isPortedConfirmed(key, phoneDigits)) {
+          applyPortedFields(line, expected, actual, prefix);
+          return true;
+        }
+        const ok = await showPortedModal({
+          expected, actual, prefix,
+          message: "The phone prefix does not match the selected network."
+        });
+        if (ok){
+          setPortedConfirmed(key, phoneDigits);
+          applyPortedFields(line, expected, actual, prefix);
+          return true;
+        }
+        if (focusEl){
+          focusEl.classList.add("is-invalid");
+          focusEl.focus();
+          setTimeout(() => focusEl.classList.remove("is-invalid"), 1200);
+        }
+        return false;
+      }
+      async function ensurePortedConfirmedForCart(lines){
+        const items = Array.isArray(lines) ? lines : [];
+        for (const line of items){
+          const ok = await ensurePortedConfirmedForLine(line);
+          if (!ok) return false;
+        }
+        return true;
+      }
+
+      const KNOWN_NUMBER_VERIFY_URL = "/api/verify-known-number";
+      const knownNumberCache = new Map();
+      const orderPhoneVerifyBadge = document.getElementById("orderPhoneVerifyBadge");
+      const orderPhoneVerifyText = document.getElementById("orderPhoneVerifyText");
+      const orderPhoneClearBtn = document.getElementById("orderPhoneClearBtn");
+
+      function needsKnownNumberVerification(svc){
+        const joined = [svc?.service_network, svc?.network, svc?.serviceName, svc?.name].filter(Boolean).join(" ").toLowerCase();
+        return joined.includes("mtn");
+      }
+      function setKnownNumberUi(inputEl, badgeEl, textEl, state, message){
+        if (inputEl) {
+          inputEl.classList.remove("is-valid", "is-invalid", "border-warning");
+          if (state === "ok") inputEl.classList.add("is-valid");
+          if (state === "fail") inputEl.classList.add("is-invalid");
+          if (state === "warn") inputEl.classList.add("border-warning");
+        }
+        if (badgeEl) {
+          badgeEl.innerHTML = state === "ok" ? "&#10003;" : state === "pending" ? "..." : (state === "fail" || state === "warn") ? "!" : "";
+          badgeEl.className = "input-group-text";
+          if (state === "ok") badgeEl.classList.add("text-success");
+          else if (state === "fail") badgeEl.classList.add("text-danger");
+          else if (state === "warn") badgeEl.classList.add("text-warning");
+          else if (state === "pending") badgeEl.classList.add("text-primary");
+          else badgeEl.classList.add("text-muted");
+        }
+        if (textEl) {
+          textEl.textContent = message || "";
+          textEl.className = "small mt-1";
+          if (state === "ok") textEl.classList.add("text-success");
+          else if (state === "fail") textEl.classList.add("text-danger");
+          else if (state === "warn") textEl.classList.add("text-warning");
+          else textEl.classList.add("text-muted");
+        }
+      }
+      function showKnownNumberModal(state, message){
+        const modalEl = document.getElementById("knownNumberModal");
+        if (!modalEl || !window.bootstrap) return null;
+        const titleEl = document.getElementById("knownNumberModalTitle");
+        const msgEl = document.getElementById("knownNumberModalMsg");
+        const spinnerEl = document.getElementById("knownNumberModalSpinner");
+        const iconEl = document.getElementById("knownNumberModalIcon");
+        const closeEl = document.getElementById("knownNumberModalClose");
+        const inst = bootstrap.Modal.getOrCreateInstance(modalEl);
+        if (titleEl) titleEl.textContent = state === "pending" ? "Verifying Number" : (state === "ok" || state === "warn") ? "Number Verified" : "Verification Failed";
+        if (msgEl) msgEl.textContent = message || "";
+        if (spinnerEl) spinnerEl.classList.toggle("d-none", state !== "pending");
+        if (iconEl) iconEl.innerHTML = state === "ok" ? "&#10003;" : (state === "fail" || state === "warn") ? "!" : "";
+        if (iconEl) iconEl.className = state === "ok" ? "fs-4 text-success" : state === "warn" ? "fs-4 text-warning" : state === "fail" ? "fs-4 text-danger" : "fs-4";
+        if (closeEl) closeEl.classList.toggle("d-none", state === "pending");
+        inst.show();
+        return inst;
+      }
+      async function verifyKnownNumber(line, inputEl, badgeEl, textEl, showModal = true){
+        if (!needsKnownNumberVerification(line)) {
+          setKnownNumberUi(inputEl, badgeEl, textEl, "idle", "");
+          return true;
+        }
+        const phone = normalizePhone(line.phone || "");
+        if (!PHONE_RE.test(phone)) {
+          setKnownNumberUi(inputEl, badgeEl, textEl, "idle", "");
+          return false;
+        }
+        const cacheKey = phone;
+        if (knownNumberCache.has(cacheKey)) {
+          const cached = knownNumberCache.get(cacheKey);
+          setKnownNumberUi(inputEl, badgeEl, textEl, cached.state, cached.message);
+          return cached.ok;
+        }
+        setKnownNumberUi(inputEl, badgeEl, textEl, "pending", "Verifying number...");
+        const inst = showModal ? showKnownNumberModal("pending", "Verifying number...") : null;
+        try {
+          const res = await fetch(KNOWN_NUMBER_VERIFY_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            credentials: "same-origin",
+            body: JSON.stringify({
+              phone,
+              serviceId: line.serviceId,
+              serviceName: line.serviceName,
+              service_network: line.service_network,
+              network: line.network,
+              source: "index",
+            })
+          });
+          const data = await res.json().catch(() => ({}));
+          const ok = !!(res.ok && data && data.allowed !== false);
+          const isWarningOnly = !!(data && data.warning_only);
+          const state = (isWarningOnly && ok) ? "ok" : ok ? "ok" : "fail";
+          const message = ok ? "Number verified." : "Number not in our database so you cant place order.";
+          knownNumberCache.set(cacheKey, { ok, state, message });
+          setKnownNumberUi(inputEl, badgeEl, textEl, state, message);
+          if (inst) {
+            showKnownNumberModal(state, message);
+            if (ok) setTimeout(() => inst.hide(), state === "warn" ? 2200 : 700);
+          }
+          if (ok && state === "ok") line.known_number_verified = true;
+          if (ok && state === "warn") line.known_number_warning = true;
+          return ok;
+        } catch (err) {
+          const message = "Could not verify number right now. Try again.";
+          setKnownNumberUi(inputEl, badgeEl, textEl, "fail", message);
+          if (inst) showKnownNumberModal("fail", message);
+          return false;
+        }
+      }
+      async function ensureKnownNumberVerifiedForLine(line, inputEl, badgeEl, textEl){
+        return verifyKnownNumber(line, inputEl, badgeEl, textEl, true);
+      }
+      async function ensureKnownNumberVerifiedForCart(lines){
+        const items = Array.isArray(lines) ? lines : [];
+        for (const line of items){
+          const ok = await verifyKnownNumber(line, null, null, null, false);
+          if (!ok) {
+            showKnownNumberModal("fail", "Number not in our database so you cant place order.");
+            return false;
+          }
+        }
+        return true;
+      }
+
+      function setOrderMode(mode){
+        const isBulk = mode === "bulk";
+        singleOrderModeBtn?.classList.toggle("active", !isBulk);
+        bulkOrderModeBtn?.classList.toggle("active", isBulk);
+        singleOrderModeBtn?.setAttribute("aria-selected", String(!isBulk));
+        bulkOrderModeBtn?.setAttribute("aria-selected", String(isBulk));
+        singleOrderPanel?.classList.toggle("d-none", isBulk);
+        bulkOrderPanel?.classList.toggle("d-none", !isBulk);
+        if (isBulk) setTimeout(() => bulkOrderPaste?.focus(), 0);
+      }
+
+      function offerSizeNumber(offer){
+        const value = offer && offer.value;
+        if (value && typeof value === "object" && value.volume != null) {
+          return Number(value.volume) / 1000;
+        }
+        const match = String(value == null ? "" : value).match(/(\d+(?:\.\d+)?)/);
+        return match ? Number(match[1]) : null;
+      }
+
+      function findOfferIndexBySize(offers, requestedSize){
+        const matches = [];
+        (offers || []).forEach((offer, index) => {
+          const size = offerSizeNumber(offer);
+          if (size !== null && Number(size) === Number(requestedSize)) {
+            matches.push({ index, price:Number(offer.total != null ? offer.total : offer.amount || 0) });
+          }
+        });
+        matches.sort((a, b) => a.price - b.price);
+        return matches.length ? matches[0].index : null;
+      }
+
+      function parseBulkOrders(){
+        const rows = String(bulkOrderPaste?.value || "").split(/\r?\n/);
+        const valid = [];
+        const errors = [];
+        rows.forEach((raw, index) => {
+          const text = raw.trim();
+          if (!text) return;
+          const parts = text.split(/[\s,;\t]+/).filter(Boolean);
+          const phone = normalizePhone(parts[0] || "");
+          const size = parts[1] != null ? Number(parts[1]) : NaN;
+          if (!PHONE_RE.test(phone)) {
+            errors.push(`Line ${index + 1}: invalid phone number`);
+            return;
+          }
+          if (!Number.isFinite(size) || size <= 0) {
+            errors.push(`Line ${index + 1}: invalid bundle size`);
+            return;
+          }
+          const offerIndex = findOfferIndexBySize(selectedService?.offers || [], size);
+          if (offerIndex === null) {
+            errors.push(`Line ${index + 1}: ${size} GB is not available`);
+            return;
+          }
+          valid.push({ phone, offerIndex });
+        });
+        return { valid, errors };
+      }
+
+      function updateBulkSummary(){
+        if (!bulkOrderSummary) return;
+        if (!String(bulkOrderPaste?.value || "").trim()) {
+          bulkOrderSummary.textContent = "No orders pasted yet.";
+          bulkOrderSummary.className = "bulk-summary mt-2 text-muted";
+          return;
+        }
+        if (!selectedService) {
+          bulkOrderSummary.textContent = "Select a service to validate these orders.";
+          bulkOrderSummary.className = "bulk-summary mt-2 text-warning";
+          return;
+        }
+        const parsed = parseBulkOrders();
+        bulkOrderSummary.textContent = parsed.errors.length
+          ? `${parsed.valid.length} ready · ${parsed.errors.length} need attention. ${parsed.errors.slice(0, 2).join(" · ")}`
+          : `${parsed.valid.length} order${parsed.valid.length === 1 ? "" : "s"} ready to add.`;
+        bulkOrderSummary.className = "bulk-summary mt-2 " + (parsed.errors.length ? "text-danger" : "text-success");
+      }
+
+      function setSelectedService(svc, btn){
+        selectedService = svc;
+        if (selectedServiceNameEl) selectedServiceNameEl.textContent = svc ? (svc.name || "Service") : "None";
+        const isResultsChecker = !!(svc && svc.service_category === "results_checker");
+        if (orderOfferLabelEl) orderOfferLabelEl.textContent = isResultsChecker ? "Results Checker Type" : "Bundle Size (GB)";
+        if (orderOfferEl) {
+          const opts = svc ? buildOfferOptions(svc.offers || [], svc.unit) : "";
+          orderOfferEl.innerHTML = `<option value="" selected disabled>${isResultsChecker ? "Select WASSCE or BECE" : "Select size"}</option>` + opts;
+        }
+        if (orderAmountEl) orderAmountEl.textContent = "0.00";
+        if (addToCartBtn) addToCartBtn.disabled = !svc;
+        if (addBulkToCartBtn) addBulkToCartBtn.disabled = !svc || !!(svc && svc.service_category === "results_checker");
+        if (bulkOrderModeBtn) {
+          bulkOrderModeBtn.disabled = !!(svc && svc.service_category === "results_checker");
+          bulkOrderModeBtn.title = bulkOrderModeBtn.disabled ? "Results Checker supports single orders only." : "";
+        }
+        if (svc && svc.service_category === "results_checker") setOrderMode("single");
+        updateBulkSummary();
+        setKnownNumberUi(orderPhoneEl, orderPhoneVerifyBadge, orderPhoneVerifyText, "idle", "");
+
+        document.querySelectorAll('.service-tile.active').forEach(el => el.classList.remove('active'));
+        if (btn) {
+          const tile = btn.closest('.service-tile');
+          if (tile) tile.classList.add('active');
+        }
+        if (svc) {
+          const orderCard = document.getElementById("orderCard");
+          if (orderCard) orderCard.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+      }
+
+      function wireServiceTiles(){
+        document.querySelectorAll(".select-service-btn").forEach(btn => {
+          const raw = btn.getAttribute("data-service") || "{}";
+          let svc = null;
+          try { svc = JSON.parse(raw); } catch(e){ svc = null; }
+          btn.addEventListener("click", function(){
+            if (!svc) return;
+            setSelectedService(svc, btn);
+          });
+        });
+      }
+
+      if (orderOfferEl) {
+        orderOfferEl.addEventListener("change", function(){
+          const idx = Number(orderOfferEl.value);
+          const of = selectedService && selectedService.offers ? (selectedService.offers || [])[idx] : null;
+          const amt = of ? (of.total != null ? of.total : of.amount) : 0;
+          if (orderAmountEl) orderAmountEl.textContent = money(amt);
+        });
+      }
+
+      if (orderPhoneEl) {
+        orderPhoneEl.addEventListener("input", function(){
+          orderPhoneEl.value = sanitizePhoneInput(orderPhoneEl.value || "");
+          setKnownNumberUi(orderPhoneEl, orderPhoneVerifyBadge, orderPhoneVerifyText, "idle", "");
+          clearTimeout(orderPhoneEl._verifyTimer);
+          if (!selectedService || !needsKnownNumberVerification(selectedService)) return;
+          if (!PHONE_RE.test(orderPhoneEl.value || "")) return;
+          orderPhoneEl._verifyTimer = setTimeout(() => {
+            verifyKnownNumber(
+              {
+                serviceId: selectedService?._id_str,
+                serviceName: selectedService?.name,
+                service_network: selectedService?.service_network,
+                network: selectedService?.network,
+                phone: orderPhoneEl.value,
+              },
+              orderPhoneEl,
+              orderPhoneVerifyBadge,
+              orderPhoneVerifyText,
+              true
+            );
+          }, 180);
+        });
+      }
+      bindClearInput(orderPhoneEl, orderPhoneClearBtn, () => {
+        setKnownNumberUi(orderPhoneEl, orderPhoneVerifyBadge, orderPhoneVerifyText, "idle", "");
+        clearTimeout(orderPhoneEl && orderPhoneEl._verifyTimer);
+      });
+
+      singleOrderModeBtn?.addEventListener("click", () => setOrderMode("single"));
+      bulkOrderModeBtn?.addEventListener("click", () => {
+        if (!bulkOrderModeBtn.disabled) setOrderMode("bulk");
+      });
+      bulkOrderPaste?.addEventListener("input", updateBulkSummary);
+
+      addBulkToCartBtn?.addEventListener("click", async function(){
+        if (!selectedService) {
+          alert("Select a service first.");
+          return;
+        }
+        const parsed = parseBulkOrders();
+        if (!parsed.valid.length || parsed.errors.length) {
+          updateBulkSummary();
+          alert(parsed.errors.length
+            ? "Please correct the highlighted bulk order issues before adding to cart."
+            : "Paste at least one order using PHONE SIZE.");
+          return;
+        }
+        const okNotice = await showSpecialServiceNotice(selectedService);
+        if (!okNotice) return;
+        addBulkToCartBtn.disabled = true;
+        const added = [];
+        for (const entry of parsed.valid) {
+          const offer = (selectedService.offers || [])[entry.offerIndex];
+          const line = {
+            serviceId: selectedService._id_str,
+            serviceName: selectedService.name,
+            service_network: selectedService.service_network,
+            network: selectedService.network,
+            phone: entry.phone,
+            value: offer.value,
+            value_obj: offer.value,
+            value_text: offerLabel(offer, selectedService.unit || ""),
+            unit: selectedService.unit || "",
+            service_category: selectedService.service_category || "",
+            amount: Number(offer.total != null ? offer.total : offer.amount || 0)
+          };
+          const knownOk = await ensureKnownNumberVerifiedForLine(line, null, null, null);
+          if (!knownOk) break;
+          const portedOk = await ensurePortedConfirmedForLine(line);
+          if (!portedOk) break;
+          if (hasDuplicate(line)) {
+            const addDuplicate = await showDuplicateModal(DUPLICATE_MSG);
+            if (!addDuplicate) continue;
+          }
+          cart.push(line);
+          added.push(line);
+        }
+        addBulkToCartBtn.disabled = false;
+        updateCartUI();
+        if (added.length === parsed.valid.length) {
+          bulkOrderPaste.value = "";
+          updateBulkSummary();
+          alert(`${added.length} bulk order${added.length === 1 ? "" : "s"} added to cart.`);
+        } else if (added.length) {
+          alert(`${added.length} order${added.length === 1 ? "" : "s"} added before validation stopped.`);
+        }
+      });
+
+      if (addToCartBtn) addToCartBtn.addEventListener("click", async function(){
+        let phone = (orderPhoneEl ? orderPhoneEl.value : "").trim();
+        phone = String(phone).replace(/\D+/g, "");
+        if (phone.length > 10) phone = phone.slice(0, 10);
+        const idx = orderOfferEl ? Number(orderOfferEl.value) : NaN;
+        const of = selectedService && selectedService.offers ? (selectedService.offers || [])[idx] : null;
+        if (!selectedService) {
+          alert("Select a service first.");
+          return;
+        }
+        if (!phone || !of || isNaN(idx)) {
+          alert("Enter phone number and choose an offer.");
+          return;
+        }
+        if (!PHONE_RE.test(phone)) {
+          alert("Phone must be 10 digits (e.g. 0530393625).");
+          return;
+        }
+        const amt = of.total != null ? of.total : of.amount;
+        if (selectedService.service_category === "results_checker" && cart.length) {
+          alert("Please purchase the Results Checker separately from other services.");
+          return;
+        }
+        const line = {
+          serviceId: selectedService._id_str,
+          serviceName: selectedService.name,
+          service_network: selectedService.service_network,
+          network: selectedService.network,
+          phone: phone,
+          value: of.value,
+          value_obj: of.value,
+          value_text: offerLabel(of, selectedService ? selectedService.unit : ""),
+          unit: selectedService ? selectedService.unit : "",
+          service_category: selectedService ? selectedService.service_category : "",
+          amount: Number(amt || 0)
+        };
+        const okNotice = await showSpecialServiceNotice(selectedService);
+        if (!okNotice) return;
+        const knownOk = await ensureKnownNumberVerifiedForLine(line, orderPhoneEl, orderPhoneVerifyBadge, orderPhoneVerifyText);
+        if (!knownOk) return;
+        const ok = await ensurePortedConfirmedForLine(line, orderPhoneEl);
+        if (!ok) return;
+        if (hasDuplicate(line)) {
+          const okDup = await showDuplicateModal(DUPLICATE_MSG);
+          if (!okDup) return;
+        }
+        cart.push(line);
+        updateCartUI();
+        if (orderPhoneEl) orderPhoneEl.value = "";
+        if (orderPhoneEl && typeof orderPhoneEl._syncClearButton === "function") orderPhoneEl._syncClearButton();
+        if (orderOfferEl) {
+          orderOfferEl.value = "";
+        }
+        if (orderAmountEl) orderAmountEl.textContent = "0.00";
+      });
+
+      if (checkoutBtn) checkoutBtn.addEventListener("click", async function(){
+        if (checkoutBusy || !cart.length) return;
+        const knownOk = await ensureKnownNumberVerifiedForCart(cart);
+        if (!knownOk) return;
+        const portedOk = await ensurePortedConfirmedForCart(cart);
+        if (!portedOk) return;
+        if (!PAYSTACK_PK){
+          alert("Payment is not configured. Please contact support.");
+          return;
+        }
+        const total = cart.reduce((sum, it) => sum + Number(it.amount || 0), 0);
+        const paystackTotals = calcPaystackTotals(total);
+        if (total <= 0){
+          alert("Cart total must be greater than zero.");
+          return;
+        }
+
+        const reference = makePublicReference();
+        activePaymentReference = reference;
+        checkoutBusy = true;
+        if (checkoutBtn) checkoutBtn.disabled = true;
+
+        try {
+          await createPaymentSession(reference);
+        } catch (err) {
+          checkoutBusy = false;
+          if (checkoutBtn) checkoutBtn.disabled = false;
+          alert((err && err.message) || "Could not start payment session.");
+          return;
+        }
+
+        const primaryPhone = cart.length ? cart[0].phone : "";
+        const handler = PaystackPop.setup({
+          key: PAYSTACK_PK,
+          ref: reference,
+          email: generatePaystackEmail(primaryPhone),
+          amount: Math.round(paystackTotals.total * 100),
+          currency: "GHS",
+          metadata: {
+            public_checkout: true,
+            customer_phone: primaryPhone,
+            total_expected_ghs: total,
+            paystack_total_expected_ghs: paystackTotals.total
+          },
+          callback: function(response){
+            activePaymentReference = response.reference || reference;
+            // Preserve the paid items for order creation, then empty the visible
+            // cart as soon as Paystack confirms that payment was completed.
+            const paidCart = cart.slice();
+            clearCartState();
+            setRedirecting(true);
+            setPaymentCard("processing", "Confirming Your Order", "Payment received. Confirming your order...", "", "");
+            fetch(PUBLIC_CHECKOUT_URL, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                cart: paidCart,
+                paystack: { reference: activePaymentReference }
+              })
+            })
+              .then(r => r.json().then(j => ({ ok: r.ok, json: j })).catch(() => ({ ok: r.ok, json: {} })))
+              .then(res => handleFinalizeResponse(res.json || {}, activePaymentReference))
+              .catch(() => {
+                handleFinalizeResponse({
+                  status: "recoverable_failure",
+                  message: "Payment may have succeeded, but the site could not finish processing your order. Do not pay again."
+                }, activePaymentReference);
+              })
+              .finally(() => {
+                checkoutBusy = false;
+                if (checkoutBtn) checkoutBtn.disabled = false;
+              });
+          },
+          onClose: function(){
+            checkoutBusy = false;
+            if (checkoutBtn) checkoutBtn.disabled = false;
+          }
+        });
+        handler.openIframe();
+      });
+
+      if (cartList) {
+        cartList.addEventListener("click", function(e){
+          const btn = e.target.closest ? e.target.closest("button[data-remove]") : null;
+          if (!btn) return;
+          const idx = Number(btn.getAttribute("data-remove"));
+          if (!isNaN(idx)) {
+            cart.splice(idx, 1);
+            updateCartUI();
+          }
+        });
+      }
+
+      wireServiceTiles();
+      wireSpecialInfoButtons();
+      // The index-page cart lasts only for this browser tab. Closing the tab or
+      // window starts the next visit with an empty cart.
+      try { localStorage.removeItem(CART_STORAGE_KEY); } catch (e) {}
+      try {
+        const saved = JSON.parse(sessionStorage.getItem(CART_STORAGE_KEY) || "[]");
+        cart = Array.isArray(saved) ? saved : [];
+      } catch (e) {
+        cart = [];
+      }
+      setSelectedService(null);
+      updateCartUI();
+    })();
+  </script>
+  <script>
+    // Status form helper
+    window.gotoStatus = function(ev){
+      ev.preventDefault();
+      const inp = document.getElementById('statusPhone');
+      if (!inp) return false;
+      let d = (inp.value||'').replace(/\D+/g,'');
+      if (d.startsWith('233')) d = '0'+d.slice(3);
+      if (d.length > 10) d = d.slice(-10);
+      window.location.href = '/check-status?phone='+encodeURIComponent(d);
+      return false;
+    };
+
+    // Reveal animation
+    const container = document.querySelector('#services');
+    if(container){
+      const els = container.querySelectorAll('.reveal-up');
+      if(!('IntersectionObserver' in window) || !els.length){
+        els.forEach(el => el.classList.add('reveal-in'));
+      }else{
+        const io = new IntersectionObserver((entries)=>{
+          entries.forEach((entry)=>{
+            if(entry.isIntersecting){
+              const idx = Array.prototype.indexOf.call(els, entry.target);
+              entry.target.style.transitionDelay=(idx%6)*60+'ms';
+              entry.target.classList.add('reveal-in');
+              io.unobserve(entry.target);
+            }
+          });
+        },{threshold:.15});
+        els.forEach(el => io.observe(el));
+      }
+    }
+
+    // Footer year
+    document.getElementById('yearNow').textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>

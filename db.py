@@ -14,9 +14,5 @@ try:
 except Exception as e:
     print("MongoDB connection error:", e)
 
-<<<<<<< HEAD
-#\\ Access your database
-=======
 # Access your database
->>>>>>> origin/main
 db = client["sirhans1"]

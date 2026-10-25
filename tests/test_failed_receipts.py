@@ -1,0 +1,236 @@
+import importlib.util
+from pathlib import Path
+import sys
+import types
+import unittest
+from unittest.mock import patch
+from uuid import uuid4
+
+import mongomock
+from bson import ObjectId
+from flask import Flask, render_template
+
+ROOT = Path(__file__).resolve().parents[1]
+
+
+class FailedReceiptTests(unittest.TestCase):
+    def setUp(self):
+        self.db = mongomock.MongoClient().test
+        with patch.dict(sys.modules, {'db': types.SimpleNamespace(db=self.db)}):
+            spec = importlib.util.spec_from_file_location('receipt_test_module', ROOT / 'failed_receipts.py')
+            self.module = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(self.module)
+        self.app = Flask(__name__, template_folder=str(ROOT / 'templates'))
+        self.app.config.update(TESTING=True, SECRET_KEY='test')
+        self.app.register_blueprint(self.module.failed_receipts_bp)
+        self.app.add_url_rule('/login', 'login.login', lambda: 'login')
+        self.app.add_url_rule('/logout', 'login.logout', lambda: 'logout')
+        self.app.context_processor(lambda: {'can_access_page': lambda key: key == 'failed_receipts', 'admin_page_catalog': []})
+        self.client = self.app.test_client()
+        with self.client.session_transaction() as session:
+            session['receipt_csrf'] = 'test-token'
+        self.services = [{'_id_str': 'mtn', 'name': 'MTN', 'image_url': 'https://example.com/mtn.png',
+                          'offers': [{'value_text': '5GB', 'total': 30}, {'value_text': '2GB', 'total': 15}]}]
+        self.payload = {'csrf_token': 'test-token', 'source': 'index', 'submission_id': str(uuid4()),
+                        'catalog_token': self.catalog_token(),
+                        'entries': [{'phone': '0240000000', 'service_id': 'mtn', 'offer_index': 0},
+                                    {'phone': '+233200000000', 'service_id': 'mtn', 'offer_index': 1}]}
+
+    def catalog_token(self, source='index', slug=''):
+        with self.app.app_context():
+            return self.module.receipt_catalog(self.services, source, slug)['token']
+
+    def test_batch_and_retry_are_counted_once(self):
+        self.assertEqual(self.client.post('/api/failed-receipts', json=self.payload).status_code, 201)
+        self.assertEqual(self.client.post('/api/failed-receipts', json=self.payload).status_code, 201)
+        self.assertEqual(self.db.failed_receipts.count_documents({}), 1)
+        record = self.db.failed_receipts.find_one()
+        self.assertEqual(record['entry_count'], 2)
+        self.assertEqual(record['entries'][1]['phone'], '0200000000')
+        self.assertEqual(record['source'], 'index')
+
+    def test_validation_is_atomic_and_csrf_required(self):
+        self.payload['entries'][1]['phone'] = 'invalid'
+        self.assertEqual(self.client.post('/api/failed-receipts', json=self.payload).status_code, 400)
+        self.assertEqual(self.db.failed_receipts.count_documents({}), 0)
+        self.payload['csrf_token'] = 'wrong'
+        self.assertEqual(self.client.post('/api/failed-receipts', json=self.payload).status_code, 403)
+        self.assertEqual(self.client.post('/api/failed-receipts', json=[]).status_code, 400)
+
+    def assert_duplicate(self):
+        response = self.client.post('/api/failed-receipts', json=self.payload)
+        self.assertEqual(response.status_code, 409)
+        self.assertEqual(response.json['code'], 'duplicate_receipt')
+        self.assertEqual(response.json['message'],
+                         'This issue has Already Being Submitted,Please wait , we are working on it')
+
+    def test_same_phone_and_service_blocked_even_with_different_offer(self):
+        self.assertEqual(self.client.post('/api/failed-receipts', json=self.payload).status_code, 201)
+        self.payload['submission_id'] = str(uuid4())
+        self.payload['entries'] = [{'phone': '+233240000000', 'service_id': 'mtn', 'offer_index': 1}]
+        self.assert_duplicate()
+        self.assertEqual(self.db.failed_receipts.count_documents({}), 1)
+
+    def test_same_phone_with_different_service_is_allowed(self):
+        self.services[0]['name'] = 'MTN NORMAL'
+        self.services.append({'_id_str': 'express', 'name': 'MTN EXPRESS',
+                              'offers': [{'value_text': '5GB', 'total': 30}]})
+        self.payload['catalog_token'] = self.catalog_token()
+        self.payload['entries'] = [{'phone': '0599205294', 'service_id': 'mtn', 'offer_index': 0},
+                                   {'phone': '0599205294', 'service_id': 'express', 'offer_index': 0}]
+        self.assertEqual(self.client.post('/api/failed-receipts', json=self.payload).status_code, 201)
+        self.payload['submission_id'] = str(uuid4())
+        self.assert_duplicate()
+        self.assertEqual(self.db.failed_receipts.count_documents({}), 1)
+
+    def test_duplicates_in_same_batch_reject_entire_batch(self):
+        self.payload['entries'].append({'phone': '+233240000000', 'service_id': 'mtn', 'offer_index': 1})
+        self.assert_duplicate()
+        self.assertEqual(self.db.failed_receipts.count_documents({}), 0)
+
+    def test_duplicate_check_crosses_pages_and_uses_service_name(self):
+        self.assertEqual(self.client.post('/api/failed-receipts', json=self.payload).status_code, 201)
+        self.db.stores.insert_one({'slug': 'ama', 'name': 'Ama Store'})
+        self.services[0].update(_id_str='store-mtn', name='  mtn  ')
+        self.payload.update(source='store', store_slug='ama', submission_id=str(uuid4()),
+                            catalog_token=self.catalog_token('store', 'ama'))
+        self.payload['entries'] = [{'phone': '0240000000', 'service_id': 'store-mtn', 'offer_index': 0}]
+        self.assert_duplicate()
+        self.assertEqual(self.db.failed_receipts.count_documents({}), 1)
+
+    def test_older_reports_and_completed_reports_also_block_duplicates(self):
+        self.db.failed_receipts.insert_one({'entries': [
+            {'phone': '0240000000', 'service_name': 'MTN', 'status': 'resolved'}]})
+        self.assert_duplicate()
+        self.assertEqual(self.db.failed_receipts.count_documents({}), 1)
+
+    def test_phone_and_service_must_match_the_same_previous_entry(self):
+        self.db.failed_receipts.insert_one({'entries': [
+            {'phone': '0240000000', 'service_name': 'MTN EXPRESS'},
+            {'phone': '0551234567', 'service_name': 'MTN'}]})
+        self.assertEqual(self.client.post('/api/failed-receipts', json=self.payload).status_code, 201)
+
+    def test_simultaneous_duplicate_insert_returns_popup_code(self):
+        from pymongo.errors import DuplicateKeyError
+        with patch.object(self.module.reports_col, 'insert_one', side_effect=DuplicateKeyError('duplicate issue')):
+            self.assert_duplicate()
+
+    def test_batch_limit_and_changed_retry_are_rejected(self):
+        self.payload['entries'] *= 26
+        self.assertEqual(self.client.post('/api/failed-receipts', json=self.payload).status_code, 400)
+        self.payload['entries'] = [{'phone': '0240000000', 'service_id': 'mtn', 'offer_index': 0}]
+        self.assertEqual(self.client.post('/api/failed-receipts', json=self.payload).status_code, 201)
+        self.payload['entries'][0]['offer_index'] = 1
+        self.assertEqual(self.client.post('/api/failed-receipts', json=self.payload).status_code, 409)
+        self.assertEqual(self.db.failed_receipts.find_one()['entries'][0]['offer'], '5GB')
+
+    def test_store_metadata_comes_from_database(self):
+        owner = ObjectId()
+        self.db.users.insert_one({'_id': owner, 'first_name': 'Ama', 'last_name': 'Mensah'})
+        self.db.stores.insert_one({'slug': 'ama', 'name': 'Ama Store', 'owner_id': str(owner)})
+        self.payload.update(source='store', store_slug='ama', store_name='Forged name')
+        self.payload['catalog_token'] = self.catalog_token('store', 'ama')
+        self.assertEqual(self.client.post('/api/failed-receipts', json=self.payload).status_code, 201)
+        report = self.db.failed_receipts.find_one()
+        self.assertEqual(report['store_name'], 'Ama Store')
+        self.assertEqual(report['store_owner_name'], 'Ama Mensah')
+        self.assertEqual(report['customer_name'], 'Guest buyer')
+        self.payload.update(store_slug='missing', submission_id=str(uuid4()))
+        self.payload['catalog_token'] = self.catalog_token('store', 'missing')
+        self.assertEqual(self.client.post('/api/failed-receipts', json=self.payload).status_code, 404)
+
+    def test_admin_page_access_totals_and_copy_buttons(self):
+        self.client.post('/api/failed-receipts', json=self.payload)
+        self.assertEqual(self.client.get('/admin/failed-receipts').status_code, 302)
+        with self.client.session_transaction() as session:
+            session['role'] = 'admin'
+        response = self.client.get('/admin/failed-receipts')
+        self.assertEqual(response.status_code, 200)
+        html = response.get_data(as_text=True)
+        self.assertIn('Total sent (purchases)', html)
+        self.assertIn('data-phone="0240000000"', html)
+        self.assertIn('Index page', html)
+        self.assertIn('Guest buyer', html)
+        self.assertIn('<strong>MTN</strong>', html)
+
+    def test_only_page_services_and_service_offers_are_accepted(self):
+        self.payload['entries'][0]['service_id'] = 'another-store-service'
+        self.assertEqual(self.client.post('/api/failed-receipts', json=self.payload).status_code, 400)
+        self.payload['entries'][0]['service_id'] = 'mtn'
+        self.payload['entries'][0]['offer_index'] = 99
+        self.assertEqual(self.client.post('/api/failed-receipts', json=self.payload).status_code, 400)
+        self.payload['entries'][0]['offer_index'] = 0
+        self.payload.update(source='store', store_slug='ama')
+        self.assertEqual(self.client.post('/api/failed-receipts', json=self.payload).status_code, 400)
+        self.assertEqual(self.db.failed_receipts.count_documents({}), 0)
+
+    def test_catalog_uses_each_pages_normalized_offers(self):
+        with self.app.app_context():
+            choices = self.module.receipt_catalog(self.services, 'index')['services']
+            self.assertEqual(choices[0]['image_url'], 'https://example.com/mtn.png')
+            self.assertEqual(choices[0]['offers'][0], {'label': '5GB', 'amount': 30, 'value': None})
+            store_services = [{'_id_str': 'telecel', 'name': 'Telecel', 'offers': [{'value_text': '10GB', 'total': 50}]}]
+            choices = self.module.receipt_catalog(store_services, 'store', 'ama')['services']
+            self.assertEqual([service['id'] for service in choices], ['telecel'])
+            self.assertEqual(choices[0]['offers'][0]['label'], '10GB')
+
+    def test_shared_form_renders_for_both_sources(self):
+        for source in ['index', 'store']:
+            with self.app.test_request_context('/'):
+                html = render_template('failed_receipt_form.html', receipt_source=source, store={'slug': 'ama'}, services=self.services)
+                self.assertIn('Add another', html)
+                self.assertIn(f'source:"{source}"', html)
+                self.assertIn('Submit', html)
+                self.assertIn('receipt-service-trigger', html)
+                self.assertIn('<select class="form-select receipt-offer"', html)
+                self.assertNotIn('type="text"', html)
+                self.assertIn('Check Status', html)
+                self.assertIn('/failed-receipts/status', html)
+                self.assertIn("if (result.code === 'duplicate_receipt') window.alert(result.message);", html)
+
+    def test_public_status_matches_number_and_hides_other_bulk_entries(self):
+        self.client.post('/api/failed-receipts', json=self.payload)
+        self.db.failed_receipts.update_one({}, {'$set': {
+            'entries.0.status': 'declined', 'entries.1.offer': 'PRIVATE-OFFER',
+            'customer_name': 'PRIVATE-CUSTOMER'}})
+        response = self.client.get('/failed-receipts/status', query_string={'phone': '+233240000000'})
+        self.assertEqual(200, response.status_code)
+        html = response.get_data(as_text=True)
+        self.assertIn('Declined', html)
+        self.assertIn('5GB', html)
+        self.assertIn('1 report(s) found', html)
+        self.assertNotIn('PRIVATE-OFFER', html)
+        self.assertNotIn('PRIVATE-CUSTOMER', html)
+        self.assertEqual('no-store', response.headers['Cache-Control'])
+        self.assertEqual(400, self.client.get('/failed-receipts/status?phone=invalid').status_code)
+        self.assertIn('No Failed/No Receipt reports', self.client.get(
+            '/failed-receipts/status?phone=0551234567').get_data(as_text=True))
+
+    def test_declined_status_can_be_saved_and_filtered_separately(self):
+        self.client.post('/api/failed-receipts', json=self.payload)
+        with self.client.session_transaction() as session:
+            session.update(role='admin', user_id=str(ObjectId()))
+        report = self.db.failed_receipts.find_one()
+        response = self.client.post(f'/admin/failed-receipts/{report["_id"]}/0/status',
+            data={'csrf_token': 'test-token', 'status': 'declined'})
+        self.assertEqual(302, response.status_code)
+        self.assertEqual('declined', self.db.failed_receipts.find_one()['entries'][0]['status'])
+        html = self.client.get('/admin/failed-receipts?status=declined').get_data(as_text=True)
+        self.assertIn('Declined (1)', html)
+        self.assertIn('Unresolved (1)', html)
+        self.assertNotIn('0200000000', html)
+        for status in ('rejected', 'cancelled'):
+            with self.subTest(status=status):
+                response = self.client.post(f'/admin/failed-receipts/{report["_id"]}/0/status',
+                    data={'csrf_token': 'test-token', 'status': status})
+                self.assertEqual(302, response.status_code)
+                self.assertEqual(status, self.db.failed_receipts.find_one()['entries'][0]['status'])
+                html = self.client.get('/admin/failed-receipts', query_string={'status': status}).get_data(as_text=True)
+                self.assertIn(f'{status.capitalize()} (1)', html)
+                self.assertIn('Unresolved (1)', html)
+                self.assertIn(status.capitalize(), self.client.get(
+                    '/failed-receipts/status?phone=0240000000').get_data(as_text=True))
+
+
+if __name__ == '__main__':
+    unittest.main()

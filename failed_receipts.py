@@ -13,6 +13,7 @@ from db import db
 
 failed_receipts_bp = Blueprint('failed_receipts', __name__)
 reports_col = db['failed_receipts']
+<<<<<<< HEAD
 DUPLICATE_MESSAGE = 'This issue has Already Being Submitted,Please wait , we are working on it'
 
 
@@ -32,6 +33,8 @@ def receipt_retry_response(existing, report):
             or any(existing.get(key) != report.get(key) for key in ('source', 'store_slug'))):
         return jsonify(success=False, message='Please refresh before submitting a new report.'), 409
     return jsonify(success=True, message=f'{len(report["entries"])} receipt report(s) sent to admin.'), 201
+=======
+>>>>>>> origin/main
 
 
 def receipt_catalog(services, source, slug=''):
@@ -140,6 +143,7 @@ def submit():
               'store_owner_name': user_name(owner) if store else '',
               'store_owner_id': (store or {}).get('owner_id')}
     try:
+<<<<<<< HEAD
         # Preserve safe retries after a lost response, without creating a report twice.
         existing = reports_col.find_one({'_id': submission_id})
         if existing:
@@ -165,6 +169,15 @@ def submit():
         if existing:
             return receipt_retry_response(existing, report)
         return duplicate_receipt_response()
+=======
+        reports_col.insert_one(report)
+    except DuplicateKeyError:
+        existing = reports_col.find_one({'_id': submission_id}) or {}
+        identity = lambda rows: [tuple(row.get(key) for key in ('phone', 'service_id', 'offer_index', 'offer')) for row in rows]
+        if (identity(existing.get('entries', [])) != identity(clean)
+                or any(existing.get(key) != report.get(key) for key in ('source', 'store_slug'))):
+            return jsonify(success=False, message='Please refresh before submitting a new report.'), 409
+>>>>>>> origin/main
     except PyMongoError:
         return jsonify(success=False, message='Unable to save your report. Please try again.'), 503
     return jsonify(success=True, message=f'{len(clean)} receipt report(s) sent to admin.'), 201

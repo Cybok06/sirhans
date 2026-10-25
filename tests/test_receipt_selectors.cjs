@@ -16,10 +16,15 @@ function element(){
     setAttribute(name, value){this[name]=value;},
     add(child){this.children.push(child);},focus(){this.focused=true;}};
 }
+<<<<<<< HEAD
 function browser(response){
   const ids = Object.fromEntries(['failedReceiptForm','receiptEntries','addReceiptEntry','submitReceiptEntries','receiptFeedback'].map(id => [id,element()]));
   ids.alerts=[];
   ids.failedReceiptForm.reportValidity=()=>true;
+=======
+function browser(){
+  const ids = Object.fromEntries(['failedReceiptForm','receiptEntries','addReceiptEntry','submitReceiptEntries','receiptFeedback'].map(id => [id,element()]));
+>>>>>>> origin/main
   function row(){
     const fields={};
     for(const key of ['entry-title','remove','phone','offer','phone-label','offer-label','service-label','service-trigger','service-menu','service-caption','service']) fields[`.receipt-${key}`]=element();
@@ -29,8 +34,12 @@ function browser(response){
   }
   ids.receiptEntryTemplate={content:{cloneNode:row}};
   const context={document:{getElementById:id=>ids[id],createElement:element,createDocumentFragment:element,addEventListener:(name,fn)=>fn()},
+<<<<<<< HEAD
     Option:function(text,value){this.text=text;this.value=value;},crypto:{randomUUID:()=> 'test-id'},
     window:{alert:message=>ids.alerts.push(message)},fetch:async()=>response};
+=======
+    Option:function(text,value){this.text=text;this.value=value;},crypto:{randomUUID:()=> 'test-id'}};
+>>>>>>> origin/main
   const html=fs.readFileSync(path.join(__dirname,'../templates/failed_receipt_form.html'),'utf8');
   let script=html.match(/<script>([\s\S]*?)<\/script>/)[1];
   script=script.replace('{{ receipt_choices.services|tojson }}',JSON.stringify(services)).replace(/\{\{[\s\S]*?\}\}/g,'null');
@@ -65,6 +74,7 @@ test('multiple entries keep their selections independent',()=>{
   assert.equal(ids.receiptEntries.children[0].querySelector('.receipt-offer').children.length,3);
   assert.equal(ids.receiptEntries.children[1].querySelector('.receipt-offer').children.length,2);
 });
+<<<<<<< HEAD
 
 test('duplicate response shows popup and keeps the entered purchase available',async()=>{
   const message='This issue has Already Being Submitted,Please wait , we are working on it';
@@ -80,3 +90,5 @@ test('duplicate response shows popup and keeps the entered purchase available',a
   assert.equal(row.querySelector('.receipt-phone').value,'0599205294');
   assert.equal(ids.submitReceiptEntries.disabled,false);
 });
+=======
+>>>>>>> origin/main

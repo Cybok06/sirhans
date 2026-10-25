@@ -57,6 +57,7 @@ class FailedReceiptTests(unittest.TestCase):
         self.assertEqual(self.client.post('/api/failed-receipts', json=self.payload).status_code, 403)
         self.assertEqual(self.client.post('/api/failed-receipts', json=[]).status_code, 400)
 
+<<<<<<< HEAD
     def assert_duplicate(self):
         response = self.client.post('/api/failed-receipts', json=self.payload)
         self.assertEqual(response.status_code, 409)
@@ -115,6 +116,8 @@ class FailedReceiptTests(unittest.TestCase):
         with patch.object(self.module.reports_col, 'insert_one', side_effect=DuplicateKeyError('duplicate issue')):
             self.assert_duplicate()
 
+=======
+>>>>>>> origin/main
     def test_batch_limit_and_changed_retry_are_rejected(self):
         self.payload['entries'] *= 26
         self.assertEqual(self.client.post('/api/failed-receipts', json=self.payload).status_code, 400)
@@ -186,7 +189,10 @@ class FailedReceiptTests(unittest.TestCase):
                 self.assertNotIn('type="text"', html)
                 self.assertIn('Check Status', html)
                 self.assertIn('/failed-receipts/status', html)
+<<<<<<< HEAD
                 self.assertIn("if (result.code === 'duplicate_receipt') window.alert(result.message);", html)
+=======
+>>>>>>> origin/main
 
     def test_public_status_matches_number_and_hides_other_bulk_entries(self):
         self.client.post('/api/failed-receipts', json=self.payload)

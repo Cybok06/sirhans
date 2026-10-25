@@ -27,7 +27,10 @@
     <form id="failedReceiptForm" class="d-flex flex-column overflow-hidden">
       <div class="modal-body">
         <p>Enter the recipient phone number, then select the service and offer purchased. Add another entry to report multiple purchases together.</p>
+<<<<<<< HEAD
         <p class="small text-muted">Submit each phone number only once per service. If you already reported it, please wait for admin to work on it.</p>
+=======
+>>>>>>> origin/main
         <div id="receiptFeedback" class="alert d-none" role="status" aria-live="polite"></div>
         <div id="receiptEntries" class="d-grid gap-3"></div>
         <button type="button" class="btn btn-outline-secondary mt-3" id="addReceiptEntry"><i class="bi bi-plus-lg me-1"></i> Add another</button>
@@ -129,7 +132,10 @@ document.addEventListener('DOMContentLoaded', () => {
         store_slug:{{ (store.slug if receipt_source == 'store' else '')|tojson }}, submission_id:submissionId, entries:values
       })});
       const result = await response.json();
+<<<<<<< HEAD
       if (result.code === 'duplicate_receipt') window.alert(result.message);
+=======
+>>>>>>> origin/main
       if (!response.ok || !result.success) throw new Error(result.message || 'Unable to submit. Please try again.');
       feedback.className='alert alert-success'; feedback.textContent=result.message;
       entries.replaceChildren(); busy = false; addRow();

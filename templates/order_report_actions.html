@@ -1,0 +1,33 @@
+<div class="d-flex flex-wrap align-items-center gap-2">
+  <a href="/check-status{% if report_store_slug %}?store={{ report_store_slug|urlencode }}{% endif %}" class="btn btn-outline-primary btn-cta">Check Order Status</a>
+  <button type="button" class="btn btn-warning btn-cta" data-bs-toggle="modal" data-bs-target="#orderReportGuideModal">Report Issue</button>
+  <a href="https://wa.me/233550455256" class="btn btn-success btn-cta" target="_blank" rel="noopener noreferrer" aria-label="Chat on WhatsApp with +233550455256"><i class="bi bi-whatsapp me-1" aria-hidden="true"></i>WhatsApp</a>
+</div>
+<div class="modal fade" id="orderReportGuideModal" tabindex="-1" aria-labelledby="orderReportGuideTitle" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
+    <div class="modal-content order-report-guide p-0">
+      <div class="modal-header">
+        <h2 class="modal-title h5 fw-bold" id="orderReportGuideTitle">HOW TO REPORT YOUR ORDER</h2>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+  <p class="fw-bold mb-2">🔎 FIRST, CHECK YOUR ORDER STATUS!</p>
+  <div class="row g-3">
+    <div class="col-md-6">
+      <p class="fw-bold mb-1">🔴 RED NO RECEIPT BUTTON</p>
+      <p>Have you paid, but your order is not showing on the website for that particular date?<br>👉 After checking your order status, click the RED NO RECEIPT BUTTON to request a replacement.</p>
+      <button type="button" class="btn failed-receipt-button" data-bs-toggle="modal" data-bs-target="#failedReceiptModal" data-report-type="no_receipt">No Receipt</button>
+    </div>
+    <div class="col-md-6">
+      <p class="fw-bold mb-1">🟢 GREEN REPORT BUTTON</p>
+      <p>Is your order showing DELIVERED, or have you received your receipt, but your data has not arrived after 24 hours?<br>👉 Click the GREEN REPORT BUTTON to report the problem.</p>
+      <button type="button" class="btn delivery-report-button" data-bs-toggle="modal" data-bs-target="#failedReceiptModal" data-report-type="delivery_issue">Report</button>
+    </div>
+  </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>

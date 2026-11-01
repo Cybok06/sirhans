@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Order reports - Admin</title>
+<style>body{background:#f6f8fb}.receipt-report{border:1px solid #e2e8f0;border-radius:16px;background:#fff;padding:1.2rem;margin-bottom:1rem}.receipt-meta{display:flex;flex-wrap:wrap;gap:.7rem 1.5rem;color:#475569}.receipt-purchase{display:flex;flex-wrap:wrap;align-items:center;gap:1rem;padding:.8rem 0;border-top:1px solid #e2e8f0}.receipt-purchase .offer{flex:1;min-width:120px;overflow-wrap:anywhere}.receipt-report h2{overflow-wrap:anywhere}</style></head>
+<body>{% include 'admin_sidebar.html' %}
+<main class="customer-content">
+  <h1 class="h3 fw-bold">Order reports</h1>
+  <p class="text-muted">Buyer reports from the index page and stores.</p>
+  <form method="get" action="{{ url_for('failed_receipts.admin_page') }}" class="receipt-report" aria-label="Filter order reports">
+    <input type="hidden" name="report_type" value="{{ type_filter }}">
+    <input type="hidden" name="status" value="{{ status_filter }}">
+    <div class="row g-3 align-items-end">
+      <div class="col-sm-6 col-lg-2"><label for="reportDateFrom" class="form-label">From date</label><input id="reportDateFrom" class="form-control" type="date" name="date_from" value="{{ date_from }}"></div>
+      <div class="col-sm-6 col-lg-2"><label for="reportDateTo" class="form-label">To date</label><input id="reportDateTo" class="form-control" type="date" name="date_to" value="{{ date_to }}"></div>
+      <div class="col-sm-6 col-lg-3"><label for="reportService" class="form-label">Service</label><select id="reportService" class="form-select" name="service"><option value="">All services</option>{% for name in service_options %}<option value="{{ name }}" {% if service_filter == name %}selected{% endif %}>{{ name }}</option>{% endfor %}</select></div>
+      <div class="col-sm-6 col-lg-3"><label for="reportPhone" class="form-label">Phone number</label><input id="reportPhone" class="form-control" type="search" inputmode="tel" name="phone" value="{{ phone_filter }}" placeholder="Full or partial phone number" maxlength="30"></div>
+      <div class="col-lg-2 d-flex gap-2"><button type="submit" class="btn btn-primary">Filter</button><a href="{{ url_for('failed_receipts.admin_page') }}" class="btn btn-outline-secondary">Clear</a></div>
+    </div>
+    <p class="small text-muted mt-2 mb-0">Filter by submission date (Ghana time). Use the same From and To date for a single day.</p>
+  </form>
+  {% if filter_error %}<div class="alert alert-danger" role="alert">{{ filter_error }}</div>{% endif %}
+  {% with messages = get_flashed_messages(with_categories=true) %}{% for category, message in messages %}<div class="alert alert-{{ category }}" role="status">{{ message }}</div>{% endfor %}{% endwith %}
+  <div class="d-flex flex-wrap gap-3 mb-4"><div class="receipt-report mb-0"><span>Total sent (purchases)</span><strong class="d-block fs-2">{{ total }}</strong></div><div class="receipt-report mb-0"><span>Total submissions</span><strong class="d-block fs-2">{{ total_batches }}</strong></div></div>
+  <div id="copyFeedback" class="small text-success mb-2" role="status" aria-live="polite"></div>
+  <div class="d-flex flex-wrap gap-2 mb-3" aria-label="Report type filters">
+    <a class="btn btn-outline-secondary {% if not type_filter %}active{% endif %}" href="{{ filter_url(report_type='') }}">All report types</a>
+    <a class="btn btn-outline-danger {% if type_filter == 'no_receipt' %}active{% endif %}" href="{{ filter_url(status=status_filter, report_type='no_receipt') }}">🔴 No Receipt</a>
+    <a class="btn btn-outline-success {% if type_filter == 'delivery_issue' %}active{% endif %}" href="{{ filter_url(status=status_filter, report_type='delivery_issue') }}">🟢 Report — Data Not Received</a>
+  </div>
+  <div class="d-flex flex-wrap gap-2 mb-3">
+    <a class="btn btn-outline-secondary {% if not status_filter %}active{% endif %}" href="{{ filter_url(status='') }}">All ({{ total }})</a>
+    <a class="btn btn-outline-warning {% if status_filter == 'unresolved' %}active{% endif %}" href="{{ filter_url(status='unresolved', report_type=type_filter) }}">Unresolved ({{ unresolved }})</a>
+    <a class="btn btn-outline-success {% if status_filter == 'resolved' %}active{% endif %}" href="{{ filter_url(status='resolved', report_type=type_filter) }}">Resolved ({{ resolved }})</a>
+    <a class="btn btn-outline-danger {% if status_filter == 'declined' %}active{% endif %}" href="{{ filter_url(status='declined', report_type=type_filter) }}">Declined ({{ declined }})</a>
+    <a class="btn btn-outline-danger {% if status_filter == 'rejected' %}active{% endif %}" href="{{ filter_url(status='rejected', report_type=type_filter) }}">Rejected ({{ rejected }})</a>
+    <a class="btn btn-outline-secondary {% if status_filter == 'cancelled' %}active{% endif %}" href="{{ filter_url(status='cancelled', report_type=type_filter) }}">Cancelled ({{ cancelled }})</a>
+  </div>
+  {% for report in reports %}
+  <article class="receipt-report">
+    <h2 class="h5 fw-bold">{% if report.source == 'store' %}{{ report.store_name }} <span class="badge bg-primary">Store page</span>{% else %}Index page <span class="badge bg-secondary">Index</span>{% endif %}</h2>
+    <p><span class="badge {% if report.get('report_type', 'no_receipt') == 'delivery_issue' %}bg-success">🟢 Report — Data Not Received{% else %}bg-danger">🔴 No Receipt{% endif %}</span></p>
+    <div class="receipt-meta mb-3">
+      {% if report.source == 'store' %}<span>Store owner: <strong>{{ report.store_owner_name }}</strong></span>{% endif %}
+      <span>Customer: <strong>{{ report.customer_name }}</strong></span>
+      <span>{{ report.submitted_at.strftime('%d %b %Y, %H:%M') }} UTC</span><span>{{ report.entry_count }} purchase(s)</span>
+    </div>
+    {% for entry in report.entries if entry.visible %}
+    <div class="receipt-purchase">
+      <div><span class="small text-muted d-block">Phone number</span><strong>{{ entry.phone }}</strong> <button class="btn btn-sm btn-outline-primary receipt-copy" type="button" data-phone="{{ entry.phone }}" aria-label="Copy phone number {{ entry.phone }}"><i class="bi bi-copy"></i> Copy</button></div>
+      <div class="offer"><span class="small text-muted d-block">Service / GB/Offer purchased</span>{% if entry.service_name %}<strong>{{ entry.service_name }}</strong> · {% endif %}{{ entry.offer }}</div>
+      <div class="d-flex flex-wrap gap-2 align-items-center">
+        <span class="badge {% if entry.status == 'resolved' %}bg-success{% elif entry.status in ['declined', 'rejected', 'cancelled'] %}bg-danger{% else %}bg-warning text-dark{% endif %}">{{ entry.status|capitalize }}</span>
+        <form method="post" action="{{ url_for('failed_receipts.update_status', report_id=report._id, entry_index=entry.entry_index) }}">
+          <input type="hidden" name="csrf_token" value="{{ receipt_csrf }}">
+          <div class="d-flex gap-2">
+            <select name="status" class="form-select form-select-sm" aria-label="Report status" {% if entry.placement_state == 'placing' %}disabled{% endif %}>
+              {% for status in ['unresolved', 'resolved', 'declined', 'rejected', 'cancelled'] %}<option value="{{ status }}" {% if entry.status == status %}selected{% endif %}>{{ status|capitalize }}</option>{% endfor %}
+            </select>
+            <button class="btn btn-sm btn-outline-secondary" {% if entry.placement_state == 'placing' %}disabled{% endif %}>Update</button>
+          </div>
+        </form>
+        {% if entry.status not in ['resolved', 'declined', 'rejected', 'cancelled'] and not entry.order_id %}
+        <form method="post" action="{{ url_for('failed_receipts.start_placement', report_id=report._id, entry_index=entry.entry_index) }}">
+          <input type="hidden" name="csrf_token" value="{{ receipt_csrf }}">
+          <button class="btn btn-primary btn-sm">{% if entry.placement_state in ['placing', 'attention', 'placed'] %}Check placement{% else %}Place Order{% endif %}</button>
+        </form>
+        {% endif %}
+      </div>
+      {% if entry.order_id %}<div class="w-100 small"><strong>Order ID:</strong> {% if can_access_page('orders') %}<a href="/admin/orders?order_id={{ entry.order_id|urlencode }}">{{ entry.order_id }}</a>{% else %}{{ entry.order_id }}{% endif %}
+        {% if entry.status not in ['resolved', 'declined', 'rejected', 'cancelled'] %}<form class="d-inline" method="post" action="{{ url_for('failed_receipts.start_placement', report_id=report._id, entry_index=entry.entry_index) }}"><input type="hidden" name="csrf_token" value="{{ receipt_csrf }}"><button class="btn btn-sm btn-outline-secondary ms-2">Check placement</button></form>{% endif %}
+      </div>{% endif %}
+      {% if entry.placement_message %}<p class="small text-muted w-100 mb-0">{{ entry.placement_message }}</p>{% endif %}
+    </div>
+    {% endfor %}
+  </article>
+  {% else %}<div class="alert alert-info">No order reports match these filters.</div>{% endfor %}
+  <nav aria-label="Receipt report pages" class="d-flex gap-3 align-items-center my-3">{% if page > 1 %}<a class="btn btn-outline-primary" href="{{ filter_url(page=page-1, status=status_filter, report_type=type_filter) }}">Previous</a>{% endif %}<span>Page {{ page }} of {{ pages }}</span>{% if page < pages %}<a class="btn btn-outline-primary" href="{{ filter_url(page=page+1, status=status_filter, report_type=type_filter) }}">Next</a>{% endif %}</nav>
+</main>
+<script>
+document.querySelectorAll('.receipt-purchase form').forEach(form => form.addEventListener('submit', event => {
+  if (form.dataset.submitting === 'true') { event.preventDefault(); return; }
+  form.dataset.submitting = 'true';
+  form.querySelectorAll('button').forEach(button => { button.disabled = true; });
+}));
+window.addEventListener('pageshow', () => {
+  document.querySelectorAll('.receipt-purchase form[data-submitting="true"]').forEach(form => {
+    delete form.dataset.submitting;
+    form.querySelectorAll('button').forEach(button => { button.disabled = false; });
+  });
+});
+document.querySelectorAll('.receipt-copy').forEach(button => button.addEventListener('click', async () => {
+  const phone = button.dataset.phone;
+  try {
+    if (navigator.clipboard && window.isSecureContext) await navigator.clipboard.writeText(phone);
+    else { const input=document.createElement('textarea'); input.value=phone; input.style.position='fixed'; input.style.opacity='0'; document.body.appendChild(input); input.select(); const copied=document.execCommand('copy'); input.remove(); if(!copied) throw new Error('copy'); }
+    document.getElementById('copyFeedback').textContent=`Copied ${phone}`;
+  } catch(error){ document.getElementById('copyFeedback').textContent=`Select and copy this number: ${phone}`; }
+}));
+</script></body></html>

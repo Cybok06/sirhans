@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>SIR HANS - View Complaints</title>
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" type="image/png" href="https://imagedelivery.net/h9fmMoa1o2c2P55TcWJGOg/305ddb8b-8208-411f-4c44-8aa45d343300/public">
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+
+  <style>
+    :root { --primary:#0EA5E9; --secondary:#0A1A2F; }
+    body {
+      background-color: #f8fafc;
+      color: var(--secondary);
+      font-family: "Segoe UI", sans-serif;
+    }
+    .text-primary { color: var(--primary) !important; }
+
+    .complaint-card {
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      background: #ffffff;
+      padding: 1.25rem;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+      transition: box-shadow 0.2s;
+    }
+
+    .complaint-card:hover {
+      box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+    }
+
+    .complaint-img {
+      max-width: 100%;
+      max-height: 160px;
+      border-radius: 8px;
+      margin-top: 0.5rem;
+      object-fit: cover;
+    }
+
+    .status-pill {
+      padding: 0.35rem 0.9rem;
+      border-radius: 999px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      display: inline-block;
+    }
+
+    .status-pending {
+      background-color: #fef3c7;
+      color: #b45309;
+    }
+
+    .status-resolved {
+      background-color: #d1fae5;
+      color: #065f46;
+    }
+
+    .status-in_progress {
+      background-color: #dbeafe;
+      color: #1d4ed8;
+    }
+
+    .status-rejected {
+      background-color: #fee2e2;
+      color: #991b1b;
+    }
+
+    .icon-title {
+      font-weight: 600;
+      font-size: 1.5rem;
+      color: #0EA5E9;
+    }
+
+    .text-small {
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+    {% include 'customer_sidebar.html' %}
+
+  <div class="container my-5">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for category, message in messages %}
+        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+          {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+      {% endfor %}
+    {% endwith %}
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h4 class="icon-title">
+        <i class="bi bi-exclamation-diamond-fill me-1"></i> Complaints
+      </h4>
+    </div>
+
+    <!-- Filter Form -->
+    <form class="row g-3 mb-4" method="GET">
+      <div class="col-md-3 col-sm-6">
+        <label class="form-label">Status</label>
+        <select name="status" class="form-select">
+          <option value="">-- All --</option>
+          <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>Pending</option>
+          <option value="in_progress" {% if status_filter == 'in_progress' %}selected{% endif %}>In Progress</option>
+          <option value="resolved" {% if status_filter == 'resolved' %}selected{% endif %}>Resolved</option>
+          <option value="rejected" {% if status_filter == 'rejected' %}selected{% endif %}>Rejected</option>
+        </select>
+      </div>
+      <div class="col-md-3 col-sm-6">
+        <label class="form-label">Start Date</label>
+        <input type="date" name="start_date" class="form-control" value="{{ start_date }}">
+      </div>
+      <div class="col-md-3 col-sm-6">
+        <label class="form-label">End Date</label>
+        <input type="date" name="end_date" class="form-control" value="{{ end_date }}">
+      </div>
+      <div class="col-md-3 col-sm-6 d-flex align-items-end">
+        <button class="btn btn-primary w-100">
+          <i class="bi bi-funnel-fill me-1"></i> Filter
+        </button>
+      </div>
+    </form>
+
+    <!-- Complaint Cards -->
+    {% if complaints %}
+      <div class="row">
+        {% for c in complaints %}
+          <div class="col-md-6 col-lg-4">
+            <div class="complaint-card mb-4">
+              <div class="d-flex justify-content-between align-items-start">
+                <div>
+                  <h6 class="mb-1 text-dark">
+                    <i class="bi bi-gear-fill me-1 text-primary"></i>{{ c.service_name }} — {{ c.offer }}
+                  </h6>
+                  {% if c.complaint_type == 'store_report' %}
+                    <div class="mb-2">
+                      <span class="badge text-bg-info">Store report · {{ c.store_name or c.store_slug }}</span>
+                      {% if c.forwarded_to_admin %}<span class="badge text-bg-success">Forwarded to Admin</span>{% endif %}
+                    </div>
+                  {% endif %}
+                  <p class="text-muted text-small mb-1">
+                    <i class="bi bi-calendar-event me-1"></i> Order Date: {{ c.order_date.strftime('%Y-%m-%d %H:%M') if c.order_date else '—' }}
+                  </p>
+                  <p class="text-small mb-1"><i class="bi bi-telephone me-1 text-success"></i>{{ c.reporter_phone or c.whatsapp or '—' }}</p>
+                  <p class="text-small">{{ c.description }}</p>
+                  {% if c.image_path %}
+                    <img src="{{ c.image_path }}" class="complaint-img" alt="Complaint Image">
+                  {% endif %}
+                </div>
+              </div>
+              <div class="mt-3 d-flex justify-content-between align-items-center">
+                <span class="status-pill status-{{ c.status }}">{{ c.status | replace('_', ' ') | capitalize }}</span>
+                <small class="text-muted"><i class="bi bi-clock me-1"></i>{{ c.submitted_at.strftime('%Y-%m-%d %H:%M') }}</small>
+              </div>
+              {% if c.complaint_type == 'store_report' %}
+                <div class="mt-3 pt-3 border-top d-flex flex-wrap gap-2">
+                  <form method="POST" action="{{ url_for('complaints.update_store_complaint_status', complaint_id=c._id) }}" class="d-flex gap-2 flex-grow-1">
+                    <select name="status" class="form-select form-select-sm" aria-label="Update complaint status">
+                      <option value="pending" {% if c.status == 'pending' %}selected{% endif %}>Pending</option>
+                      <option value="in_progress" {% if c.status == 'in_progress' %}selected{% endif %}>In Progress</option>
+                      <option value="resolved" {% if c.status == 'resolved' %}selected{% endif %}>Resolved</option>
+                      <option value="rejected" {% if c.status == 'rejected' %}selected{% endif %}>Rejected</option>
+                    </select>
+                    <button class="btn btn-sm btn-outline-primary" type="submit">Update</button>
+                  </form>
+                  <form method="POST" action="{{ url_for('complaints.forward_store_complaint_to_admin', complaint_id=c._id) }}">
+                    <button class="btn btn-sm btn-dark" type="submit" {% if c.forwarded_to_admin %}disabled{% endif %}>
+                      <i class="bi bi-send me-1"></i>{{ 'Forwarded' if c.forwarded_to_admin else 'Forward to Admin' }}
+                    </button>
+                  </form>
+                </div>
+              {% endif %}
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p class="text-muted">No complaints found for the selected filters.</p>
+    {% endif %}
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

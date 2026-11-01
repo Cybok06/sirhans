@@ -1,7 +1,6 @@
 <div class="d-flex flex-wrap align-items-center gap-2">
   <a href="/check-status{% if report_store_slug %}?store={{ report_store_slug|urlencode }}{% endif %}" class="btn btn-outline-primary btn-cta">Check Order Status</a>
   <button type="button" class="btn btn-warning btn-cta" data-bs-toggle="modal" data-bs-target="#orderReportGuideModal">Report Issue</button>
-  <a href="https://wa.me/233550455256" class="btn btn-success btn-cta" target="_blank" rel="noopener noreferrer" aria-label="Chat on WhatsApp with +233550455256"><i class="bi bi-whatsapp me-1" aria-hidden="true"></i>WhatsApp</a>
 </div>
 <div class="modal fade" id="orderReportGuideModal" tabindex="-1" aria-labelledby="orderReportGuideTitle" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
@@ -24,6 +23,9 @@
       <button type="button" class="btn delivery-report-button" data-bs-toggle="modal" data-bs-target="#failedReceiptModal" data-report-type="delivery_issue">Report</button>
     </div>
   </div>
+        <div class="border-top mt-4 pt-3 text-center">
+          <a href="https://wa.me/233208165203" class="btn btn-success d-inline-flex align-items-center gap-2" target="_blank" rel="noopener noreferrer" aria-label="Customer Care Service on WhatsApp at +233208165203">Customer Care Service <i class="bi bi-whatsapp fs-5" aria-hidden="true"></i></a>
+        </div>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>

@@ -1,8 +1,8 @@
-import os
 from flask import Blueprint, render_template, session, redirect, url_for, request, flash
 from bson import ObjectId
 from datetime import datetime
 import requests, json
+import os
 
 from db import db
 
@@ -45,7 +45,7 @@ def deposit_page():
         user_id=session["user_id"],
         email=email,
         phone=phone,
-        paystack_pk=PAYSTACK_PUBLIC_KEY,     # ✅ send hardcoded PK to UI
+        paystack_pk=PAYSTACK_PUBLIC_KEY,     # Public key used by Paystack checkout
         deposit_fee_rate=DEPOSIT_FEE_RATE,   # 2% sent to UI
     )
 

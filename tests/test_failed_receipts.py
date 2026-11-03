@@ -260,6 +260,51 @@ class FailedReceiptTests(unittest.TestCase):
             {'phone': '0551234567', 'service_name': 'MTN'}]})
         self.assertEqual(self.client.post('/api/failed-receipts', json=self.payload).status_code, 201)
 
+    def test_all_closed_statuses_allow_new_reports_on_both_pages_and_buttons(self):
+        self.db.stores.insert_one({'slug': 'ama', 'name': 'Ama Store'})
+        with self.client.session_transaction() as session:
+            session.update(role='admin', user_id=str(ObjectId()))
+        for status in ('resolved', 'declined', 'rejected', 'cancelled'):
+            for source in ('index', 'store'):
+                for report_type in ('no_receipt', 'delivery_issue'):
+                    with self.subTest(status=status, source=source, report_type=report_type):
+                        self.db.failed_receipts.delete_many({})
+                        slug = 'ama' if source == 'store' else ''
+                        self.payload.update(submission_id=str(uuid4()), source=source, store_slug=slug,
+                                            catalog_token=self.catalog_token(source, slug), report_type=report_type)
+                        self.payload['entries'] = [{'phone': '0240000000', 'service_id': 'mtn', 'offer_index': 0}]
+                        self.assertEqual(self.client.post('/api/failed-receipts', json=self.payload).status_code, 201)
+                        original_id = self.payload['submission_id']
+                        self.payload['submission_id'] = str(uuid4())
+                        self.assert_duplicate()
+                        status_url = f'/admin/failed-receipts/{original_id}/0/status'
+                        self.assertEqual(self.client.post(status_url, data={'csrf_token': 'test-token', 'status': status}).status_code, 302)
+                        self.assertNotIn('duplicate_keys', self.db.failed_receipts.find_one({'_id': original_id}))
+                        self.assertEqual(self.client.post('/api/failed-receipts', json=self.payload).status_code, 201)
+                        self.payload['submission_id'] = str(uuid4())
+                        self.assert_duplicate()
+                        # A closed report cannot be reopened over the new active report.
+                        self.client.post(status_url, data={'csrf_token': 'test-token', 'status': 'unresolved'})
+                        self.assertEqual(self.db.failed_receipts.find_one({'_id': original_id})['entries'][0]['status'], status)
+
+    def test_old_closed_reports_release_stale_keys_without_unblocking_unresolved_rows(self):
+        for status in ('declined', 'rejected', 'cancelled'):
+            with self.subTest(status=status):
+                self.db.failed_receipts.delete_many({})
+                self.payload.update(submission_id=str(uuid4()))
+                self.payload['entries'] = [{'phone': '0240000000', 'service_id': 'mtn', 'offer_index': 0},
+                                          {'phone': '0200000000', 'service_id': 'mtn', 'offer_index': 1}]
+                self.assertEqual(self.client.post('/api/failed-receipts', json=self.payload).status_code, 201)
+                original_id = self.payload['submission_id']
+                self.db.failed_receipts.update_one({'_id': original_id}, {'$set': {'entries.0.status': status}})
+                self.payload.update(submission_id=str(uuid4()))
+                self.payload['entries'] = [self.payload['entries'][0]]
+                self.assertEqual(self.client.post('/api/failed-receipts', json=self.payload).status_code, 201)
+                self.assertEqual(self.db.failed_receipts.find_one({'_id': original_id})['duplicate_keys'], ['0200000000:mtn'])
+                self.payload.update(submission_id=str(uuid4()))
+                self.payload['entries'][0]['phone'] = '0200000000'
+                self.assert_duplicate()
+
     def test_simultaneous_duplicate_insert_returns_popup_code(self):
         from pymongo.errors import DuplicateKeyError
         with patch.object(self.module.reports_col, 'insert_one', side_effect=DuplicateKeyError('duplicate issue')):

@@ -160,6 +160,35 @@ class ReceiptRecoveryTests(unittest.TestCase):
             checkout.assert_not_called()
         self.assertEqual(self.entry()['placement_state'], 'attention')
 
+    def test_closed_report_claim_does_not_block_new_issue_replacement(self):
+        from copy import deepcopy
+        from datetime import datetime, timedelta, timezone
+        from uuid import uuid4
+        original = self.db.failed_receipts.find_one({'_id': self.report_id})
+        for status in ('declined', 'rejected', 'cancelled'):
+            with self.subTest(status=status):
+                self.db.failed_receipts.delete_many({})
+                self.db.failed_receipts.insert_one(deepcopy(original))
+                self.report_id = original['_id']
+                old_id = self.report_id
+                self.db.failed_receipts.update_one({'_id': old_id}, {'$set': {
+                    'entries.0.status': status, 'entries.0.placement_state': 'attention',
+                    'entries.0.status_updated_at': datetime.now(timezone.utc) - timedelta(seconds=1)}})
+                self.db.failed_receipt_recovery_claims.delete_many({})
+                self.db.failed_receipt_recovery_claims.insert_one({'_id': '0240000000:mtn', 'report_id': old_id, 'entry_index': 0})
+                self.payload.update(submission_id=str(uuid4()))
+                self.payload['entries'] = [self.payload['entries'][0]]
+                self.assertEqual(self.client.post('/api/failed-receipts', json=self.payload).status_code, 201)
+                self.report_id = self.payload['submission_id']
+                self.base = f'/admin/failed-receipts/{self.report_id}/0'
+                self.start()
+                with patch.object(self.recovery, '_checkout', side_effect=self.place_order) as checkout:
+                    self.assertTrue(self.place().get_json()['success'])
+                    self.assertTrue(self.place().get_json()['success'])
+                    self.assertEqual(checkout.call_count, 1)
+                self.assertEqual(self.db.failed_receipt_recovery_claims.find_one({'_id': '0240000000:mtn'})['report_id'], self.report_id)
+                self.db.orders.delete_many({})
+
     def test_csrf_ticket_and_role_are_required(self):
         self.assertEqual(self.client.get(self.base + '/source').status_code, 403)
         self.assertEqual(self.client.post(self.base + '/start', data={}).status_code, 403)

@@ -14,6 +14,7 @@ from db import db
 failed_receipts_bp = Blueprint('failed_receipts', __name__)
 reports_col = db['failed_receipts']
 DUPLICATE_MESSAGE = 'This issue has Already Being Submitted,Please wait , we are working on it'
+CLOSED_RECEIPT_STATUSES = frozenset(('resolved', 'declined', 'rejected', 'cancelled'))
 
 
 def receipt_issue_key(entry):
@@ -38,14 +39,14 @@ def update_receipt_entry(report_id, entry_index, fields, conditions=None):
         report = reports_col.find_one({'_id': report_id})
         entries = report['entries']
         status = fields.get(f'entries.{entry_index}.status', entries[entry_index].get('status'))
-        if status != 'resolved' and entries[entry_index].get('status') == 'resolved':
+        if status not in CLOSED_RECEIPT_STATUSES and entries[entry_index].get('status') in CLOSED_RECEIPT_STATUSES:
             issue = receipt_issue_key(entries[entry_index])
             phones = receipt_phone_variants(entries[entry_index]['phone'])
             for other in reports_col.find({'_id': {'$ne': report_id}, 'entries.phone': {'$in': phones}}):
-                if any(row.get('status') != 'resolved' and receipt_issue_key(row) == issue for row in other.get('entries', [])):
+                if any(row.get('status') not in CLOSED_RECEIPT_STATUSES and receipt_issue_key(row) == issue for row in other.get('entries', [])):
                     raise DuplicateKeyError('Another unresolved report exists for this issue.')
         keys = list(dict.fromkeys(receipt_issue_key(entry) for index, entry in enumerate(entries)
-                                  if (status if index == entry_index else entry.get('status')) != 'resolved'))
+                                  if (status if index == entry_index else entry.get('status')) not in CLOSED_RECEIPT_STATUSES))
         query = dict(conditions or {}, _id=report_id, entries=entries)
         update = {'$set': dict(fields)}
         if keys:
@@ -58,8 +59,8 @@ def update_receipt_entry(report_id, entry_index, fields, conditions=None):
     raise PyMongoError('Report changed while updating its duplicate protection.')
 
 
-def is_new_issue_after_resolution(current, previous_report, previous_entry):
-    if previous_entry.get('status') != 'resolved':
+def is_new_issue_after_closure(current, previous_report, previous_entry):
+    if previous_entry.get('status') not in CLOSED_RECEIPT_STATUSES:
         return False
     resolved_at = previous_entry.get('status_updated_at') or previous_report.get('submitted_at')
     submitted_at = current.get('submitted_at')
@@ -84,7 +85,7 @@ def claim_receipt_recovery(report_id, entry_index, entry):
                 continue
             if receipt_issue_key(previous) != issue:
                 continue
-            if is_new_issue_after_resolution(current, report, previous):
+            if is_new_issue_after_closure(current, report, previous):
                 continue
             if (previous.get('placement_state') in ('placing', 'attention', 'placed')
                     or previous.get('order_id') or previous.get('order_ids')
@@ -100,7 +101,7 @@ def claim_receipt_recovery(report_id, entry_index, entry):
         previous_report = reports_col.find_one({'_id': (previous_claim or {}).get('report_id')})
         previous_index = (previous_claim or {}).get('entry_index', -1)
         if previous_report and 0 <= previous_index < len(previous_report.get('entries', [])):
-            if is_new_issue_after_resolution(current, previous_report, previous_report['entries'][previous_index]):
+            if is_new_issue_after_closure(current, previous_report, previous_report['entries'][previous_index]):
                 if claims.replace_one(previous_claim, claim).matched_count:
                     return
         raise ValueError('This issue already has a replacement in progress or recorded. No second order was submitted.') from None
@@ -240,14 +241,14 @@ def submit():
         phones = list({phone for entry in clean for phone in receipt_phone_variants(entry['phone'])})
         keys = set(issue_keys)
         for previous in reports_col.find({'entries.phone': {'$in': phones}}, {'entries': 1, 'duplicate_keys': 1}):
-            if any(receipt_issue_key(entry) in keys and entry.get('status') != 'resolved'
+            if any(receipt_issue_key(entry) in keys and entry.get('status') not in CLOSED_RECEIPT_STATUSES
                    for entry in previous.get('entries', []) if entry.get('phone')):
                 return duplicate_receipt_response()
-            # Release reservations left by reports resolved before this update.
+            # Release reservations left by reports closed before this update.
             # Compare the entire entries snapshot so a concurrent reopen cannot
             # lose its reservation.
             active_keys = list(dict.fromkeys(receipt_issue_key(entry) for entry in previous.get('entries', [])
-                                            if entry.get('status') != 'resolved'))
+                                            if entry.get('status') not in CLOSED_RECEIPT_STATUSES))
             if 'duplicate_keys' in previous:
                 change = ({'$set': {'duplicate_keys': active_keys}} if active_keys
                           else {'$unset': {'duplicate_keys': ''}})

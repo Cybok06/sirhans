@@ -197,7 +197,7 @@ def register_receipt_recovery(bp, reports_col, *, route_root='/admin/failed-rece
         # Rechecking an already resolved report must not move its resolution
         # date past a later, legitimate report for the same phone and service.
         _, entry = get_entry(report_id, entry_index)
-        if entry.get('status') == 'resolved' and success and entry.get('status_updated_at'):
+        if entry.get('status') in ('resolved', 'declined', 'rejected', 'cancelled') and success and entry.get('status_updated_at'):
             fields[prefix + 'status_updated_at'] = entry['status_updated_at']
         try:
             save_entry(report_id, entry_index, fields)

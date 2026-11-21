@@ -34,6 +34,9 @@ def admin_view_transactions():
     query = {}
 
     if order_id:
+        # An order lookup identifies a payment across all accounts and dates.
+        # Stale filters must not hide guest payments or older orders.
+        customer_id = start_date = end_date = ""
         exact_id = {"$regex": "^" + re.escape(order_id) + "$", "$options": "i"}
         references = {order_id}
         for order in orders_col.find({"order_id": exact_id}, {

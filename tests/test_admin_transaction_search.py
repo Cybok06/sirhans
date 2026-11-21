@@ -48,16 +48,31 @@ class AdminTransactionSearchTests(unittest.TestCase):
         result = self.search(order_id='HAN123-2')
         self.assertEqual({t['reference'] for t in result['transactions']}, {'PAYSTACK123', 'HAN123'})
 
-    def test_search_combines_customer_dates_and_pagination(self):
+    def test_customer_and_date_filters_still_work_without_order_id(self):
         user_id = ObjectId()
         self.db.transactions.insert_many([{'reference': 'HAN123', 'user_id': user_id,
             'verified_at': datetime(2026, 11, 20)} for _ in range(11)] + [
             {'reference': 'HAN123', 'user_id': ObjectId(), 'verified_at': datetime(2026, 11, 20)},
             {'reference': 'HAN123', 'user_id': user_id, 'verified_at': datetime(2026, 11, 19)}])
-        result = self.search(order_id='HAN123', customer=str(user_id), start_date='2026-11-20',
+        result = self.search(customer=str(user_id), start_date='2026-11-20',
                              end_date='2026-11-20', page=2)
         self.assertEqual(result['total_pages'], 2)
         self.assertEqual(len(result['transactions']), 1)
+
+    def test_guest_order_lookup_ignores_stale_customer_and_date_filters(self):
+        reference = 'SIRHANS_1794985473959_XY47LI9M'
+        self.db.orders.insert_one({'order_id': 'HAN7783132', 'paystack_reference': reference,
+                                   'debug': {'bulk_group_order_id': 'HAN1258202'}})
+        self.db.transactions.insert_one({'reference': reference, 'user_id': None,
+            'source': 'paystack_inline', 'status': 'success', 'amount': 4.46,
+            'verified_at': datetime(2026, 11, 18, 7, 5, 2)})
+        result = self.search(order_id='HAN7783132', customer=str(ObjectId()),
+                             start_date='2026-11-21', end_date='2026-11-21', page=9)
+        self.assertEqual([t['reference'] for t in result['transactions']], [reference])
+        self.assertEqual(result['selected_customer'], '')
+        self.assertEqual(result['start_date'], '')
+        self.assertEqual(result['end_date'], '')
+        self.assertEqual(result['page'], 1)
 
     def test_unknown_or_regex_input_does_not_match_every_transaction(self):
         self.db.transactions.insert_one({'reference': 'HAN123'})

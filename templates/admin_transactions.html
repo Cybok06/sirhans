@@ -187,7 +187,8 @@
           <div>
             <label for="order-id" class="form-label fw-semibold">Order ID</label>
             <input id="order-id" type="search" name="order_id" value="{{ order_id or '' }}"
-                   class="form-control" placeholder="e.g. HAN9829486">
+                   class="form-control" placeholder="e.g. HAN9829486" aria-describedby="order-id-help">
+            <div id="order-id-help" class="customer-help">Order ID searches all customers and dates.</div>
           </div>
           <div>
             <label class="form-label fw-semibold">Customer</label>

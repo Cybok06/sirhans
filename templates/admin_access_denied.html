@@ -1,0 +1,10 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Page access - SIR HANS</title></head>
+<body>
+{% include 'admin_sidebar.html' %}
+<main class="customer-content"><div class="card p-4 mt-5">
+<h1 class="h3">{{ 'Page access restricted' if landing else 'No pages assigned' }}</h1>
+<p>{{ 'Your account does not have permission to open this page.' if landing else 'Contact your administrator to assign pages to your account.' }}</p>
+{% if landing %}<a href="{{ url_for(landing) }}">Go to my pages</a>{% endif %}
+</div></main>
+</body></html>

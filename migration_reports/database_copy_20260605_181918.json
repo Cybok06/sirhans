@@ -1,0 +1,208 @@
+{
+  "mode": "dry_run",
+  "source_database": "sirhans",
+  "target_database": "sirhans_2",
+  "drop_target": false,
+  "started_at_utc": "2026-06-05 18:19:13.575558+00:00",
+  "collections": [
+    {
+      "name": "order_export_batches",
+      "source_documents": 227,
+      "copied_documents": 0,
+      "target_documents_after": null,
+      "indexes": []
+    },
+    {
+      "name": "images",
+      "source_documents": 16,
+      "copied_documents": 0,
+      "target_documents_after": null,
+      "indexes": []
+    },
+    {
+      "name": "fs.files",
+      "source_documents": 149,
+      "copied_documents": 0,
+      "target_documents_after": null,
+      "indexes": []
+    },
+    {
+      "name": "balances",
+      "source_documents": 253,
+      "copied_documents": 0,
+      "target_documents_after": null,
+      "indexes": []
+    },
+    {
+      "name": "service_profits",
+      "source_documents": 1,
+      "copied_documents": 0,
+      "target_documents_after": null,
+      "indexes": []
+    },
+    {
+      "name": "announcements",
+      "source_documents": 9,
+      "copied_documents": 0,
+      "target_documents_after": null,
+      "indexes": []
+    },
+    {
+      "name": "carts",
+      "source_documents": 200,
+      "copied_documents": 0,
+      "target_documents_after": null,
+      "indexes": []
+    },
+    {
+      "name": "services",
+      "source_documents": 5,
+      "copied_documents": 0,
+      "target_documents_after": null,
+      "indexes": []
+    },
+    {
+      "name": "store_products",
+      "source_documents": 5,
+      "copied_documents": 0,
+      "target_documents_after": null,
+      "indexes": []
+    },
+    {
+      "name": "login_logs",
+      "source_documents": 19534,
+      "copied_documents": 0,
+      "target_documents_after": null,
+      "indexes": []
+    },
+    {
+      "name": "transactions",
+      "source_documents": 24273,
+      "copied_documents": 0,
+      "target_documents_after": null,
+      "indexes": []
+    },
+    {
+      "name": "store_payout_logs",
+      "source_documents": 46,
+      "copied_documents": 0,
+      "target_documents_after": null,
+      "indexes": []
+    },
+    {
+      "name": "store_payouts",
+      "source_documents": 40,
+      "copied_documents": 0,
+      "target_documents_after": null,
+      "indexes": []
+    },
+    {
+      "name": "referrals",
+      "source_documents": 67,
+      "copied_documents": 0,
+      "target_documents_after": null,
+      "indexes": []
+    },
+    {
+      "name": "orders",
+      "source_documents": 20986,
+      "copied_documents": 0,
+      "target_documents_after": null,
+      "indexes": []
+    },
+    {
+      "name": "afa_settings",
+      "source_documents": 1,
+      "copied_documents": 0,
+      "target_documents_after": null,
+      "indexes": []
+    },
+    {
+      "name": "visits",
+      "source_documents": 1,
+      "copied_documents": 0,
+      "target_documents_after": null,
+      "indexes": []
+    },
+    {
+      "name": "balance_logs",
+      "source_documents": 2574,
+      "copied_documents": 0,
+      "target_documents_after": null,
+      "indexes": []
+    },
+    {
+      "name": "afa_registrations",
+      "source_documents": 33,
+      "copied_documents": 0,
+      "target_documents_after": null,
+      "indexes": []
+    },
+    {
+      "name": "stores",
+      "source_documents": 91,
+      "copied_documents": 0,
+      "target_documents_after": null,
+      "indexes": []
+    },
+    {
+      "name": "store_accounts",
+      "source_documents": 40,
+      "copied_documents": 0,
+      "target_documents_after": null,
+      "indexes": []
+    },
+    {
+      "name": "complaints",
+      "source_documents": 16,
+      "copied_documents": 0,
+      "target_documents_after": null,
+      "indexes": []
+    },
+    {
+      "name": "order_schedules",
+      "source_documents": 656,
+      "copied_documents": 0,
+      "target_documents_after": null,
+      "indexes": []
+    },
+    {
+      "name": "password_resets",
+      "source_documents": 13,
+      "copied_documents": 0,
+      "target_documents_after": null,
+      "indexes": []
+    },
+    {
+      "name": "users",
+      "source_documents": 254,
+      "copied_documents": 0,
+      "target_documents_after": null,
+      "indexes": []
+    },
+    {
+      "name": "store_withdraw_requests",
+      "source_documents": 58,
+      "copied_documents": 0,
+      "target_documents_after": null,
+      "indexes": []
+    },
+    {
+      "name": "fs.chunks",
+      "source_documents": 477,
+      "copied_documents": 0,
+      "target_documents_after": null,
+      "indexes": []
+    },
+    {
+      "name": "payment_sessions",
+      "source_documents": 11025,
+      "copied_documents": 0,
+      "target_documents_after": null,
+      "indexes": []
+    }
+  ],
+  "total_source_documents": 81050,
+  "total_copied_documents": 0,
+  "finished_at_utc": "2026-06-05 18:19:18.557287+00:00"
+}

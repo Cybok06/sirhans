@@ -1,0 +1,35 @@
+{% if receipt_recovery %}
+<style>
+  .receipt-recovery-overlay{position:fixed;inset:0;z-index:2500;display:flex;align-items:center;justify-content:center;background:rgba(10,26,47,.72);padding:1rem;backdrop-filter:blur(3px)}
+  .receipt-recovery-panel{background:#fff;color:#172033;border-radius:18px;padding:1.5rem;width:100%;max-width:520px;box-shadow:0 20px 70px #0004}
+</style>
+<div class="receipt-recovery-overlay" role="dialog" aria-modal="true" aria-labelledby="recoveryTitle">
+  <div class="receipt-recovery-panel">
+    <h2 id="recoveryTitle" class="h4 fw-bold">Placing reported order</h2>
+    <p class="mb-2">{{ receipt_recovery.cart[0].serviceName }} · {{ receipt_recovery.cart[0].value_text }}</p>
+    <p class="fw-bold">{{ receipt_recovery.cart[0].phone }}</p>
+    <div id="recoveryProgress" role="status" aria-live="polite">Loading the source-page cart…</div>
+    <p class="small text-muted mt-3">Admin payment override. No new payment will be collected.</p>
+    <a href="{{ receipt_recovery.return_url }}" class="btn btn-outline-secondary mt-2">Return to {{ receipt_recovery.return_label or 'Failed/No receipt' }}</a>
+  </div>
+</div>
+<script>
+window.receiptRecovery = {{ receipt_recovery|tojson }};
+window.runReceiptRecovery = async loadCart => {
+  const config=window.receiptRecovery, progress=document.getElementById('recoveryProgress');
+  if (config.started) return;
+  config.started=true;
+  try {
+    loadCart(config.cart);
+    progress.textContent='Cart loaded. Placing through normal order processing…';
+    const response=await fetch(config.place_url, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({csrf_token:config.csrf_token,token:config.token})});
+    const result=await response.json();
+    progress.textContent=result.message || 'Placement finished. Returning to admin…';
+    // The authoritative report holds the outcome, including API errors.
+    window.location.assign(config.return_url);
+  } catch(error){
+    progress.textContent='The connection was interrupted. Return to admin and use Check placement to recover the existing result.';
+  }
+};
+</script>
+{% endif %}

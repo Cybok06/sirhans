@@ -14,6 +14,7 @@ from pymongo.errors import DuplicateKeyError
 
 from announcement_utils import get_active_announcements
 from db import db
+from results_checker_visibility import results_checker_display
 from deposit import PAYSTACK_PUBLIC_KEY as DEPOSIT_PAYSTACK_PK
 from deposit import PAYSTACK_SECRET_KEY as DEPOSIT_PAYSTACK_SK
 
@@ -446,7 +447,8 @@ def load_services_for_landing(*, include_hidden=False) -> Tuple[List[Dict[str, A
 
         services.append(s)
 
-    services.append(_build_results_checker_service())
+    if include_hidden or results_checker_display(services_col.database) == "ON":
+        services.append(_build_results_checker_service())
     return services, []
 
 

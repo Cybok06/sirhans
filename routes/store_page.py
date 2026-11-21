@@ -26,6 +26,7 @@ from flask import (
 
 from announcement_utils import get_active_announcements
 from db import db
+from results_checker_visibility import results_checker_display
 import gridfs
 from deposit import PAYSTACK_PUBLIC_KEY as DEPOSIT_PAYSTACK_PK
 from deposit import PAYSTACK_SECRET_KEY as DEPOSIT_PAYSTACK_SK
@@ -1161,11 +1162,12 @@ def _load_all_services_for_store_edit() -> List[Dict[str, Any]]:
         s["offers"] = new_off
         s["offers_source"] = "store_offers" if (isinstance(r.get("store_offers"), list) and r.get("store_offers")) else "offers"
         clean.append(s)
-    clean.append(_build_results_checker_service())
+    if results_checker_display(services_col.database) == "ON":
+        clean.append(_build_results_checker_service())
     return clean
 
 def _load_services_for_store_view(scope: str, ids: List[str], *, include_hidden=False) -> List[Dict[str, Any]]:
-    include_results_checker = False
+    include_results_checker = not (scope == "selected" and ids)
     q: Dict[str, Any] = {}
     if scope == "selected" and ids:
         valid_ids: List[ObjectId] = []
@@ -1213,7 +1215,7 @@ def _load_services_for_store_view(scope: str, ids: List[str], *, include_hidden=
     for s in raw:
         s["_id_str"] = str(s["_id"])
         s.update(_service_state(s))
-    if include_results_checker:
+    if include_results_checker and (include_hidden or results_checker_display(services_col.database) == "ON"):
         raw.append(_build_results_checker_service())
     return raw
 

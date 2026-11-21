@@ -24,6 +24,7 @@ class ReceiptCheckoutFlowTests(unittest.TestCase):
             cls.recovery = importlib.import_module('receipt_recovery')
             cls.receipts = importlib.import_module('failed_receipts')
             cls.access = importlib.import_module('admin_access')
+            cls.admin_services = importlib.import_module('admin_services')
 
     def setUp(self):
         self.db = mongomock.MongoClient().test
@@ -32,10 +33,11 @@ class ReceiptCheckoutFlowTests(unittest.TestCase):
         self.app.register_blueprint(self.index.index_bp)
         self.app.register_blueprint(self.store.stores_bp)
         self.app.register_blueprint(self.receipts.failed_receipts_bp)
+        self.app.register_blueprint(self.admin_services.admin_services_bp)
         self.addCleanup(patch.stopall)
         patch.object(self.store, '_save_store_order_batch',
                      side_effect=lambda docs: self.db.orders.insert_many(docs)).start()
-        for module in [self.worker, self.index, self.store]:
+        for module in [self.worker, self.index, self.store, self.admin_services]:
             for name in vars(module):
                 if name.endswith('_col'):
                     old = getattr(module, name)
@@ -193,6 +195,43 @@ class ReceiptCheckoutFlowTests(unittest.TestCase):
             self.assertEqual('admin_override', order['payment_status'])
             self.assertEqual(0, order['amount_collected'])
             self.assertEqual('TEST-TELECEL', order['items'][0]['provider_reference'])
+
+    def test_results_checker_display_control_hides_buying_but_preserves_reports(self):
+        service_id = 'results_checker_service'
+        self.db.wassce_checker.insert_one({'type': 'wassce', 'status': 'not_sold', 'amount': 20})
+        client = self.app.test_client()
+        with client.session_transaction() as session:
+            session['role'] = 'admin'
+        for display in ('ON', 'OFF', 'ON'):
+            response = client.post(f'/admin/services/{service_id}/display', json={'display': display})
+            self.assertEqual(response.status_code, 200)
+            self.assertEqual(response.json['display'], display)
+            self.assertEqual(self.db.service_settings.find_one({'_id': service_id})['display'], display)
+            public, _ = self.index.load_services_for_landing()
+            for catalog in (public, self.store.load_priced_store_services(self.store_doc),
+                            self.store._load_services_for_store_view('selected', [service_id]),
+                            self.store._load_all_services_for_store_edit()):
+                self.assertEqual(service_id in [s['_id_str'] for s in catalog], display == 'ON')
+            public_reports, _ = self.index.load_services_for_landing(include_hidden=True)
+            store_reports = self.store.load_priced_store_services(self.store_doc, include_hidden=True)
+            for catalog in (public_reports, store_reports):
+                self.assertIn(service_id, [s['_id_str'] for s in catalog])
+            with patch.object(self.admin_services, 'render_template', return_value='ok') as render:
+                self.assertEqual(client.get('/admin/services').status_code, 200)
+                self.assertEqual(render.call_args.kwargs['results_checker_display'], display)
+
+    def test_results_checker_display_defaults_on_and_requires_admin(self):
+        service_id = 'results_checker_service'
+        public, _ = self.index.load_services_for_landing()
+        self.assertIn(service_id, [s['_id_str'] for s in public])
+        client = self.app.test_client()
+        url = f'/admin/services/{service_id}/display'
+        self.assertEqual(client.post(url, json={'display': 'OFF'}).status_code, 401)
+        self.assertEqual(self.db.service_settings.count_documents({}), 0)
+        with client.session_transaction() as session:
+            session['role'] = 'admin'
+        self.assertEqual(client.post(url, json={'display': 'invalid'}).status_code, 400)
+        self.assertEqual(self.db.service_settings.count_documents({}), 0)
 
     def test_hidden_services_remain_reportable_on_both_pages(self):
         for flag in ('display', 'public_display', 'store_display'):

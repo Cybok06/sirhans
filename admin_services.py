@@ -12,6 +12,7 @@ import re
 from ast import literal_eval
 from bundle_portal import PROVIDERS as BUNDLE_PORTAL_PROVIDERS, supports_service as bundle_portal_supports_service, configured as bundle_portal_configured
 from collections import defaultdict
+from results_checker_visibility import RESULTS_CHECKER_SERVICE_ID, results_checker_display
 
 admin_services_bp = Blueprint("admin_services", __name__)
 services_col = db["services"]
@@ -328,6 +329,7 @@ def manage_services():
     customers = [{"_id": str(u["_id"]), "name": _display_name(u)} for u in users_cursor]
 
     return render_template("admin_services.html", services=services, customers=customers,
+                           results_checker_display=results_checker_display(services_col.database),
                            bundle_portal_supports_service=bundle_portal_supports_service)
 
 @admin_services_bp.route("/admin/services/create", methods=["POST"])
@@ -654,7 +656,7 @@ def set_service_display(service_id):
     if not _require_admin():
         return jsonify({"success": False, "error": "Unauthorized"}), 401
     try:
-        _id = ObjectId(service_id)
+        _id = service_id if service_id == RESULTS_CHECKER_SERVICE_ID else ObjectId(service_id)
     except Exception:
         return jsonify({"success": False, "error": "Invalid service id"}), 400
 
@@ -666,6 +668,14 @@ def set_service_display(service_id):
     display_val = _norm_display_flag(raw)
     if not display_val:
         return jsonify({"success": False, "error": "display must be 'ON' or 'OFF'"}), 400
+
+    if service_id == RESULTS_CHECKER_SERVICE_ID:
+        services_col.database["service_settings"].update_one(
+            {"_id": RESULTS_CHECKER_SERVICE_ID},
+            {"$set": {"display": display_val, "updated_at": datetime.utcnow()}},
+            upsert=True,
+        )
+        return jsonify({"success": True, "service_id": service_id, "display": display_val})
 
     res = services_col.update_one(
         {"_id": _id},

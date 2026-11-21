@@ -115,9 +115,9 @@ class FailedReceiptTests(unittest.TestCase):
         self.assertIn('after 24 hours', html)
         self.assertIn('data-report-type="no_receipt"', html)
         self.assertIn('data-report-type="delivery_issue"', html)
-        self.assertIn('data-report-type="waiting"', html)
-        self.assertIn('data-report-type="unverified"', html)
-        self.assertEqual(html.count('data-bs-target="#failedReceiptModal"'), 4)
+        self.assertNotIn('data-report-type="waiting"', html)
+        self.assertNotIn('data-report-type="unverified"', html)
+        self.assertEqual(html.count('data-bs-target="#failedReceiptModal"'), 2)
         self.assertIn('/check-status?store=ama%20store', html)
 
     def assert_duplicate(self):

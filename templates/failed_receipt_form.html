@@ -70,9 +70,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (selected !== reportType) { submissionId = null; feedback.classList.add('d-none'); }
     const types = {
       no_receipt: {title: 'No Receipt - Request a Replacement', color: 'btn-danger', help: 'First check your order status. Use this form if you paid but your order is not showing for that date.'},
-      delivery_issue: {title: 'Report - Data Not Received', color: 'btn-success', help: 'Use this form if your order shows DELIVERED, or you received your receipt, but your data has not arrived after 24 hours.'},
-      waiting: {title: 'Waiting - Order Status Report', color: 'btn-warning', help: 'Use this form if your order shows Waiting. Submit the purchase details for support to review.'},
-      unverified: {title: 'Unverified - Payment Review', color: 'btn-info', help: 'Use this form if you paid but your order shows Unverified. Submit the purchase details so support can check the payment.'}
+      delivery_issue: {title: 'Report - Data Not Received', color: 'btn-success', help: 'Use this form if your order shows DELIVERED, or you received your receipt, but your data has not arrived after 24 hours.'}
     };
     reportType = Object.hasOwn(types, selected) ? selected : 'no_receipt';
     const type = types[reportType];

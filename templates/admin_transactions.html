@@ -244,6 +244,7 @@
               <tr>
                 <th class="text-center" style="width:70px;">#</th>
                 <th>Customer</th>
+                <th class="text-center" style="width:180px;">Order ID</th>
                 <th class="text-center" style="width:160px;">Source</th>
                 <th class="text-end" style="width:160px;">Amount (₵)</th>
                 <th class="text-center" style="width:220px;">Reference</th>
@@ -265,6 +266,14 @@
                   <div class="small text-muted">
                     <i class="bi bi-telephone me-1"></i>{{ txn.user.phone or 'N/A' }}
                   </div>
+                </td>
+
+                <td class="text-center">
+                  {% for linked_order_id in txn.order_ids %}
+                    <div class="ref">{{ linked_order_id }}</div>
+                  {% else %}
+                    <span class="text-muted">N/A</span>
+                  {% endfor %}
                 </td>
 
                 <td class="text-center">
@@ -297,7 +306,7 @@
               </tr>
               {% else %}
               <tr>
-                <td colspan="5">
+                <td colspan="7">
                   <div class="empty text-center">
                     <div class="display-6 mb-1"><i class="bi bi-inbox"></i></div>
                     <div class="fw-semibold">No transactions found</div>

@@ -80,6 +80,68 @@ class AdminTransactionSearchTests(unittest.TestCase):
         self.assertEqual(self.search(order_id='missing')['transactions'], [])
         self.assertEqual(len(self.search()['transactions']), 1)
 
+    def test_order_ids_and_sources_resolve_public_store_and_dashboard_orders(self):
+        self.db.orders.insert_many([
+            {'order_id': 'HAN7783132', 'paystack_reference': 'PAYSTACK123',
+             'paid_from': 'public_paystack', 'channel': 'public_web'},
+            {'order_id': 'HANSTORE', 'store_slug': 'brains-data-hub', 'channel': 'store_checkout'},
+            {'order_id': 'HANWALLET', 'paid_from': 'wallet'},
+        ])
+        self.db.transactions.insert_many([
+            {'reference': 'PAYSTACK123', 'user_id': None, 'type': 'debit', 'source': 'paystack_inline'},
+            {'reference': 'HANSTORE', 'type': 'debit', 'meta': {'store_checkout': True}},
+            {'reference': 'HANWALLET', 'type': 'purchase'},
+            {'reference': 'TOPUP123', 'type': 'deposit'},
+        ])
+        rows = {t['reference']: t for t in self.search()['transactions']}
+        for reference, order_id, source in (
+                ('PAYSTACK123', 'HAN7783132', 'Index Page'),
+                ('HANSTORE', 'HANSTORE', 'Store'),
+                ('HANWALLET', 'HANWALLET', 'Customer Dashboard')):
+            self.assertEqual(rows[reference]['order_ids'], [order_id])
+            self.assertEqual(rows[reference]['source_label'], source)
+        self.assertEqual(rows['TOPUP123']['order_ids'], [])
+        self.assertEqual(rows['TOPUP123']['source_label'], 'Account Deposit')
+
+    def test_split_order_ids_are_all_shown_without_unrelated_orders(self):
+        self.db.orders.insert_many([
+            {'order_id': 'HAN123', 'paystack_reference': 'PAY123',
+             'debug': {'bulk_group_order_id': 'HAN123'}, 'channel': 'public_web'},
+            {'order_id': 'HAN456', 'payment_reference': 'PAY123',
+             'debug': {'bulk_group_order_id': 'HAN123'}, 'channel': 'public_web'},
+            {'order_id': 'HAN999', 'payment_reference': 'OTHER'},
+        ])
+        self.db.transactions.insert_one({'reference': 'PAY123', 'type': 'debit'})
+        row = self.search()['transactions'][0]
+        self.assertEqual(row['order_ids'], ['HAN123', 'HAN456'])
+        self.assertEqual(row['source_label'], 'Index Page')
+
+    def test_source_uses_origin_instead_of_logged_in_customer_or_payment_channel(self):
+        rows = [
+            {'user_id': ObjectId(), 'type': 'debit', 'source': 'paystack_inline'},
+            {'type': 'debit', 'channel': 'arkesel_ussd'},
+            {'type': 'debit', 'channel': 'arkesel_ussd', 'meta': {'store_slug': 'ama'}},
+            {'type': 'debit', 'channel': 'mobile_money'},
+        ]
+        self.module._attach_order_details(rows)
+        self.assertEqual([r['source_label'] for r in rows], ['Index Page', 'USSD', 'Store', 'Other'])
+
+    def test_table_renders_order_id_separately_from_payment_reference(self):
+        from flask import render_template
+        from jinja2 import ChoiceLoader, DictLoader, FileSystemLoader
+        self.app.jinja_loader = ChoiceLoader([
+            DictLoader({'admin_sidebar.html': ''}),
+            FileSystemLoader(str(Path(__file__).resolve().parents[1] / 'templates'))])
+        self.render.side_effect = render_template
+        self.db.orders.insert_one({'order_id': 'HAN7783132', 'paystack_reference': 'PAYSTACK123',
+                                   'channel': 'public_web'})
+        self.db.transactions.insert_one({'reference': 'PAYSTACK123', 'amount': 4.46, 'type': 'debit'})
+        html = self.client.get('/admin/transactions').get_data(as_text=True)
+        self.assertIn('>Order ID</th>', html)
+        self.assertIn('HAN7783132</div>', html)
+        self.assertIn('PAYSTACK123</span>', html)
+        self.assertIn('Index Page', html)
+
     def test_requires_admin(self):
         with self.client.session_transaction() as session:
             session.clear()

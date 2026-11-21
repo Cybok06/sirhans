@@ -32,7 +32,7 @@
       <div class="modal-body">
         <p id="receiptTypeHelp" class="fw-semibold">First check your order status. Use this form if you paid but your order is not showing for that date.</p>
         <p>Enter the recipient phone number, then select the service and offer purchased. Add another entry to report multiple purchases together.</p>
-        <p class="small text-muted">Only one unresolved report is allowed per phone number and service, across both No Receipt and Report buttons and all stores. Once your report is resolved, declined, rejected, or cancelled, you can submit a new issue.</p>
+        <p class="small text-muted">Only one unresolved report is allowed per phone number and service, across all report types and stores. Once your report is resolved, declined, rejected, or cancelled, you can submit a new issue.</p>
         <div id="receiptFeedback" class="alert d-none" role="status" aria-live="polite"></div>
         <div id="receiptEntries" class="d-grid gap-3"></div>
         <button type="button" class="btn btn-outline-secondary mt-3" id="addReceiptEntry"><i class="bi bi-plus-lg me-1"></i> Add another</button>
@@ -68,13 +68,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const selected = event.relatedTarget?.getAttribute('data-report-type') || reportType;
     if (busy) { event.preventDefault(); return; }
     if (selected !== reportType) { submissionId = null; feedback.classList.add('d-none'); }
-    reportType = selected === 'delivery_issue' ? 'delivery_issue' : 'no_receipt';
-    const delivery = reportType === 'delivery_issue';
-    document.getElementById('failedReceiptTitle').textContent = delivery ? 'Report — Data Not Received' : 'No Receipt — Request a Replacement';
-    document.getElementById('receiptTypeHelp').textContent = delivery
-      ? 'Use this form if your order shows DELIVERED, or you received your receipt, but your data has not arrived after 24 hours.'
-      : 'First check your order status. Use this form if you paid but your order is not showing for that date.';
-    submit.className = `btn ${delivery ? 'btn-success' : 'btn-danger'} px-4`;
+    const types = {
+      no_receipt: {title: 'No Receipt - Request a Replacement', color: 'btn-danger', help: 'First check your order status. Use this form if you paid but your order is not showing for that date.'},
+      delivery_issue: {title: 'Report - Data Not Received', color: 'btn-success', help: 'Use this form if your order shows DELIVERED, or you received your receipt, but your data has not arrived after 24 hours.'},
+      waiting: {title: 'Waiting - Order Status Report', color: 'btn-warning', help: 'Use this form if your order shows Waiting. Submit the purchase details for support to review.'},
+      unverified: {title: 'Unverified - Payment Review', color: 'btn-info', help: 'Use this form if you paid but your order shows Unverified. Submit the purchase details so support can check the payment.'}
+    };
+    reportType = Object.hasOwn(types, selected) ? selected : 'no_receipt';
+    const type = types[reportType];
+    document.getElementById('failedReceiptTitle').textContent = type.title;
+    document.getElementById('receiptTypeHelp').textContent = type.help;
+    submit.className = `btn ${type.color} px-4`;
   });
   const newId = () => crypto.randomUUID ? crypto.randomUUID() : '10000000-1000-4000-8000-100000000000'.replace(/[018]/g, c => (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16));
   function refresh(){

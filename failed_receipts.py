@@ -15,6 +15,7 @@ failed_receipts_bp = Blueprint('failed_receipts', __name__)
 reports_col = db['failed_receipts']
 DUPLICATE_MESSAGE = 'This issue has Already Being Submitted,Please wait , we are working on it'
 CLOSED_RECEIPT_STATUSES = frozenset(('resolved', 'declined', 'rejected', 'cancelled'))
+REPORT_TYPES = frozenset(('no_receipt', 'delivery_issue', 'waiting', 'unverified'))
 
 
 def receipt_issue_key(entry):
@@ -171,7 +172,7 @@ def submit():
         return jsonify(success=False, message='Please refresh the page and try again.'), 403
     source = data.get('source')
     report_type = data.get('report_type', 'no_receipt')
-    if report_type not in ('no_receipt', 'delivery_issue'):
+    if report_type not in REPORT_TYPES:
         return jsonify(success=False, message='Select a valid report type.'), 400
     entries = data.get('entries')
     if source not in ('index', 'store') or not isinstance(entries, list) or not 1 <= len(entries) <= 50:
@@ -280,7 +281,7 @@ def admin_page():
     if status_filter not in ('resolved', 'unresolved', 'declined', 'rejected', 'cancelled'):
         status_filter = ''
     type_filter = request.args.get('report_type', '')
-    if type_filter not in ('no_receipt', 'delivery_issue'):
+    if type_filter not in REPORT_TYPES:
         type_filter = ''
     type_query = {}
     if type_filter == 'no_receipt':

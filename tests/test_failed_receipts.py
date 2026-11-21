@@ -88,6 +88,24 @@ class FailedReceiptTests(unittest.TestCase):
         empty = self.client.get('/admin/failed-receipts?report_type=delivery_issue&status=unresolved').get_data(as_text=True)
         self.assertNotIn('data-phone=', empty)
 
+    def test_waiting_and_unverified_reports_are_saved_and_filterable(self):
+        for report_type, phone, label in (('waiting', '0240000000', 'Waiting'),
+                                          ('unverified', '0551234567', 'Unverified')):
+            self.payload.update(submission_id=str(uuid4()), report_type=report_type)
+            self.payload['entries'] = [{'phone': phone, 'service_id': 'mtn', 'offer_index': 0}]
+            self.assertEqual(self.client.post('/api/failed-receipts', json=self.payload).status_code, 201)
+            self.assertEqual(self.db.failed_receipts.find_one({'_id': self.payload['submission_id']})['report_type'], report_type)
+        with self.client.session_transaction() as session:
+            session['role'] = 'admin'
+        for report_type, phone, other, label in (
+                ('waiting', '0240000000', '0551234567', 'Waiting'),
+                ('unverified', '0551234567', '0240000000', 'Unverified')):
+            html = self.client.get('/admin/failed-receipts', query_string={
+                'report_type': report_type, 'status': 'unresolved'}).get_data(as_text=True)
+            self.assertIn(f'data-phone="{phone}"', html)
+            self.assertNotIn(f'data-phone="{other}"', html)
+            self.assertIn(f'>{label}</span>', html)
+
     def test_both_pages_include_shared_reporting_guide(self):
         for page in ('index.html', 'store_page.html'):
             self.assertIn("{% include 'order_report_actions.html' %}", (ROOT / 'templates' / page).read_text(encoding='utf-8'))
@@ -97,7 +115,9 @@ class FailedReceiptTests(unittest.TestCase):
         self.assertIn('after 24 hours', html)
         self.assertIn('data-report-type="no_receipt"', html)
         self.assertIn('data-report-type="delivery_issue"', html)
-        self.assertEqual(html.count('data-bs-target="#failedReceiptModal"'), 2)
+        self.assertIn('data-report-type="waiting"', html)
+        self.assertIn('data-report-type="unverified"', html)
+        self.assertEqual(html.count('data-bs-target="#failedReceiptModal"'), 4)
         self.assertIn('/check-status?store=ama%20store', html)
 
     def assert_duplicate(self):
@@ -266,7 +286,7 @@ class FailedReceiptTests(unittest.TestCase):
             session.update(role='admin', user_id=str(ObjectId()))
         for status in ('resolved', 'declined', 'rejected', 'cancelled'):
             for source in ('index', 'store'):
-                for report_type in ('no_receipt', 'delivery_issue'):
+                for report_type in ('no_receipt', 'delivery_issue', 'waiting', 'unverified'):
                     with self.subTest(status=status, source=source, report_type=report_type):
                         self.db.failed_receipts.delete_many({})
                         slug = 'ama' if source == 'store' else ''

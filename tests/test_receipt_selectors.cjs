@@ -66,19 +66,22 @@ test('multiple entries keep their selections independent',()=>{
   assert.equal(ids.receiptEntries.children[1].querySelector('.receipt-offer').children.length,2);
 });
 
-test('red and green buttons send their type using the same purchase fields',async()=>{
+test('all four report buttons send their type using the same purchase fields',async()=>{
   const ids=browser({ok:false,json:async()=>({success:false,message:'Try again'})});
   const row=ids.receiptEntries.children[0];
   selectService(row,0);
   row.querySelector('.receipt-phone').value='0240000000';
   row.querySelector('.receipt-offer').value='0';
-  for (const type of ['delivery_issue', 'no_receipt']) {
+  for (const type of ['delivery_issue', 'no_receipt', 'waiting', 'unverified']) {
     ids.failedReceiptModal.events['show.bs.modal']({relatedTarget:{getAttribute:()=>type}});
     await ids.failedReceiptForm.events.submit({preventDefault(){}});
     assert.equal(ids.payload.report_type,type);
     assert.equal(ids.payload.entries[0].phone,'0240000000');
     assert.equal(ids.payload.entries[0].service_id,'mtn');
-    assert.match(ids.submitReceiptEntries.className,type==='delivery_issue' ? /btn-success/ : /btn-danger/);
+    const colors = {delivery_issue:'btn-success', no_receipt:'btn-danger', waiting:'btn-warning', unverified:'btn-info'};
+    assert.ok(ids.submitReceiptEntries.className.includes(colors[type]));
+    if (type === 'waiting') assert.match(ids.failedReceiptTitle.textContent, /Waiting/);
+    if (type === 'unverified') assert.match(ids.failedReceiptTitle.textContent, /Unverified/);
   }
 });
 

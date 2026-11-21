@@ -25,6 +25,8 @@
     <a class="btn btn-outline-secondary {% if not type_filter %}active{% endif %}" href="{{ filter_url(report_type='') }}">All report types</a>
     <a class="btn btn-outline-danger {% if type_filter == 'no_receipt' %}active{% endif %}" href="{{ filter_url(status=status_filter, report_type='no_receipt') }}">🔴 No Receipt</a>
     <a class="btn btn-outline-success {% if type_filter == 'delivery_issue' %}active{% endif %}" href="{{ filter_url(status=status_filter, report_type='delivery_issue') }}">🟢 Report — Data Not Received</a>
+    <a class="btn btn-outline-warning {% if type_filter == 'waiting' %}active{% endif %}" href="{{ filter_url(status=status_filter, report_type='waiting') }}">Waiting</a>
+    <a class="btn btn-outline-info {% if type_filter == 'unverified' %}active{% endif %}" href="{{ filter_url(status=status_filter, report_type='unverified') }}">Unverified</a>
   </div>
   <div class="d-flex flex-wrap gap-2 mb-3">
     <a class="btn btn-outline-secondary {% if not status_filter %}active{% endif %}" href="{{ filter_url(status='') }}">All ({{ total }})</a>
@@ -37,7 +39,9 @@
   {% for report in reports %}
   <article class="receipt-report">
     <h2 class="h5 fw-bold">{% if report.source == 'store' %}{{ report.store_name }} <span class="badge bg-primary">Store page</span>{% else %}Index page <span class="badge bg-secondary">Index</span>{% endif %}</h2>
-    <p><span class="badge {% if report.get('report_type', 'no_receipt') == 'delivery_issue' %}bg-success">🟢 Report — Data Not Received{% else %}bg-danger">🔴 No Receipt{% endif %}</span></p>
+    {% set report_labels = {'no_receipt': ('bg-danger', 'No Receipt'), 'delivery_issue': ('bg-success', 'Report - Data Not Received'), 'waiting': ('bg-warning text-dark', 'Waiting'), 'unverified': ('bg-info text-dark', 'Unverified')} %}
+    {% set report_label = report_labels.get(report.get('report_type', 'no_receipt'), report_labels['no_receipt']) %}
+    <p><span class="badge {{ report_label[0] }}">{{ report_label[1] }}</span></p>
     <div class="receipt-meta mb-3">
       {% if report.source == 'store' %}<span>Store owner: <strong>{{ report.store_owner_name }}</strong></span>{% endif %}
       <span>Customer: <strong>{{ report.customer_name }}</strong></span>

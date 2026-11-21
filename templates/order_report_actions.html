@@ -13,6 +13,16 @@
   <p class="fw-bold mb-2">🔎 FIRST, CHECK YOUR ORDER STATUS!</p>
   <div class="row g-3">
     <div class="col-md-6">
+      <p class="fw-bold mb-1">WAITING ORDER STATUS</p>
+      <p>Is your order showing Waiting? Send the order details for support to review.</p>
+      <button type="button" class="btn btn-warning fw-bold" data-bs-toggle="modal" data-bs-target="#failedReceiptModal" data-report-type="waiting">1. Waiting</button>
+    </div>
+    <div class="col-md-6">
+      <p class="fw-bold mb-1">UNVERIFIED ORDER STATUS</p>
+      <p>Have you paid, but your order is showing Unverified? Send the details so support can check your payment.</p>
+      <button type="button" class="btn btn-info fw-bold" data-bs-toggle="modal" data-bs-target="#failedReceiptModal" data-report-type="unverified">2. Unverified</button>
+    </div>
+    <div class="col-md-6">
       <p class="fw-bold mb-1">🔴 RED NO RECEIPT BUTTON</p>
       <p>Have you paid, but your order is not showing on the website for that particular date?<br>👉 After checking your order status, click the RED NO RECEIPT BUTTON to request a replacement.</p>
       <button type="button" class="btn failed-receipt-button" data-bs-toggle="modal" data-bs-target="#failedReceiptModal" data-report-type="no_receipt">No Receipt</button>

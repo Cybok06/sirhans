@@ -197,5 +197,76 @@ class UndeliveredExportTests(unittest.TestCase):
         module.transactions_col.insert_one.assert_not_called()
 
 
+class AdminReviewStatusTests(unittest.TestCase):
+    def setUp(self):
+        from flask import Flask
+        self.module = _load_admin_orders()
+        for name in ('orders_col', 'balances_col', 'transactions_col', 'schedules_col'):
+            setattr(self.module, name, MagicMock())
+        self.app = Flask(__name__)
+        self.app.secret_key = 'test-only'
+        self.app.register_blueprint(self.module.admin_orders_bp)
+        self.client = self.app.test_client()
+        with self.client.session_transaction() as session:
+            session.update(role='admin', user_id=str(self.module.ObjectId()))
+
+    def test_manual_waiting_and_unverified_update_order_and_every_line(self):
+        for status in ('waiting', 'unverified'):
+            with self.subTest(status=status):
+                oid = self.module.ObjectId()
+                self.module.orders_col.find_one.return_value = {
+                    '_id': oid, 'status': 'processing', 'items': [{'line_status': 'processing'}]}
+                self.module.orders_col.update_one.return_value.modified_count = 1
+                response = self.client.post(f'/admin/orders/{oid}/update?status=processing',
+                                            data={'status': status.upper()})
+                self.assertEqual(response.status_code, 302)
+                update = self.module.orders_col.update_one.call_args.args[1]['$set']
+                self.assertEqual(update['status'], status)
+                self.assertEqual(update['items.$[].line_status'], status)
+                self.assertNotIn('delivered_at', update)
+                self.assertNotIn('refunded_at', update)
+                self.module.balances_col.update_one.assert_not_called()
+                self.module.transactions_col.insert_one.assert_not_called()
+
+    def test_review_statuses_can_be_filtered_and_scheduled(self):
+        for status in ('waiting', 'unverified'):
+            with self.subTest(status=status):
+                query = self.module._build_query_from_params({'status': status})
+                self.assertEqual(query['status'], status)
+                oid = str(self.module.ObjectId())
+                response = self.client.post('/admin/orders/schedule-status', data={
+                    'status': status, 'order_ids': oid, 'delay_minutes': '10'})
+                self.assertEqual(response.status_code, 302)
+                job = self.module.schedules_col.insert_one.call_args.args[0]
+                self.assertEqual(job['status'], status)
+                self.assertEqual(job['order_ids'], [oid])
+
+    def test_unsupported_status_still_rejected(self):
+        oid = str(self.module.ObjectId())
+        response = self.client.post(f'/admin/orders/{oid}/update', data={'status': 'not-a-status'})
+        self.assertEqual(response.status_code, 302)
+        self.module.orders_col.update_one.assert_not_called()
+
+    def test_review_status_actions_and_badges_render_on_desktop_and_mobile(self):
+        from pathlib import Path
+        from flask import render_template
+        from jinja2 import ChoiceLoader, DictLoader, FileSystemLoader
+        self.app.jinja_loader = ChoiceLoader([
+            DictLoader({'admin_sidebar.html': ''}),
+            FileSystemLoader(str(Path(__file__).resolve().parents[1] / 'templates'))])
+        orders = [{'_id': self.module.ObjectId(), 'order_id': f'HAN{index}',
+                   'user': {}, 'items': [], 'status': status, 'refund_base_amount': 0,
+                   'created_at': datetime(2026, 11, 21)}
+                  for index, status in enumerate(('waiting', 'unverified'))]
+        with self.app.test_request_context('/admin/orders'):
+            html = render_template('admin_orders.html', orders=orders, order_scope='all',
+                order_scope_counts={}, filters_query='', page=1, total_pages=1, total_orders=2,
+                export_services=[], export_networks=[], export_sources=[])
+        for status in ('waiting', 'unverified'):
+            self.assertEqual(html.count(f'name="status" value="{status}"'), 4)
+            self.assertEqual(html.count(f'<option value="{status}"'), 2)
+            self.assertEqual(html.count(f"st-{status}\n"), 2)
+
+
 if __name__ == "__main__":
     unittest.main()

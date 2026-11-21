@@ -29,7 +29,7 @@ services_col      = db["services"]
 export_batches_col = db["order_export_batches"]
 
 # Keep legacy; primary set includes refunded
-ALLOWED_STATUSES   = {"pending", "processing", "delivered", "failed", "completed", "refunded", "cancelled"}
+ALLOWED_STATUSES   = {"pending", "processing", "delivered", "failed", "completed", "refunded", "cancelled", "waiting", "unverified"}
 ALLOWED_SORTS      = {"newest", "oldest", "amount_desc", "amount_asc"}
 ALLOWED_ORDER_SCOPES = {"all", "single", "bulk"}
 DEFAULT_PER_PAGE   = 10
@@ -1175,6 +1175,8 @@ def update_order_status(order_id):
     updated, errors = _apply_status_change([oid], new_status, reason="manual", actor_admin_id=session.get("user_id"))
     if updated:
         msg = {
+            "waiting": "Order marked as Waiting.",
+            "unverified": "Order marked as Unverified.",
             "processing": "✅ Order marked as Processing.",
             "delivered": "✅ Order marked as Delivered.",
             "failed": "✅ Order marked as Failed.",

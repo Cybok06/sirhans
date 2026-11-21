@@ -80,6 +80,8 @@
     .st-cancelled{color:#475569;background:#f1f5f9;border-color:#cbd5e1}
     .st-refunded{color:var(--violet);background:var(--violet-soft);border-color:#c7d2fe}
     .st-pending{color:var(--warn);background:var(--warn-soft);border-color:#fde68a}
+    .st-waiting{color:#92400e;background:#fffbeb;border-color:#fde68a}
+    .st-unverified{color:#6d28d9;background:#f5f3ff;border-color:#ddd6fe}
     .st-completed{color:var(--teal);background:var(--teal-soft);border-color:#99f6e4}
 
     /* Provider badges — FINAL STANDARD */
@@ -282,7 +284,7 @@
           <label class="form-label"><i class="fa-solid fa-clipboard-check me-1"></i>Status</label>
           <select name="status" class="form-select">
             <option value="">All</option>
-            {% for s in ['processing','delivered','failed','refunded','cancelled','pending','completed'] %}
+            {% for s in ['processing','delivered','failed','refunded','cancelled','pending','completed','waiting','unverified'] %}
               <option value="{{ s }}" {% if s == status_filter %}selected{% endif %}>{{ s|capitalize }}</option>
             {% endfor %}
           </select>
@@ -454,6 +456,8 @@
                   {% elif st=='refunded' %}st-refunded
                   {% elif st=='pending' %}st-pending
                   {% elif st=='completed' %}st-completed
+                  {% elif st=='waiting' %}st-waiting
+                  {% elif st=='unverified' %}st-unverified
                   {% else %}st-processing{% endif %}">
                   <i class="fa-solid fa-circle"></i> {{ st|capitalize }}
                   </span>
@@ -465,7 +469,7 @@
 
                 <!-- Inline actions tray (desktop) -->
                 <div class="status-actions mt-2" id="actions-{{ order['_id'] }}">
-                  {% for newst in ['failed','refunded','cancelled','processing','delivered'] %}
+                  {% for newst in ['failed','refunded','cancelled','processing','delivered','waiting','unverified'] %}
                   <form method="POST" class="m-0 d-inline"
                         action="{{ url_for('admin_orders.update_order_status', order_id=order['_id']) }}{% if filters_query %}?{{ filters_query }}{% endif %}">
                     <input type="hidden" name="status" value="{{ newst }}">
@@ -587,6 +591,8 @@
                   {% elif st=='refunded' %}st-refunded
               {% elif st=='pending' %}st-pending
               {% elif st=='completed' %}st-completed
+                  {% elif st=='waiting' %}st-waiting
+                  {% elif st=='unverified' %}st-unverified
               {% else %}st-processing{% endif %}">
               <i class="fa-solid fa-circle"></i> {{ st|capitalize }}
             </span>
@@ -657,7 +663,7 @@
             <i class="fa-solid fa-ellipsis"></i> Actions
           </button>
           <div class="card-actions hidden" id="card-actions-{{ order['_id'] }}">
-            {% for newst in ['delivered','processing','failed','refunded','cancelled'] %}
+            {% for newst in ['delivered','processing','failed','refunded','cancelled','waiting','unverified'] %}
             <form method="POST" action="{{ url_for('admin_orders.update_order_status', order_id=order['_id']) }}{% if filters_query %}?{{ filters_query }}{% endif %}">
               <input type="hidden" name="status" value="{{ newst }}">
               <button type="submit"
@@ -945,7 +951,7 @@
             <div class="col-12">
               <label class="form-label">New Status</label>
               <select name="status" class="form-select" required>
-                {% for s in ['processing','delivered','failed','refunded','cancelled','pending','completed'] %}
+                {% for s in ['processing','delivered','failed','refunded','cancelled','pending','completed','waiting','unverified'] %}
                   <option value="{{ s }}">{{ s|capitalize }}</option>
                 {% endfor %}
               </select>
